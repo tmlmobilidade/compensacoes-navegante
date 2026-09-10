@@ -14,6 +14,9 @@
 
 source(here::here("code", "config.R"))
 
+# Usar ponto como separador decimal nos prints de verificação (os CSVs já usam vírgula via write.csv2)
+options(OutDec = ".")
+
 recibos_dir <- file.path(DATA_DIR, "Recibos B")
 
 # ---- Funções auxiliares ------------------------------------------------------
@@ -77,6 +80,22 @@ PT_raw <- PT_raw |>
     operador_total     = as.numeric(operador_total)
   )
 
+# ---- Recodificar linha ticket_code = -1 como ticket 1020 ----------------------
+# Alguns Recibos B (CA, TB) têm uma linha especial com ticket_operator_code=-1 e
+# ticket_code=-1 que representa passageiros de títulos gratuitos (VaT, ticket 1020
+# = Navegante 12 Criança, pvp=0) que o sistema não conseguiu associar a um ticket
+# específico. A colega inclui estes passageiros atribuindo-os ao ticket 1020.
+# Apenas CA e TB têm operador_total > 0 nesta linha; todos os outros têm 0.
+PT_raw <- PT_raw |>
+  dplyr::mutate(
+    ticket_operator_code = dplyr::if_else(
+      ticket_operator_code == -1L & ticket_code == -1L, 31L, ticket_operator_code
+    ),
+    ticket_code = dplyr::if_else(
+      ticket_operator_code == 31L & ticket_code == -1L, 1020L, ticket_code
+    )
+  )
+
 # Verificar colunas essenciais
 stopifnot(all(c("ticket_code", "operador_total", "operador") %in% names(PT_raw)))
 
@@ -113,9 +132,21 @@ if (nrow(cm_subops_raw) > 0) {
 PT_raw <- PT_raw |>
   dplyr::mutate(operador_final = dplyr::if_else(operador %in% CM_SUBOPS, "CM", operador))
 
+# ---- Excluir Recibo B do SL do cálculo de PT ----------------------------------
+# O Recibo B entregue pelo operador TT contém na coluna OPERADOR_TOTAL os
+# passageiros CONJUNTOS de TT + SL (os dois operadores partilham o mesmo Recibo B
+# no sistema). O Recibo B separado do SL tem valores diferentes e duplicaria os
+# passageiros do SL se somado ao do TT.
+# Verificação: TT_Recibo_B_total = TT_Excel + SL_Excel (exacto ticket a ticket).
+# Para o PT, usa-se APENAS o Recibo B do TT (que já inclui o SL).
+# O Recibo B do SL é mantido para o cálculo de RECEITAS (transações), onde
+# os dois operadores têm contratos de receita independentes.
+PT_raw_pt <- PT_raw |>
+  dplyr::filter(operador != "SL")
+
 # Agregar PT por ticket_code e operador_final
 # (soma operador_total; sistema_total é o mesmo para todos — manter o max)
-PT_mesano <- PT_raw |>
+PT_mesano <- PT_raw_pt |>
   group_by(
     distribution_year, distribution_month,
     ticket_operator_code, ticket_code,
@@ -133,7 +164,7 @@ PT_mesano <- PT_raw |>
   dplyr::filter(!operador %in% c("SC"))   # Scotturb
 
 # Manter apenas linhas com ticket_operator_code == 31 (Navegante)
-# e excluir ticket_code == -1 (linha de totais/inválidos)
+# ticket_code=-1 já foi recodificado como 1020 acima, por isso o filtro > 0 é seguro
 PT_mesano <- PT_mesano |>
   filter(ticket_operator_code == 31, ticket_code > 0)
 
@@ -233,15 +264,20 @@ message("  ", rx_out)
 
 # ---- Verificações básicas ----------------------------------------------------
 cat("\n--- Verificação: totais PT por operador ---\n")
+cat("(Nota: TT inclui TT+SL — Recibo B de TT agrega ambos os operadores)\n")
 PT_mesano |>
   group_by(operador) |>
   summarise(total_pt = sum(pt_operador)) |>
+  dplyr::mutate(total_pt_fmt = scales::number(total_pt, big.mark = ".", decimal.mark = ",", accuracy = 1)) |>
   arrange(desc(total_pt)) |>
+  dplyr::select(operador, total_pt, total_pt_fmt) |>
   print()
 
 cat("\n--- Verificação: receita total por operador (€) ---\n")
 receitas_titulo_mesano |>
   group_by(operador) |>
   summarise(receita_total = sum(receita_operador)) |>
+  dplyr::mutate(receita_fmt = scales::number(receita_total, big.mark = ".", decimal.mark = ",", accuracy = 0.01)) |>
   arrange(desc(receita_total)) |>
+  dplyr::select(operador, receita_total, receita_fmt) |>
   print()
