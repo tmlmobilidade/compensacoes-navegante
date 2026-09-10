@@ -1,0 +1,146 @@
+﻿titulo_nome;ticket_code;ticket_code_base;ticket_code_base_modalidade
+Navegante Metropolitano;900;900;
+Navegante Alcochete;901;901;
+Navegante Almada;902;902;
+Navegante Amadora;903;903;
+Navegante Barreiro;904;904;
+Navegante Cascais;905;905;
+Navegante Lisboa;906;906;
+Navegante Loures;907;907;
+Navegante Mafra;908;908;
+Navegante Moita;909;909;
+Navegante Montijo;910;910;
+Navegante Odivelas;911;911;
+Navegante Oeiras;912;912;
+Navegante Palmela;913;913;
+Navegante Seixal;914;914;
+Navegante Sesimbra;915;915;
+Navegante Setúbal;916;916;
+Navegante Sintra;917;917;
+Navegante Vila Franca de Xira;918;918;
+Navegante Setúbal Residente;920;916;
+Navegante +65;930;900;
+Navegante +65 cPT B;931;930;932
+Navegante +65 cPT A;932;930;931
+Navegante Metropolitano Família;990;900;
+Navegante Alcochete Família;991;901;
+Navegante Almada Família;992;902;
+Navegante Amadora Família;993;903;
+Navegante Barreiro Família;994;904;
+Navegante Cascais Família;995;905;
+Navegante Lisboa Família;996;906;
+Navegante Loures Família;997;907;
+Navegante Mafra Família;998;908;
+Navegante Moita Família;999;909;
+Navegante Montijo Família;1000;910;
+Navegante Odivelas Família;1001;911;
+Navegante Oeiras Família;1002;912;
+Navegante Palmela Família;1003;913;
+Navegante Seixal Família;1004;914;
+Navegante Sesimbra Família;1005;915;
+Navegante Setúbal Família;1006;916;
+Navegante Sintra Família;1007;917;
+Navegante Vila Franca de Xira Família;1008;918;
+Navegante 12;1020;900;
+PAC navegante Metropolitano;1050;900;
+PAC navegante Alcochete;1051;901;
+PAC navegante Almada;1052;902;
+PAC navegante Amadora;1053;903;
+PAC navegante Barreiro;1054;904;
+PAC navegante Cascais;1055;905;
+PAC navegante Lisboa;1056;906;
+PAC navegante Loures;1057;907;
+PAC navegante Mafra;1058;908;
+PAC navegante Moita;1059;909;
+PAC navegante Montijo;1060;910;
+PAC navegante Odivelas;1061;911;
+PAC navegante Oeiras;1062;912;
+PAC navegante Palmela;1063;913;
+PAC navegante Seixal;1064;914;
+PAC navegante Sesimbra;1065;915;
+PAC navegante Setúbal;1066;916;
+PAC navegante Sintra;1067;917;
+PAC navegante Vila Franca de Xira;1068;918;
+PAC navegante +65;1069;900;
+Navegante Metropolitano Social +;5920;900;5950
+Navegante Alcochete Social +;5921;901;5951
+Navegante Almada Social +;5922;902;5952
+Navegante Amadora Social +;5923;903;5953
+Navegante Barreiro Social +;5924;904;5954
+Navegante Cascais Social +;5925;905;5955
+Navegante Lisboa Social +;5926;906;5956
+Navegante Loures Social +;5927;907;5957
+Navegante Mafra Social +;5928;908;5958
+Navegante Moita Social +;5929;909;5959
+Navegante Montijo Social +;5930;910;5960
+Navegante Odivelas Social +;5931;911;5961
+Navegante Oeiras Social +;5932;912;5962
+Navegante Palmela Social +;5933;913;5963
+Navegante Seixal Social +;5934;914;5964
+Navegante Sesimbra Social +;5935;915;5965
+Navegante Setúbal Social +;5936;916;5966
+Navegante Sintra Social +;5937;917;5967
+Navegante Vila Franca de Xira Social +;5938;918;5968
+Navegante Setúbal Residente cPT B;5940;916;5936
+Navegante Metropolitano Social + (A);5950;900;5920
+Navegante Alcochete Social + (A);5951;901;5921
+Navegante Almada Social + (A);5952;902;5922
+Navegante Amadora Social + (A);5953;903;5923
+Navegante Barreiro Social + (A);5954;904;5924
+Navegante Cascais Social + (A);5955;905;5925
+Navegante Lisboa Social + (A);5956;906;5926
+Navegante Loures Social + (A);5957;907;5927
+Navegante Mafra Social + (A);5958;908;5928
+Navegante Moita Social + (A);5959;909;5929
+Navegante Montijo Social + (A);5960;910;5930
+Navegante Odivelas Social + (A);5961;911;5931
+Navegante Oeiras Social + (A);5962;912;5932
+Navegante Palmela Social + (A);5963;913;5933
+Navegante Seixal Social + (A);5964;914;5934
+Navegante Sesimbra Social + (A);5965;915;5935
+Navegante Setúbal Social + (A);5966;916;5936
+Navegante Sintra Social + (A);5967;917;5937
+Navegante Vila Franca de Xira Social + (A);5968;918;5938
+Navegante Setúbal Residente cPT A;5970;916;5966
+Navegante Metropolitano 418/sub23;6150;900;7650
+Navegante Alcochete 418/sub23;6151;901;7651
+Navegante Amadora 418/sub23;6153;903;7653
+Navegante Barreiro 418/sub23;6154;904;7654
+Navegante Cascais 418/sub23;6155;905;7655
+Navegante Lisboa 418/sub23;6156;906;7656
+Navegante Loures 418/sub23;6157;907;7657
+Navegante Mafra 418/sub23;6158;908;7658
+Navegante Moita 418/sub23;6159;909;7659
+Navegante Montijo 418/sub23;6160;910;7660
+Navegante Odivelas 418/sub23;6161;911;7661
+Navegante Oeiras 418/sub23;6162;912;7662
+Navegante Palmela 418/sub23;6163;913;7663
+Navegante Seixal 418/sub23;6164;914;7664
+Navegante Sesimbra 418/sub23;6165;915;7665
+Navegante Setúbal 418/sub23;6166;916;7666
+Navegante Sintra 418/sub23;6167;917;7667
+Navegante Vila Franca de Xira 418/sub23;6168;918;7668
+Navegante Almada 418/sub23;6169;902;7669
+Navegante Lisboa 418/sub23 GL;6171;906;7671
+Navegante Metropolitano 418/sub23 (A);7650;900;6150
+Navegante Alcochete 418/sub23 (A);7651;901;6151
+Navegante Amadora 418/sub23 (A);7653;903;6153
+Navegante Barreiro 418/sub23 (A);7654;904;6154
+Navegante Cascais 418/sub23 (A);7655;905;6155
+Navegante Lisboa 418/sub23 (A);7656;906;6156
+Navegante Loures 418/sub23 (A);7657;907;6157
+Navegante Mafra 418/sub23 (A);7658;908;6158
+Navegante Moita 418/sub23 (A);7659;909;6159
+Navegante Montijo 418/sub23 (A);7660;910;6160
+Navegante Odivelas 418/sub23 (A);7661;911;6161
+Navegante Oeiras 418/sub23 (A);7662;912;6162
+Navegante Palmela 418/sub23 (A);7663;913;6163
+Navegante Seixal 418/sub23 (A);7664;914;6164
+Navegante Sesimbra 418/sub23 (A);7665;915;6165
+Navegante Setúbal 418/sub23 (A);7666;916;6166
+Navegante Sintra 418/sub23 (A);7667;917;6167
+Navegante Vila Franca de Xira 418/sub23 (A);7668;918;6168
+Navegante Almada 418/sub23 (A);7669;902;6169
+Navegante Lisboa 418/sub23 (A) GL;7671;906;6171
+Navegante Metropolitano Sub18 +TP;6180;900;6181
+Navegante Metropolitano Sub23 +TP;6181;900;6180

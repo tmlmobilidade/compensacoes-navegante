@@ -1,0 +1,73 @@
+﻿ENTITY_ID;ENTITY_NAME;ENTITY_CODE;ENTITY_ABBREVIATION;OPERATOR_NAME_NAVEGANTE;ENTITY_ROOT;ENTITY_TYPE_ID;NAME_KEY;OPERATOR_LONG_ID;CREATION_DATE;UPDATE_DATE;ACTIVE
+22;Cascais Próxima;21;CAP;AT Cascais;0;1;entity.cap.name;21;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+75;Carris Metropolitana;90;CM;AT TML - CM;0;1;entity.cm.name;;2022-05-31 14:59:45.000;2022-05-31 14:59:45.000;1
+14;Barraqueiro Transportes;13;BQ;BT Oeste;0;1;entity.bq.name;13;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+2;Carris;1;CA;Carris;0;1;entity.ca.name;1;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+4;CP;3;CP;CP;0;1;entity.cp.name;3;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+16;Fertagus;15;FT;FT;0;1;entity.ft.name;15;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+3;Metropolitano;2;ML;ML;0;1;entity.ml.name;2;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+17;Metro Transportes do Sul;16;MS;MTS;0;1;entity.mts.name;16;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+8;Soflusa;7;SL;SL;0;1;entity.sl.name;7;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+9;Transportes Colectivos do Barreiro;8;TB;TCB;0;1;entity.tcb.name;8;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+5;Transtejo;4;TT;TT;0;1;entity.tt.name;4;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+1;AML;0;AML;;1;1;entity.aml.name;0;2015-11-04 17:51:44.000;2015-11-04 17:51:44.000;1
+6;Transportes Sul do Tejo;5;TS;;0;1;entity.tst.name;5;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+7;Rodoviária de Lisboa;6;RL;;0;1;entity.rl.name;6;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+10;Vimeca;9;VT;;0;1;entity.vt.name;9;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+11;Scotturb;10;SC;;0;1;entity.sc.name;10;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+12;JJ/ID/HLM;11;AG;;0;1;entity.ag.name;11;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+13;Isidoro Duarte;12;ID;;0;1;entity.id.name;12;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+15;Joaquim Jerónimo;14;JJ;;0;1;entity.jj.name;14;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+18;CP Nacional;17;CPN;;0;1;entity.cpn.name;;2015-11-04 18:10:47.000;2015-11-04 18:10:47.000;1
+20;Atlantic Ferries;63;AF;;0;1;entity.af.name;;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;0
+23;Portal VIVA;22;PV;;0;1;entity.pv.name;23;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+24;EMEL;23;EM;;0;1;entity.em.name;;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+25;Rodoviária do Tejo;24;RT;;0;1;entity.rt.name;24;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+26;Canal Internet;61;CI;;0;1;entity.ci.name;;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;0
+27;CTT;62;CT;;0;1;entity.ctt.name;;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;0
+28;ATLx;27;AT;;0;1;entity.at.name;;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+29;Payshop;28;PS;;0;1;entity.ps.name;;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+30;SIBS;29;SI;;0;1;entity.si.name;;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+31;Combinado;30;CB;;0;3;entity.cb.name;;2015-04-07 11:04:14.000;2015-04-07 11:04:14.000;1
+32;Intermodal;31;IM;;0;3;entity.im.name;;2015-04-07 11:04:14.000;2015-04-07 11:04:14.000;1
+40;Henrique Leonardo da Mota;18;HM;;0;1;entity.hm.name;18;2016-03-17 20:38:02.000;2016-03-17 20:38:02.000;1
+41;Área 1;25;A1;;0;1;entity.ar1.name;41;2015-04-07 11:04:14.000;2022-06-16 21:03:22.000;1
+42;Área 2;26;A2;;0;1;entity.ar2.name;42;2022-06-16 20:50:59.000;2022-06-16 20:50:59.000;1
+43;Área 3;19;A3;;0;1;entity.ar2.name;43;2022-06-16 20:50:59.000;2022-06-16 20:50:59.000;1
+44;Área 4;20;A4;;0;1;entity.ar4.name;44;2022-05-25 11:03:20.000;2022-05-25 11:03:20.000;1
+52;Caixa Geral de Depositos;33;CG;;0;4;entity.cg.name;;2016-03-18 16:09:06.000;2016-03-18 16:09:06.000;1
+62;CP Porto;98;CPP;;0;1;entity.cpp.name;;2017-02-05 21:33:18.000;2017-02-05 21:33:18.000;1
+73;SIM;72;SIM;;0;1;entity.sim.name;;2017-12-07 11:11:55.000;2017-12-07 11:11:55.000;1
+74;HCE;73;HCE;;0;1;entity.hce.name;;2017-12-07 11:11:55.000;2017-12-07 11:11:55.000;1
+85;Coimbra;99;CO;;0;1;entity.co.name;;2022-06-16 21:03:09.000;2022-06-16 21:03:09.000;1
+472;Câmara Municipal de Lisboa;34;CML;;1;1;entity_cml.name;34;2018-07-14 20:59:19.000;2018-07-14 20:59:19.000;1
+872;Transportes Intermodais do Porto;97;TIP;;0;1;entity.tip.name;;2019-01-08 21:10:51.000;2019-01-08 21:10:51.000;1
+1072;Berrelhas;60;BR;;0;1;entity.br.name;;2019-01-17 11:46:34.000;2019-01-17 11:46:34.000;0
+1272;Viva Go;35;VGO;;0;4;entity.vivago.name;;2019-02-02 08:35:30.000;2019-02-02 08:35:30.000;1
+2272;Via Verde;36;VV;;0;5;entity.viaverde.name;;2020-04-14 21:01:21.000;2020-04-14 21:01:21.000;1
+2472;Ubirider;37;UB;;0;5;entity.ubirider.name;;2020-05-14 11:30:52.000;2020-05-14 11:30:52.000;1
+11072;Portal VIVA Particulares;92;PVP;;0;2;entity.pv_emp.name;;2021-03-08 20:33:29.000;2021-03-08 20:33:29.000;1
+11082;Portal VIVA Empresas;93;PVE;;0;2;entity.pv_emp.name;;2021-03-08 20:33:29.000;2021-03-08 20:33:29.000;1
+11092;Portal VIVA Comissionistas;94;PVC;;0;2;entity.pv_comi.name;;2021-03-08 20:33:29.000;2021-03-08 20:33:29.000;1
+11102;Portal VIVA Operador;95;PVO;;0;2;entity.pv_oper.name;;2021-03-08 20:33:29.000;2021-03-08 20:33:29.000;1
+11112;Portal VIVA Quiosques;96;PVQ;;0;2;entity.pv_quios.name;;2021-03-08 20:33:29.000;2021-03-08 20:33:29.000;1
+11272;Sul Fertagus;91;SFT;;0;2;entity.sft.name;;2021-09-02 19:46:43.000;2021-09-02 19:46:43.000;0
+13482;Portal VIVA Payshop CM;64;PCM;;0;2;entity.pv_payshopcm.name;;2023-06-20 12:44:11.000;2023-06-20 12:44:11.000;1
+13672;Município de Alcochete;39;ACH;;0;1;entity.alcochete.name;;2023-08-17 21:09:32.000;2023-08-17 21:09:32.000;1
+13682;Município de Almada;40;ALM;;0;1;entity.almada.name;;2023-08-17 21:09:32.000;2023-08-17 21:09:32.000;1
+13692;Município do Barreiro;41;BRR;;0;1;entity.barreiro.name;;2023-08-17 21:09:32.000;2023-08-17 21:09:32.000;1
+13702;Município da Amadora;42;AMD;;0;1;entity.amadora.name;;2023-08-17 21:09:32.000;2023-08-17 21:09:32.000;1
+13712;Município de Cascais;43;CSC;;0;1;entity.cascais.name;;2023-08-17 21:09:32.000;2023-08-17 21:09:32.000;1
+13722;Município de Loures;44;LRS;;0;1;entity.loures.name;;2023-08-17 21:09:33.000;2023-08-17 21:09:33.000;1
+13732;Município de Mafra;45;MFR;;0;1;entity.mafra.name;;2023-08-17 21:09:33.000;2023-08-17 21:09:33.000;1
+13742;Município da Moita;46;MTA;;0;1;entity.moita.name;;2023-08-17 21:09:33.000;2023-08-17 21:09:33.000;1
+13752;Município do Montijo;47;MTJ;;0;1;entity.montijo.name;;2023-08-17 21:09:33.000;2023-08-17 21:09:33.000;1
+13762;Município de Odivelas;48;ODV;;0;1;entity.odivelas.name;;2023-08-17 21:09:33.000;2023-08-17 21:09:33.000;1
+13772;Município de Oeiras;49;OER;;0;1;entity.oeiras.name;49;2023-08-17 21:09:33.000;2023-08-17 21:09:33.000;1
+13782;Município de Palmela;50;PLM;;0;1;entity.palmela.name;;2023-08-17 21:09:33.000;2023-08-17 21:09:33.000;1
+13792;Município do Seixal;51;SXL;;0;1;entity.seixal.name;;2023-08-17 21:09:34.000;2023-08-17 21:09:34.000;1
+13802;Município de Sintra;52;SNT;;0;1;entity.sintra.name;;2023-08-17 21:09:34.000;2023-08-17 21:09:34.000;1
+13812;Município de Sesimbra;53;SSB;;0;1;entity.sesimbra.name;;2023-08-17 21:09:34.000;2023-08-17 21:09:34.000;1
+13822;Município de Setúbal;54;STB;;0;1;entity.setubal.name;;2023-08-17 21:09:34.000;2023-08-17 21:09:34.000;1
+13832;Município de Vila Franca de Xira;55;VFX;;0;1;entity.vfx.name;;2023-08-17 21:09:34.000;2023-08-17 21:09:34.000;1
+14472;Navegante Empresas;65;NE;;0;2;entity.nav_emp.name;;2026-04-21 14:22:05.000;2026-04-21 14:22:05.000;1
