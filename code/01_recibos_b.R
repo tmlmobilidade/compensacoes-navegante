@@ -72,12 +72,12 @@ PT_raw <- PT_raw |> clean_names()
 # Converter colunas numéricas (lidas como character para evitar conflito de tipo)
 PT_raw <- PT_raw |>
   dplyr::mutate(
-    distribution_year  = as.integer(distribution_year),
-    distribution_month = as.integer(distribution_month),
+    distribution_year    = as.integer(distribution_year),
+    distribution_month   = as.integer(distribution_month),
     ticket_operator_code = as.integer(ticket_operator_code),
-    ticket_code        = as.integer(ticket_code),
-    sistema_total      = as.numeric(sistema_total),
-    operador_total     = as.numeric(operador_total)
+    ticket_code          = as.integer(ticket_code),
+    sistema_total        = as.numeric(gsub(",", ".", as.character(sistema_total))),
+    operador_total       = as.numeric(gsub(",", ".", as.character(operador_total)))
   )
 
 # ---- Recodificar linha ticket_code = -1 como ticket 1020 ----------------------
@@ -397,17 +397,19 @@ TX_raw <- TX_raw |> clean_names()
 #           sistema_quantity, sistema_total_price,
 #           operador_quantity, operador_price, siit_qty, siit_price, operador
 
-# Converter colunas numéricas
+# Converter colunas numéricas (substituir vírgula por ponto para valores decimais)
+parse_num_pt <- function(x) as.numeric(gsub(",", ".", as.character(x)))
+
 TX_raw <- TX_raw |>
   dplyr::mutate(
     ticket_operator_code = as.integer(ticket_operator_code),
     ticket_code          = as.integer(ticket_code),
-    sistema_quantity     = as.numeric(sistema_quantity),
-    sistema_total_price  = as.numeric(sistema_total_price),
-    operador_quantity    = as.numeric(operador_quantity),
-    operador_price       = as.numeric(operador_price),
-    siit_qty             = as.numeric(siit_qty),
-    siit_price           = as.numeric(siit_price)
+    sistema_quantity     = parse_num_pt(sistema_quantity),
+    sistema_total_price  = parse_num_pt(sistema_total_price),
+    operador_quantity    = parse_num_pt(operador_quantity),
+    operador_price       = parse_num_pt(operador_price),
+    siit_qty             = parse_num_pt(siit_qty),
+    siit_price           = parse_num_pt(siit_price)
   )
 
 stopifnot(all(c("source", "ticket_code", "operador_quantity",
