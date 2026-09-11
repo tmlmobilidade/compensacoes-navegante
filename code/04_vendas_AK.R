@@ -75,19 +75,19 @@ if (length(pvatm_files) == 0) {
   # Colunas 1-5: PV (ENTITY_ID=23, Portal VIVA)
   # Colunas 7-11: ATM/SIBS (ENTITY_ID=30, SIBS)
 
-  pvatm_raw <- readxl::read_excel(pvatm_file, sheet = 1, skip = 1,
-                                  col_names = FALSE)
+  pvatm_raw <- readxl::read_excel(pvatm_file, sheet = 1, skip = 2,
+                                  col_names = FALSE, .name_repair = "minimal")
 
   # Extrair colunas PV (cols 1-5) e ATM (cols 7-11)
   pv_df <- pvatm_raw |>
     dplyr::select(
-      entity_id  = 1,
+      entity_id   = 1,
       tok_op_code = 2,
       ticket_code = 3,
       ticket_name = 4,
-      qty_K_pv   = 5
+      qty_K_pv    = 5
     ) |>
-    dplyr::filter(!is.na(ticket_code) & !is.na(entity_id)) |>
+    dplyr::filter(!is.na(ticket_code) & !is.na(entity_id) & grepl("^[0-9]+$", as.character(ticket_code))) |>
     dplyr::mutate(
       ticket_code = as.integer(ticket_code),
       qty_K_pv    = as.numeric(qty_K_pv)
@@ -101,7 +101,7 @@ if (length(pvatm_files) == 0) {
       ticket_name  = 10,
       qty_K_atm    = 11
     ) |>
-    dplyr::filter(!is.na(ticket_code) & !is.na(entity_id)) |>
+    dplyr::filter(!is.na(ticket_code) & !is.na(entity_id) & grepl("^[0-9]+$", as.character(ticket_code))) |>
     dplyr::mutate(
       ticket_code = as.integer(ticket_code),
       qty_K_atm   = as.numeric(qty_K_atm)

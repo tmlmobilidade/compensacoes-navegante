@@ -52,16 +52,16 @@ dist_ij <- quotas |>
     by = "ticket_code"
   ) |>
   dplyr::mutate(
-    quota             = as.numeric(quota),
+    quota              = as.numeric(quota),
     receita_distribuir = as.numeric(receita_distribuir),
-    # dist_receita arredondado ao cêntimo (€)
-    dist_receita      = round(quota * receita_distribuir, 2),
+    # Sem arredondamento intermédio por título (como no Excel original,
+    # que mantém precisão total e só arredonda no somatório final por operador)
+    dist_receita       = quota * receita_distribuir,
     # Parcela de congelamento por título e operador
-    receita_compensar = round(dist_receita * fator_tat, 2)
+    receita_compensar  = dist_receita * fator_tat
   )
 
 # Verificação: soma das dist_receita por título deve = receita_distribuir
-# (pode haver diferença de cêntimos por arredondamento)
 verif_titulos <- dist_ij |>
   dplyr::group_by(ticket_code) |>
   dplyr::summarise(
@@ -72,17 +72,17 @@ verif_titulos <- dist_ij |>
   )
 
 max_dif <- max(abs(verif_titulos$dif), na.rm = TRUE)
-if (max_dif > 0.10) {
-  warning(sprintf("Diferença máxima de arredondamento: %.2f€ — verificar!", max_dif))
+if (max_dif > 0.05) {
+  warning(sprintf("Diferença máxima de distribuição por título: %.4f€ — verificar!", max_dif))
 } else {
-  message(sprintf("✓ Arredondamento OK (dif. máx. = %.4f€)", max_dif))
+  message(sprintf("✓ Distribuição por título OK (dif. máx. = %.6f€)", max_dif))
 }
 
 # ---- B(j) — Receita bilheteira devida por operador --------------------------
 B_operador <- dist_ij |>
   dplyr::group_by(operador) |>
   dplyr::summarise(
-    B = sum(dist_receita, na.rm = TRUE),
+    B = round(sum(dist_receita, na.rm = TRUE), 2),
     .groups = "drop"
   )
 
@@ -90,7 +90,7 @@ B_operador <- dist_ij |>
 congelamento_operador <- dist_ij |>
   dplyr::group_by(operador) |>
   dplyr::summarise(
-    congelamento = sum(receita_compensar, na.rm = TRUE),
+    congelamento = round(sum(receita_compensar, na.rm = TRUE), 2),
     .groups = "drop"
   )
 
