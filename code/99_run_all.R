@@ -36,20 +36,21 @@ run_step <- function(script_name, descricao) {
   cat(sprintf("%s\n", strrep("=", 70)))
 
   t0 <- proc.time()
+  sucesso <- TRUE
   tryCatch({
-    source(here::here("code", script_name))
+    withCallingHandlers({
+      source(here::here("code", script_name))
+    }, warning = function(w) {
+      cat(sprintf("\n⚠ AVISO em %s:\n  %s\n", script_name, conditionMessage(w)))
+      invokeRestart("muffleWarning")
+    })
     elapsed <- (proc.time() - t0)[["elapsed"]]
     cat(sprintf("\n✓ %s concluído em %.1fs\n", script_name, elapsed))
-    TRUE
   }, error = function(e) {
     cat(sprintf("\n✗ ERRO em %s:\n  %s\n", script_name, conditionMessage(e)))
-    FALSE
-  }, warning = function(w) {
-    cat(sprintf("\n⚠ AVISO em %s:\n  %s\n", script_name, conditionMessage(w)))
-    # Continuar mesmo com aviso
-    source(here::here("code", script_name))
-    TRUE
+    sucesso <<- FALSE
   })
+  sucesso
 }
 
 # ---- Setup -------------------------------------------------------------------
