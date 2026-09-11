@@ -102,7 +102,9 @@ message(sprintf("Distâncias APEX: %d registos (%s).",
 # ---- 2. Distâncias de referência (operadores não-APEX) -----------------------
 # Ficheiro em formato wide: ticket_code por linha, operador por coluna
 
-dist_ref_raw <- read.csv2(DIST_REF_FILE, stringsAsFactors = FALSE, dec = ".")
+# Nota: ago21 usa vírgula decimal (,), out21 usa ponto decimal (.).
+# Lemos como character e normalizamos a vírgula para ponto antes de converter para numérico.
+dist_ref_raw <- read.csv2(DIST_REF_FILE, stringsAsFactors = FALSE, colClasses = "character")
 
 # Converter para long format
 # Colunas: ticket_operator_code, ticket_code, CP, FT, TT, SL, ML, MTS,
@@ -113,7 +115,11 @@ dist_ref_long <- dist_ref_raw |>
     names_to  = "operador_ref",
     values_to = "distancia_km"
   ) |>
-  dplyr::mutate(distancia_km = as.numeric(distancia_km))
+  dplyr::mutate(
+    ticket_code          = as.integer(ticket_code),
+    ticket_operator_code = as.integer(ticket_operator_code),
+    distancia_km         = as.numeric(gsub(",", ".", distancia_km))
+  )
 
 # Mapeamento: nome na tabela de referência → abreviatura usada nos PT
 mapa_ops_ref <- c(
