@@ -13,13 +13,17 @@
 
 
 -- ============================================================
--- Query 2b → CORRER ESTE para o pipeline R
+-- Query 2b → Separação TT (Transtejo) / SL (Soflusa)
 -- Agrega por TICKET_CODE + RUN_CODE com as regras da fórmula da colega:
+--   - ENTITY_ID IN (5, 8)
 --   - TICKET_OPERATOR_CODE = 31
 --   - VALID_TYPE_ID = 0
 --   - VALBYPROF = 0
 --   - RUN_CODE = 7  → SL (Soflusa / ferry Barreiro)
 --   - outros RUN_CODEs (ou != 7) → TT (Transtejo)
+-- Retorna ~93 linhas (sem risco de truncatura).
+-- Exportar para INPUT_DIR como tt_sl_*(timestamp).csv (ex: tt_sl_202609111613.csv).
+-- O script escolhe automaticamente o timestamp mais recente (ou com _update se existir).
 -- Alterar DISTRIBUTION_YEAR e DISTRIBUTION_MONTH conforme o mês.
 -- ============================================================
 SELECT
@@ -49,7 +53,6 @@ GROUP BY
     VALID_TYPE_ID,
     VALBYPROF
 ORDER BY TICKET_CODE, ENTITY_ID, RUN_CODE;
-
 
 
 -- ============================================================

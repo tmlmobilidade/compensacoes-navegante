@@ -99,6 +99,71 @@ PT_raw <- PT_raw |>
 # Verificar colunas essenciais
 stopifnot(all(c("ticket_code", "operador_total", "operador") %in% names(PT_raw)))
 
+# ---- Validações de fiscais móveis da CM (Portal VIVA - entity 23) ----------
+# A colega distribui pelas 4 áreas operacionais com base no RUN_CODE / AREA_CM:
+#   1xxx / 41 -> A1, 2xxx / 42 -> A2, 3xxx / 43 -> A3, 4xxx / 44 -> A4
+# Apenas títulos presentes no Recibo B da CM são considerados.
+usar_cm_viva <- !is.null(F_CM_VIVA_VALIDACOES) && file.exists(F_CM_VIVA_VALIDACOES)
+
+if (usar_cm_viva) {
+  message("CM: a usar ficheiro Portal VIVA (entity 23) → ", basename(F_CM_VIVA_VALIDACOES))
+  cm_viva_raw <- read.csv(F_CM_VIVA_VALIDACOES,
+                          sep = ";", header = TRUE,
+                          stringsAsFactors = FALSE,
+                          fileEncoding = "UTF-8-BOM",
+                          check.names = FALSE)
+  if (ncol(cm_viva_raw) <= 1) {
+    cm_viva_raw <- read.csv(F_CM_VIVA_VALIDACOES,
+                            sep = ",", header = TRUE,
+                            stringsAsFactors = FALSE,
+                            fileEncoding = "UTF-8-BOM",
+                            check.names = FALSE)
+  }
+  cm_viva_raw <- cm_viva_raw |> janitor::clean_names()
+
+  if ("sum_qnt_validation" %in% names(cm_viva_raw) && !"pt_validacoes" %in% names(cm_viva_raw)) {
+    cm_viva_raw <- cm_viva_raw |> dplyr::rename(pt_validacoes = sum_qnt_validation)
+  }
+
+  cm_viva_filtered <- cm_viva_raw |>
+    dplyr::filter(
+      as.integer(distribution_year)    == ANO,
+      as.integer(distribution_month)   == MES,
+      as.integer(ticket_operator_code) == 31L,
+      as.integer(ticket_code) > 0L
+    )
+
+  if ("valid_type_id" %in% names(cm_viva_filtered)) {
+    cm_viva_filtered <- cm_viva_filtered |> dplyr::filter(as.integer(valid_type_id) == 0L)
+  }
+  if ("valbyprof" %in% names(cm_viva_filtered)) {
+    cm_viva_filtered <- cm_viva_filtered |> dplyr::filter(as.integer(valbyprof) == 0L)
+  }
+
+  # Determinar área CM (A1 a A4): por area_cm ou por run_code
+  if ("area_cm" %in% names(cm_viva_filtered)) {
+    cm_viva_filtered <- cm_viva_filtered |>
+      dplyr::mutate(operador = paste0("A", as.integer(area_cm) - 40L))
+  } else if ("run_code" %in% names(cm_viva_filtered)) {
+    cm_viva_filtered <- cm_viva_filtered |>
+      dplyr::mutate(operador = paste0("A", floor(as.integer(run_code) / 1000L)))
+  }
+
+  cm_viva <- cm_viva_filtered |>
+    dplyr::filter(operador %in% CM_SUBOPS) |>
+    dplyr::mutate(
+      operador_total = as.numeric(pt_validacoes),
+      sistema_total  = 0
+    ) |>
+    dplyr::filter(ticket_code %in% unique(PT_raw$ticket_code[PT_raw$operador %in% CM_SUBOPS]))
+
+  if (nrow(cm_viva) > 0) {
+    PT_raw <- dplyr::bind_rows(PT_raw, cm_viva)
+    message(sprintf("CM: %s validações do Portal VIVA (entity 23) adicionadas às áreas A1-A4.",
+                    scales::number(sum(cm_viva$operador_total), big.mark = ".", decimal.mark = ",")))
+  }
+}
+
 # ---- Tratar CM = A1 + A2 + A3 + A4 -----------------------------------------
 # Os sub-operadores A1-A4 são enviados em ficheiros separados e representam
 # as áreas operacionais da Carris Metropolitana.
@@ -146,18 +211,38 @@ usar_oracle_tt_sl <- !is.null(F_TT_SL_VALIDACOES) && file.exists(F_TT_SL_VALIDAC
 
 if (usar_oracle_tt_sl) {
   message("TT/SL: a usar ficheiro Oracle F_VALIDATIONS → ", basename(F_TT_SL_VALIDACOES))
-
-  # Ler o CSV Oracle (separador ";", sem decimal especial — valores inteiros)
-  tt_sl_raw <- read.csv(F_TT_SL_VALIDACOES,
-                        sep = ";", header = TRUE,
-                        stringsAsFactors = FALSE,
-                        fileEncoding = "UTF-8-BOM",
-                        check.names = FALSE)
-  tt_sl_raw <- tt_sl_raw |> janitor::clean_names()
+  oracle_raw <- read.csv(F_TT_SL_VALIDACOES,
+                         sep = ";", header = TRUE,
+                         stringsAsFactors = FALSE,
+                         fileEncoding = "UTF-8-BOM",
+                         check.names = FALSE)
+  if (ncol(oracle_raw) <= 1) {
+    oracle_raw <- read.csv(F_TT_SL_VALIDACOES,
+                           sep = ",", header = TRUE,
+                           stringsAsFactors = FALSE,
+                           fileEncoding = "UTF-8-BOM",
+                           check.names = FALSE)
+  }
+  oracle_raw <- oracle_raw |> janitor::clean_names()
 
   # Normalizar nome da coluna de contagem de validações se necessário (Query 2 vs 2b)
-  if ("sum_qnt_validation" %in% names(tt_sl_raw) && !"pt_validacoes" %in% names(tt_sl_raw)) {
-    tt_sl_raw <- tt_sl_raw |> dplyr::rename(pt_validacoes = sum_qnt_validation)
+  if ("sum_qnt_validation" %in% names(oracle_raw) && !"pt_validacoes" %in% names(oracle_raw)) {
+    oracle_raw <- oracle_raw |> dplyr::rename(pt_validacoes = sum_qnt_validation)
+  }
+
+  oracle_filtered <- oracle_raw |>
+    dplyr::filter(
+      as.integer(distribution_year)    == ANO,
+      as.integer(distribution_month)   == MES,
+      as.integer(ticket_operator_code) == 31L,
+      as.integer(ticket_code) > 0L
+    )
+
+  if ("valid_type_id" %in% names(oracle_filtered)) {
+    oracle_filtered <- oracle_filtered |> dplyr::filter(as.integer(valid_type_id) == 0L)
+  }
+  if ("valbyprof" %in% names(oracle_filtered)) {
+    oracle_filtered <- oracle_filtered |> dplyr::filter(as.integer(valbyprof) == 0L)
   }
 
   # ---- Fonte de verdade: totais TT+SL por ticket_code do Recibo B de TT --------
@@ -179,32 +264,8 @@ if (usar_oracle_tt_sl) {
   # onde F3 (SL) filtra adicionalmente RUN_CODE == 7:
   #   RUN_CODE == SL_RUN_CODE (7) → SL (Soflusa / ferry Barreiro)
   #   outros RUN_CODEs (ou != 7)  → TT (Transtejo)
-  # Filtros adicionais da fórmula Excel:
-  #   TICKET_OPERATOR_CODE == 31
-  #   VALID_TYPE_ID == 0
-  #   VALBYPROF == 0
-  tt_sl_filtered <- tt_sl_raw |>
-    dplyr::filter(
-      as.integer(distribution_year)    == ANO,
-      as.integer(distribution_month)   == MES,
-      as.integer(ticket_operator_code) == 31L,
-      as.integer(ticket_code) > 0L
-    )
-
-  if ("entity_id" %in% names(tt_sl_filtered)) {
-    tt_sl_filtered <- tt_sl_filtered |>
-      dplyr::filter(as.integer(entity_id) %in% c(TT_ENTITY_ID, SL_ENTITY_ID))
-  }
-
-  if ("valid_type_id" %in% names(tt_sl_filtered)) {
-    tt_sl_filtered <- tt_sl_filtered |>
-      dplyr::filter(as.integer(valid_type_id) == 0L)
-  }
-
-  if ("valbyprof" %in% names(tt_sl_filtered)) {
-    tt_sl_filtered <- tt_sl_filtered |>
-      dplyr::filter(as.integer(valbyprof) == 0L)
-  }
+  tt_sl_filtered <- oracle_filtered |>
+    dplyr::filter(as.integer(entity_id) %in% c(TT_ENTITY_ID, SL_ENTITY_ID))
 
   tt_sl_oracle_wide <- tt_sl_filtered |>
     dplyr::mutate(

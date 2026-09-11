@@ -10,16 +10,18 @@
 
 ```
 code/
-├── config.R           # Parâmetros globais, constantes e caminhos
-├── 00_setup.R         # Instala/carrega pacotes R
-├── 01_recibos_b.R     # Agrega Recibos B (PT + receitas)
-├── 02_distancias.R    # Resolve distâncias médias por título × operador
-├── 03_quotas.R        # Calcula PKM e quotas de distribuição
-├── 04_vendas_AK.R     # Agrega receitas A (operadores) + K (PV/ATM)
-├── 05_reparticao_B.R  # Distribui receita B + Congelamento TAT
-├── 06_cosp_D.R        # Calcula COSP (D)
-├── 07_transferencias_F.R  # Calcula transferências finais F
-└── 99_run_all.R       # Script mestre — corre tudo em sequência
+├── config.R                  # Parâmetros globais, constantes e caminhos
+├── 00_setup.R                # Instala/carrega pacotes R
+├── 01_recibos_b.R            # Agrega Recibos B (PT + receitas)
+├── 02_distancias.R           # Resolve distâncias médias por título × operador
+├── 03_quotas.R               # Calcula PKM e quotas de distribuição
+├── 04_vendas_AK.R            # Agrega receitas A (operadores) + K (PV/ATM)
+├── 05_reparticao_B.R         # Distribui receita B + Congelamento TAT
+├── 06_cosp_D.R               # Calcula COSP (D)
+├── 07_transferencias_F.R     # Calcula transferências finais F
+├── 99_run_all.R              # Script mestre — corre tudo em sequência
+├── query_SL_TT.sql           # Query Oracle para separação TT/SL (Query 2b)
+└── query_CM_fiscaismoveis.sql # Query Oracle para fiscais móveis CM (Query 2c)
 ```
 
 ## Variáveis principais em `config.R`
@@ -87,15 +89,15 @@ Cada operador envia 3 ficheiros, com os nomes maisoumenos assim (tem datas no fi
   este ficheiro tem a lista de validações incoerentes, de vários tipos, nas máquinas do operador, que não foram consideradas para os ficheiros anteriores. Para este cálculo, este ficheiro é irrelevante.
 
 
-> Nota: o operador CM (carris metropolitana) é equivalente à soma dos operadores A1, A2, A3 e A4,
-> Ver `lists/operadores.csv` `ENTITY_ABBREVIATION` e `OPERATOR_NAME_NAVEGANTE` para correspondências nos caminhos dos ficheiros
+> Nota: o operador CM (Carris Metropolitana) é equivalente à soma dos operadores A1, A2, A3 e A4.  
+> Ver `lists/operadores.csv` (`ENTITY_ABBREVIATION` e `OPERATOR_NAME_NAVEGANTE`) para correspondências nos caminhos dos ficheiros.
 
 ### Script: `01_recibos_b.R`
 
-Lê todos os Recibos B de todos os operadores.
+Lê todos os Recibos B de todos os operadores e reconcilia dados da Oracle para TT/SL e CM.
 
 **Outputs:**
-- `F_PT_CM` → `PT_CM_agregado_{SUFIXO}.csv`: CM = soma de A1+A2+A3+A4 (ficheiro intermédio explícito)
+- `F_PT_CM` → `PT_CM_agregado_{SUFIXO}.csv`: CM = soma de A1+A2+A3+A4 + fiscais móveis (ficheiro intermédio explícito)
 - `F_PT` → `PT_{SUFIXO}.csv`: passageiros transportados por título e operador (todos), coluna `pt_operador`
 - `F_RECEITAS` → `receitas_titulo_{SUFIXO}.csv`: receitas de venda, colunas `qty_operador` e `receita_operador`
 
@@ -105,14 +107,41 @@ Lê todos os Recibos B de todos os operadores.
 - `ticket_code > 0` (excluir linhas de totais)
 - Scotturb (`SC`) excluído
 
-### Separação TT / SL
+---
 
-O Recibo B entregue pelo operador **TT** contém em `OPERADOR_TOTAL` os passageiros **conjuntos de TT + SL** (os dois operadores partilham o mesmo Recibo B no sistema). O Recibo B separado do SL tem valores diferentes e duplicaria o SL se somado.
+### Reconciliação Oracle: TT / SL e Carris Metropolitana
 
-**Solução correcta (query 2b — `query_SL_TT.sql`):**
+Para bater a 100% com as contas oficiais (folha Excel de validação), é necessário extrair dois ficheiros auxiliares da base de dados Oracle `PDBDWPROD` e colocá-los na pasta `{MES_ANO}_replicate/input/`:
 
-Correr em `PDBDWPROD` a query 2b e exportar o resultado como CSV com separador `;` para `INPUT_DIR`:
+1. **Separação TT / SL**: [`code/query_SL_TT.sql`](file:///c:/GIS/Compensacoes/code/query_SL_TT.sql) (Query 2b)
+2. **Fiscais Móveis CM (Portal VIVA)**: [`code/query_CM_fiscaismoveis.sql`](file:///c:/GIS/Compensacoes/code/query_CM_fiscaismoveis.sql) (Query 2c)
 
+```
+{MES_ANO}_replicate/input/
+├── tt_sl_*(timestamp).csv       ← gerado por query_SL_TT.sql
+├── entity23_*(timestamp).csv    ← gerado por query_CM_fiscaismoveis.sql
+└── V_REG_AVERAGE_DISTANCE_FINAL_ALL_*(timestamp).csv ← distâncias APEX (CM e Cascais)
+```
+
+---
+
+#### 1. Separação TT (Transtejo) / SL (Soflusa) — Query 2b
+
+O Recibo B entregue pela Transtejo (**TT**) contém na coluna `OPERADOR_TOTAL` os passageiros **conjuntos de TT + SL** (os dois operadores fluviais partilham o mesmo Recibo B). O Recibo B separado de SL tem valores diferentes e duplicaria o SL se fosse somado.
+
+> [!IMPORTANT]
+> **Armadilha do `ENTITY_ID` na separação TT/SL:**  
+> Ao contrário do que seria intuitivo, **não se deve filtrar por `ENTITY_ID = 5` vs `ENTITY_ID = 8`**! Ambas as entidades têm validações registadas de forma cruzada nos cais.  
+> A metodologia oficial da TML (reproduzida da fórmula Excel da colega) utiliza a **georreferenciação por `RUN_CODE`**:
+> - **`RUN_CODE = 7` $\rightarrow$ Soflusa (SL)** (ligação fluvial do Barreiro).
+> - **Todos os outros `RUN_CODE` (0, 1, 3, 5, 9) $\rightarrow$ Transtejo (TT)** (Cacilhas, Seixal, Montijo, Trafaria).
+> 
+> Além disso, é obrigatório filtrar:
+> - `VALID_TYPE_ID = 0` (exclui testes / validações de serviço)
+> - `VALBYPROF = 0` (exclui perfis profissionais especiais)
+> - `TICKET_OPERATOR_CODE = 31` (títulos Navegante)
+
+**Query 2b ([`code/query_SL_TT.sql`](file:///c:/GIS/Compensacoes/code/query_SL_TT.sql)):**
 ```sql
 SELECT
     DISTRIBUTION_YEAR,
@@ -142,23 +171,81 @@ GROUP BY
     VALBYPROF
 ORDER BY TICKET_CODE, ENTITY_ID, RUN_CODE;
 ```
+- **Gravar em `input/` como:** `tt_sl_*(timestamp).csv` (ex: `tt_sl_202609111613.csv`).
+- **Como o script calcula:** O total oficial de TT+SL é ancorado ao Recibo B de TT (`OPERADOR_TOTAL`). Os registos da Oracle fornecem apenas o *rateio percentual* entre TT e SL para cada título, assegurando que `TT + SL = Recibo B de TT` ao passageiro exato.
 
-O ficheiro exportado do Oracle (que por omissão, da tabela `PDBDWPROD` inclui no nome `TICKET_OPERATOR` com base nas colunas da consulta, ou renomeado com `validacoes_TT_SL` ou `TT_SL`) deve ser colocado em `{MES_ANO}_replicate/input/` (por exemplo: `PDBDWPROD__...TICKET_OPERATOR_COD_*.csv`).
+---
 
-O script detecta-o automaticamente via `F_TT_SL_VALIDACOES` em `config.R` através do padrão `(TICKET_OPERATOR|validacoes_TT_SL|TT_SL).*\\.csv$`, distinguindo-o claramente de outras exportações da mesma base de dados (como as distâncias `V_REG_AVERAGE_DISTANCE_FINAL_ALL`).
+#### 2. Validações Fiscais Móveis CM (Portal VIVA, `ENTITY_ID = 23`) — Query 2c
 
-Quando o ficheiro está presente:
-- O total oficial de TT+SL é ancorado ao Recibo B de TT (coluna `OPERADOR_TOTAL`)
-- Os registos Oracle com `VALID_TYPE_ID = 0` e `VALBYPROF = 0` fornecem a separação:
-  - `RUN_CODE = 7` → **SL** (Soflusa / ferry Barreiro)
-  - `RUN_CODE != 7` → **TT** (Transtejo)
-- Os rácios calculados repartem os passageiros do Recibo B entre TT e SL por `ticket_code`, garantindo que TT + SL = total do Recibo B exatamente
-- TT e SL aparecem como operadores **separados** no `PT_{SUFIXO}.csv`
+> [!IMPORTANT]
+> **Armadilha das validações em falta na Carris Metropolitana:**  
+> Os Recibos B das 4 áreas operacionais da CM (A1 a A4) não contêm as validações efetuadas nos terminais móveis dos fiscais. Estas validações ficam registadas no Portal VIVA (`ENTITY_ID = 23`).  
+> Se não forem somadas, a CM apresenta uma diferença negativa (ex.: -1.232 PT em maio de 2026).
+> 
+> **Regras essenciais da reconciliação:**
+> 1. As validações móveis são distribuídas pelas 4 sub-áreas da CM através do cálculo:
+>    $$\text{Área CM} = \lfloor \text{RUN\_CODE} / 1000 \rfloor + 40$$
+>    - `1xxx` $\rightarrow$ Código 41 $\rightarrow$ **Área 1 (A1)**
+>    - `2xxx` $\rightarrow$ Código 42 $\rightarrow$ **Área 2 (A2)**
+>    - `3xxx` $\rightarrow$ Código 43 $\rightarrow$ **Área 3 (A3)**
+>    - `4xxx` $\rightarrow$ Código 44 $\rightarrow$ **Área 4 (A4)**
+> 2. **Apenas são considerados os títulos que já existem no Recibo B da CM**. Títulos não-Navegante (ex: ticket 33592) são automaticamente ignorados.
 
-Quando o ficheiro **não está presente** (fallback):
-- Usa-se o Recibo B de TT como TT+SL (comportamento anterior)
-- SL excluído do PT
-- É emitido um aviso no console
+**Query 2c ([`code/query_CM_fiscaismoveis.sql`](file:///c:/GIS/Compensacoes/code/query_CM_fiscaismoveis.sql)):**
+```sql
+SELECT
+    DISTRIBUTION_YEAR,
+    DISTRIBUTION_MONTH,
+    TICKET_OPERATOR_CODE,
+    TICKET_CODE,
+    23 AS ENTITY_ID,
+    FLOOR(RUN_CODE / 1000) + 40 AS AREA_CM,
+    VALID_TYPE_ID,
+    VALBYPROF,
+    SUM(QNT_VALIDATION) AS PT_VALIDACOES
+FROM DW_PROC.F_VALIDATIONS
+WHERE DISTRIBUTION_YEAR  = <ANO>
+  AND DISTRIBUTION_MONTH = <MES>
+  AND ENTITY_ID = 23               -- Portal VIVA (validadores móveis CM)
+  AND TICKET_OPERATOR_CODE = 31    -- Navegante
+  AND VALID_TYPE_ID = 0
+  AND VALBYPROF = 0
+  AND RUN_CODE BETWEEN 1000 AND 4999
+GROUP BY
+    DISTRIBUTION_YEAR,
+    DISTRIBUTION_MONTH,
+    TICKET_OPERATOR_CODE,
+    TICKET_CODE,
+    FLOOR(RUN_CODE / 1000) + 40,
+    VALID_TYPE_ID,
+    VALBYPROF
+ORDER BY TICKET_CODE, AREA_CM;
+```
+- **Gravar em `input/` como:** `entity23_*(timestamp).csv` (ex: `entity23_202609111609.csv`).
+
+---
+
+#### 3. Cuidados no Oracle SQL Developer e Versionamento
+
+> [!WARNING]
+> **Armadilha do Limite de 200 Linhas no Oracle SQL Developer:**  
+> Por omissão, o SQL Developer limita a busca em grelha a 200 registos. Se uma consulta devolver mais de 200 linhas e for exportada sem fazer scroll até ao fim, **o ficheiro CSV fica truncado em 200 linhas**, corrompendo os dados!  
+> **Como foi resolvido**:
+> As consultas foram pré-agrupadas e otimizadas no SQL:
+> - `query_SL_TT.sql` devolve apenas ~93 linhas.
+> - `query_CM_fiscaismoveis.sql` devolve apenas ~47 linhas.  
+> Ambas ficam muito abaixo do limite de 200 linhas e podem ser exportadas diretamente em CSV com total segurança.
+
+> [!TIP]
+> **Regra de Seleção Automática de Ficheiros:**
+> - Ao exportar, grava os ficheiros com os prefixos `tt_sl_` e `entity23_` seguidos de timestamp (ex.: `tt_sl_202609111613.csv`).
+> - Se precisares de atualizar um ficheiro, podes adicionar `_update` ao nome (ex.: `tt_sl_202609111613_update.csv`). O script dá **prioridade máxima aos ficheiros com `_update`**.
+> - Se houver múltiplos ficheiros (ou múltiplos updates), o script seleciona automaticamente o de **timestamp mais recente**.
+
+**Comportamento em Fallback (se os ficheiros não existirem em `input/`):**
+- TT/SL: assume TT como TT+SL e ignora SL (emitindo um aviso no console).
+- CM: não adiciona validações do Portal VIVA (emite aviso de ausência do ficheiro).
 
 
 
