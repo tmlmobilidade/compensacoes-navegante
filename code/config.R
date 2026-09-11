@@ -50,6 +50,22 @@ F_COSP_D        <- file.path(OUT_DIR, paste0("cosp_D_",                     SUFI
 F_D_OPERADOR    <- file.path(OUT_DIR, paste0("D_operador_",                 SUFIXO, ".csv"))
 F_TRANSFERENCIAS <- file.path(OUT_DIR, paste0("transferencias_F_",          SUFIXO, ".csv"))
 
+# Ficheiro Oracle com validações TT (entity 5) e SL (entity 8) — query 2b de query_SL_TT.sql
+# Exportado de PDBDWPROD: DW_PROC.F_VALIDATIONS com ENTITY_ID IN (5,8), TICKET_OPERATOR_CODE=31
+# Identificado por conter "TICKET_OPERATOR" (nome padrão da query 2b exportada) ou "TT_SL"
+TT_ENTITY_ID <- 5L    # Tâmega e Tua
+SL_ENTITY_ID <- 8L    # Soflusa / Barreiro
+SL_RUN_CODE  <- 7L    # RUN_CODE do ferry Soflusa/Barreiro — identifica validações SL
+                      # (RUN_CODE != 7 → TT; metodologia da colega via georreferenciação)
+
+F_TT_SL_VALIDACOES <- {
+  candidates <- list.files(INPUT_DIR,
+    pattern = "(TICKET_OPERATOR|validacoes_TT_SL|TT_SL).*\\.csv$",
+    ignore.case = TRUE,
+    full.names = TRUE)
+  if (length(candidates) > 0) tail(sort(candidates), 1) else NULL
+}
+
 
 
 

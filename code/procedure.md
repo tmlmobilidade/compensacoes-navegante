@@ -105,6 +105,63 @@ Lê todos os Recibos B de todos os operadores.
 - `ticket_code > 0` (excluir linhas de totais)
 - Scotturb (`SC`) excluído
 
+### Separação TT / SL
+
+O Recibo B entregue pelo operador **TT** contém em `OPERADOR_TOTAL` os passageiros **conjuntos de TT + SL** (os dois operadores partilham o mesmo Recibo B no sistema). O Recibo B separado do SL tem valores diferentes e duplicaria o SL se somado.
+
+**Solução correcta (query 2b — `query_SL_TT.sql`):**
+
+Correr em `PDBDWPROD` a query 2b e exportar o resultado como CSV com separador `;` para `INPUT_DIR`:
+
+```sql
+SELECT
+    DISTRIBUTION_YEAR,
+    DISTRIBUTION_MONTH,
+    TICKET_OPERATOR_CODE,
+    TICKET_CODE,
+    ENTITY_ID,
+    RUN_CODE,
+    VALID_TYPE_ID,
+    VALBYPROF,
+    SUM(QNT_VALIDATION) AS PT_VALIDACOES
+FROM DW_PROC.F_VALIDATIONS
+WHERE DISTRIBUTION_YEAR  = <ANO>
+  AND DISTRIBUTION_MONTH = <MES>
+  AND ENTITY_ID IN (5, 8)          -- 5=TT (Transtejo), 8=SL (Soflusa)
+  AND TICKET_OPERATOR_CODE = 31    -- Navegante
+  AND VALID_TYPE_ID = 0
+  AND VALBYPROF = 0
+GROUP BY
+    DISTRIBUTION_YEAR,
+    DISTRIBUTION_MONTH,
+    TICKET_OPERATOR_CODE,
+    TICKET_CODE,
+    ENTITY_ID,
+    RUN_CODE,
+    VALID_TYPE_ID,
+    VALBYPROF
+ORDER BY TICKET_CODE, ENTITY_ID, RUN_CODE;
+```
+
+O ficheiro exportado do Oracle (que por omissão, da tabela `PDBDWPROD` inclui no nome `TICKET_OPERATOR` com base nas colunas da consulta, ou renomeado com `validacoes_TT_SL` ou `TT_SL`) deve ser colocado em `{MES_ANO}_replicate/input/` (por exemplo: `PDBDWPROD__...TICKET_OPERATOR_COD_*.csv`).
+
+O script detecta-o automaticamente via `F_TT_SL_VALIDACOES` em `config.R` através do padrão `(TICKET_OPERATOR|validacoes_TT_SL|TT_SL).*\\.csv$`, distinguindo-o claramente de outras exportações da mesma base de dados (como as distâncias `V_REG_AVERAGE_DISTANCE_FINAL_ALL`).
+
+Quando o ficheiro está presente:
+- O total oficial de TT+SL é ancorado ao Recibo B de TT (coluna `OPERADOR_TOTAL`)
+- Os registos Oracle com `VALID_TYPE_ID = 0` e `VALBYPROF = 0` fornecem a separação:
+  - `RUN_CODE = 7` → **SL** (Soflusa / ferry Barreiro)
+  - `RUN_CODE != 7` → **TT** (Transtejo)
+- Os rácios calculados repartem os passageiros do Recibo B entre TT e SL por `ticket_code`, garantindo que TT + SL = total do Recibo B exatamente
+- TT e SL aparecem como operadores **separados** no `PT_{SUFIXO}.csv`
+
+Quando o ficheiro **não está presente** (fallback):
+- Usa-se o Recibo B de TT como TT+SL (comportamento anterior)
+- SL excluído do PT
+- É emitido um aviso no console
+
+
+
 ---
 
 # 1. Quotas

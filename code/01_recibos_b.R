@@ -132,20 +132,157 @@ if (nrow(cm_subops_raw) > 0) {
 PT_raw <- PT_raw |>
   dplyr::mutate(operador_final = dplyr::if_else(operador %in% CM_SUBOPS, "CM", operador))
 
-# ---- Excluir Recibo B do SL do cálculo de PT ----------------------------------
-# O Recibo B entregue pelo operador TT contém na coluna OPERADOR_TOTAL os
-# passageiros CONJUNTOS de TT + SL (os dois operadores partilham o mesmo Recibo B
-# no sistema). O Recibo B separado do SL tem valores diferentes e duplicaria os
-# passageiros do SL se somado ao do TT.
-# Verificação: TT_Recibo_B_total = TT_Excel + SL_Excel (exacto ticket a ticket).
-# Para o PT, usa-se APENAS o Recibo B do TT (que já inclui o SL).
-# O Recibo B do SL é mantido para o cálculo de RECEITAS (transações), onde
-# os dois operadores têm contratos de receita independentes.
-PT_raw_pt <- PT_raw |>
-  dplyr::filter(operador != "SL")
+# ---- Excluir Recibo B do SL e separar TT/SL via Oracle (F_VALIDATIONS) --------
+# O Recibo B de TT contém em OPERADOR_TOTAL os passageiros conjuntos de TT + SL.
+# O Recibo B separado de SL tem valores diferentes → duplicaria o SL se somado.
+#
+# Quando disponível, o ficheiro F_TT_SL_VALIDACOES (query 2b de query_SL_TT.sql,
+# exportado de PDBDWPROD) permite separar TT e SL correctamente com base nos
+# registos de F_VALIDATIONS com ENTITY_ID IN (5=TT, 8=SL).
+# Nesse caso, as linhas de TT e SL do PT_mesano são substituídas pelos valores Oracle.
+# Caso contrário (fallback), usa-se o Recibo B de TT como TT+SL e exclui-se o SL.
+
+usar_oracle_tt_sl <- !is.null(F_TT_SL_VALIDACOES) && file.exists(F_TT_SL_VALIDACOES)
+
+if (usar_oracle_tt_sl) {
+  message("TT/SL: a usar ficheiro Oracle F_VALIDATIONS → ", basename(F_TT_SL_VALIDACOES))
+
+  # Ler o CSV Oracle (separador ";", sem decimal especial — valores inteiros)
+  tt_sl_raw <- read.csv(F_TT_SL_VALIDACOES,
+                        sep = ";", header = TRUE,
+                        stringsAsFactors = FALSE,
+                        fileEncoding = "UTF-8-BOM",
+                        check.names = FALSE)
+  tt_sl_raw <- tt_sl_raw |> janitor::clean_names()
+
+  # Normalizar nome da coluna de contagem de validações se necessário (Query 2 vs 2b)
+  if ("sum_qnt_validation" %in% names(tt_sl_raw) && !"pt_validacoes" %in% names(tt_sl_raw)) {
+    tt_sl_raw <- tt_sl_raw |> dplyr::rename(pt_validacoes = sum_qnt_validation)
+  }
+
+  # ---- Fonte de verdade: totais TT+SL por ticket_code do Recibo B de TT --------
+  # O Recibo B de TT agrega TT+SL na coluna operador_total → é o PT oficial.
+  # As validações Oracle são usadas APENAS para calcular o rácio TT vs. SL,
+  # garantindo que TT + SL = total do Recibo B (sem inflar nem duplicar passageiros).
+  tt_sl_recibob <- PT_raw |>
+    dplyr::filter(
+      operador == "TT",
+      ticket_operator_code == 31L,
+      ticket_code > 0L
+    ) |>
+    dplyr::group_by(ticket_operator_code, ticket_code) |>
+    dplyr::summarise(pt_recibob = sum(operador_total, na.rm = TRUE), .groups = "drop")
+
+  # ---- Rácios TT vs. SL a partir das validações Oracle -------------------------
+  # Metodologia da colega (fórmula Excel na folha PT / aba TT_SL):
+  #   =SOMA.SE.S(TT_SL!L:L; TT_SL!D:D; PT!$A3; TT_SL!K:K; 0; TT_SL!E:E; 0; TT_SL!C:C; 31) - F3
+  # onde F3 (SL) filtra adicionalmente RUN_CODE == 7:
+  #   RUN_CODE == SL_RUN_CODE (7) → SL (Soflusa / ferry Barreiro)
+  #   outros RUN_CODEs (ou != 7)  → TT (Transtejo)
+  # Filtros adicionais da fórmula Excel:
+  #   TICKET_OPERATOR_CODE == 31
+  #   VALID_TYPE_ID == 0
+  #   VALBYPROF == 0
+  tt_sl_filtered <- tt_sl_raw |>
+    dplyr::filter(
+      as.integer(distribution_year)    == ANO,
+      as.integer(distribution_month)   == MES,
+      as.integer(ticket_operator_code) == 31L,
+      as.integer(ticket_code) > 0L
+    )
+
+  if ("entity_id" %in% names(tt_sl_filtered)) {
+    tt_sl_filtered <- tt_sl_filtered |>
+      dplyr::filter(as.integer(entity_id) %in% c(TT_ENTITY_ID, SL_ENTITY_ID))
+  }
+
+  if ("valid_type_id" %in% names(tt_sl_filtered)) {
+    tt_sl_filtered <- tt_sl_filtered |>
+      dplyr::filter(as.integer(valid_type_id) == 0L)
+  }
+
+  if ("valbyprof" %in% names(tt_sl_filtered)) {
+    tt_sl_filtered <- tt_sl_filtered |>
+      dplyr::filter(as.integer(valbyprof) == 0L)
+  }
+
+  tt_sl_oracle_wide <- tt_sl_filtered |>
+    dplyr::mutate(
+      ticket_code          = as.integer(ticket_code),
+      ticket_operator_code = as.integer(ticket_operator_code),
+      pt_oracle            = as.numeric(pt_validacoes),
+      operador             = if ("run_code" %in% names(tt_sl_filtered)) {
+        dplyr::if_else(as.integer(run_code) == SL_RUN_CODE, "SL", "TT")
+      } else {
+        dplyr::if_else(as.integer(entity_id) == SL_ENTITY_ID, "SL", "TT")
+      }
+    ) |>
+    # Agregar por ticket_code e operador (soma todos os RUN_CODEs de cada lado)
+    dplyr::group_by(ticket_operator_code, ticket_code, operador) |>
+    dplyr::summarise(pt_oracle = sum(pt_oracle, na.rm = TRUE), .groups = "drop") |>
+    tidyr::pivot_wider(names_from = operador, values_from = pt_oracle,
+                       values_fill = 0, names_prefix = "oracle_")
+
+  if (!"oracle_TT" %in% names(tt_sl_oracle_wide)) tt_sl_oracle_wide$oracle_TT <- 0L
+  if (!"oracle_SL" %in% names(tt_sl_oracle_wide)) tt_sl_oracle_wide$oracle_SL <- 0L
+
+  tt_sl_oracle_wide <- tt_sl_oracle_wide |>
+    dplyr::mutate(
+      oracle_total = oracle_TT + oracle_SL,
+      # Rácio TT; fallback 50/50 se não houver dados Oracle para o ticket
+      ratio_TT = dplyr::if_else(oracle_total > 0, oracle_TT / oracle_total, 0.5)
+    )
+
+  # ---- Aplicar rácios ao total do Recibo B por ticket_code ---------------------
+  tt_sl_pt <- tt_sl_recibob |>
+    dplyr::left_join(
+      tt_sl_oracle_wide |> dplyr::select(ticket_operator_code, ticket_code, ratio_TT),
+      by = c("ticket_operator_code", "ticket_code")
+    ) |>
+    dplyr::mutate(
+      # Se não há dados Oracle para este ticket_code, usar 50/50
+      ratio_TT = dplyr::coalesce(ratio_TT, 0.5),
+      pt_TT    = round(pt_recibob * ratio_TT),
+      pt_SL    = pt_recibob - pt_TT   # garante TT + SL = total Recibo B exactamente
+    ) |>
+    tidyr::pivot_longer(cols = c(pt_TT, pt_SL),
+                        names_to = "operador", values_to = "pt_operador") |>
+    dplyr::mutate(
+      operador             = dplyr::recode(operador, pt_TT = "TT", pt_SL = "SL"),
+      distribution_year    = ANO,
+      distribution_month   = MES,
+      pt_sistema           = NA_real_
+    ) |>
+    dplyr::select(distribution_year, distribution_month,
+                  ticket_operator_code, ticket_code,
+                  operador, pt_operador, pt_sistema)
+
+  total_oracle_TT <- sum(tt_sl_pt$pt_operador[tt_sl_pt$operador == "TT"])
+  total_oracle_SL <- sum(tt_sl_pt$pt_operador[tt_sl_pt$operador == "SL"])
+  total_recibob   <- sum(tt_sl_recibob$pt_recibob)
+  message(sprintf(
+    "TT/SL separados via rácios Oracle: TT=%s  SL=%s  Total=%s (Recibo B=%s).",
+    scales::number(total_oracle_TT, big.mark = ".", decimal.mark = ",", accuracy = 1),
+    scales::number(total_oracle_SL, big.mark = ".", decimal.mark = ",", accuracy = 1),
+    scales::number(total_oracle_TT + total_oracle_SL, big.mark = ".", decimal.mark = ",", accuracy = 1),
+    scales::number(total_recibob,   big.mark = ".", decimal.mark = ",", accuracy = 1)
+  ))
+
+  # Excluir TT e SL dos Recibos B (substituídos pelos valores acima)
+  PT_raw_pt <- PT_raw |>
+    dplyr::filter(!operador %in% c("TT", "SL"))
+
+} else {
+  # ---- FALLBACK: Recibo B de TT como proxy TT+SL (comportamento anterior) -----
+  message("AVISO: ficheiro Oracle TT/SL não encontrado — a usar Recibo B de TT como TT+SL (SL excluído do PT).")
+  message("  Para separar correctamente, exportar query 2b de query_SL_TT.sql para INPUT_DIR.")
+  tt_sl_pt  <- NULL
+  PT_raw_pt <- PT_raw |> dplyr::filter(operador != "SL")
+}
 
 # Agregar PT por ticket_code e operador_final
-# (soma operador_total; sistema_total é o mesmo para todos — manter o max)
+# — quando Oracle activo: PT_raw_pt já não tem TT/SL; tt_sl_pt tem os valores repartidos
+# — quando fallback: PT_raw_pt tem TT (=TT+SL) sem SL
 PT_mesano <- PT_raw_pt |>
   group_by(
     distribution_year, distribution_month,
@@ -157,11 +294,13 @@ PT_mesano <- PT_raw_pt |>
     pt_sistema  = max(sistema_total, na.rm = TRUE),
     .groups = "drop"
   ) |>
-  # Excluir operadores a ignorar:
-  # - Scotturb (SC): excluído por regulamento
-  # - PV (Portal VIVA, entity 23): validadores móveis de fiscais — não têm pasta própria
-  #   mas podem aparecer no interior de outros ficheiros
   dplyr::filter(!operador %in% c("SC"))   # Scotturb
+
+# Juntar TT e SL separados (apenas quando ficheiro Oracle disponível)
+if (usar_oracle_tt_sl && !is.null(tt_sl_pt)) {
+  PT_mesano <- dplyr::bind_rows(PT_mesano, tt_sl_pt)
+}
+
 
 # Manter apenas linhas com ticket_operator_code == 31 (Navegante)
 # ticket_code=-1 já foi recodificado como 1020 acima, por isso o filtro > 0 é seguro
@@ -264,7 +403,12 @@ message("  ", rx_out)
 
 # ---- Verificações básicas ----------------------------------------------------
 cat("\n--- Verificação: totais PT por operador ---\n")
-cat("(Nota: TT inclui TT+SL — Recibo B de TT agrega ambos os operadores)\n")
+if (usar_oracle_tt_sl) {
+  cat("(TT e SL separados via Oracle F_VALIDATIONS — query 2b)\n")
+} else {
+  cat("(AVISO: TT inclui TT+SL — Recibo B de TT agrega ambos; ficheiro Oracle não encontrado)\n")
+}
+
 PT_mesano |>
   group_by(operador) |>
   summarise(total_pt = sum(pt_operador)) |>

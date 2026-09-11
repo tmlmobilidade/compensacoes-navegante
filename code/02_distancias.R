@@ -9,7 +9,7 @@
 #
 # Inputs:
 #   OUT_DIR/PT_{SUFIXO}.csv
-#   INPUT_DIR/V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv ou distancias_dinamicas_*.csv (distâncias APEX)
+#   INPUT_DIR/V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv (distâncias APEX)
 #   lists/distanciasref_{out21|ago21}_incompleto.csv (referência estática)
 #   lists/operadores.csv
 #   lists/titulos.csv
@@ -32,7 +32,7 @@ PT_mesano  <- read.csv2(F_PT,
 # Ficheiro exportado do Oracle PDBDWPROD (procurar em INPUT_DIR ou REPLICATE_DIR)
 apex_files <- list.files(
   c(INPUT_DIR, REPLICATE_DIR),
-  pattern = "(V_REG_AVERAGE_DISTANCE_FINAL_ALL|distancias_dinamicas).*\\.csv$",
+  pattern = "V_REG_AVERAGE_DISTANCE_FINAL_ALL.*\\.csv$",
   full.names = TRUE
 )
 apex_files <- unique(apex_files)
@@ -40,10 +40,10 @@ apex_files <- unique(apex_files)
 if (length(apex_files) == 0)
   stop("Ficheiro de distâncias APEX não encontrado em: ", INPUT_DIR)
 
-# Usar o ficheiro mais recente (preferir V_REG se existir)
-v_reg_files <- grep("V_REG_AVERAGE_DISTANCE_FINAL_ALL", apex_files, value = TRUE)
-apex_file <- if (length(v_reg_files) > 0) {
-  tail(sort(v_reg_files), 1)
+# Usar o ficheiro mais recente (preferir ficheiro com "update" no nome, se existir)
+update_files <- grep("update", apex_files, ignore.case = TRUE, value = TRUE)
+apex_file <- if (length(update_files) > 0) {
+  tail(sort(update_files), 1)
 } else {
   tail(sort(apex_files), 1)
 }
