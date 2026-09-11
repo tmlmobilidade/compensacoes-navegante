@@ -197,20 +197,24 @@ distancias_mesano <- PT_mesano |>
     fonte        = dplyr::if_else(is.na(fonte), "nao_encontrada", fonte)
   )
 
-# Avisar sobre distâncias em falta
-n_falta <- sum(distancias_mesano$fonte == "nao_encontrada" |
-               distancias_mesano$distancia_zero, na.rm = TRUE)
-if (n_falta > 0) {
-  message(sprintf(
-    "AVISO: %d par(es) operador×título sem distância (dist=0 ou não encontrada).",
-    n_falta))
-  distancias_mesano |>
-    dplyr::filter(distancia_km == 0 | fonte == "nao_encontrada") |>
-    dplyr::arrange(operador, ticket_code) |>
-    print()
-}
+# # Avisar sobre distâncias em falta
+# n_falta <- sum(distancias_mesano$fonte == "nao_encontrada" |
+#                distancias_mesano$distancia_zero, na.rm = TRUE)
+# if (n_falta > 0) {
+#   message(sprintf(
+#     "AVISO: %d par(es) operador×título sem distância (dist=0 ou não encontrada).",
+#     n_falta))
+#   distancias_mesano |>
+#     dplyr::filter(distancia_km == 0 | fonte == "nao_encontrada") |>
+#     dplyr::arrange(operador, ticket_code) |>
+#     print()
+# }
+# 
+# message(sprintf("Distâncias finais: %d pares operador×título.", nrow(distancias_mesano)))
 
-message(sprintf("Distâncias finais: %d pares operador×título.", nrow(distancias_mesano)))
+# Tabela de distâncias em falta (TRUE = dist=0 / em falta)
+table(distancias_mesano$distancia_km == 0)
+
 
 # ---- Guardar output ----------------------------------------------------------
 dist_out <- F_DISTANCIAS
