@@ -45,9 +45,10 @@ F_QUOTAS        <- file.path(OUT_DIR, paste0("quotas_",                     SUFI
 F_VENDAS_AK     <- file.path(OUT_DIR, paste0("vendas_AK_",                  SUFIXO, ".csv"))
 F_RTD           <- file.path(OUT_DIR, paste0("receita_titulo_distribuir_",  SUFIXO, ".csv"))
 F_REPARTICAO_B  <- file.path(OUT_DIR, paste0("reparticao_B_",              SUFIXO, ".csv"))
-F_CONGELAMENTO  <- file.path(OUT_DIR, paste0("congelamento_",               SUFIXO, ".csv"))
-F_COSP_D        <- file.path(OUT_DIR, paste0("cosp_D_",                     SUFIXO, ".csv"))
+F_CONGELAMENTO  <- file.path(OUT_DIR, paste0("congelamento_",                 SUFIXO, ".csv"))
+F_COSP_D        <- file.path(OUT_DIR, paste0("cosp_D_",                        SUFIXO, ".csv"))
 F_D_OPERADOR    <- file.path(OUT_DIR, paste0("D_operador_",                 SUFIXO, ".csv"))
+F_VAT           <- file.path(OUT_DIR, paste0("validacoes_sem_carregamento_",   SUFIXO, ".csv"))
 F_TRANSFERENCIAS <- file.path(OUT_DIR, paste0("transferencias_F_",          SUFIXO, ".csv"))
 
 # ---- Função auxiliar para selecção de ficheiros recentes ---------------------
@@ -143,7 +144,7 @@ EXCLUIR_ENTITY_IDS <- c(11L, 23L)
 VMC_2023 <- 112562432.41
 
 # Número máximo de passes a compensar por ano
-N_PASSES_COMPENSAR <- 8472289L
+N_PASSES_COMPENSAR <- 8472279L
 
 # Retenção da TML sobre o valor a compensar mensalmente
 RETENCAO_TML <- 0.025

@@ -131,17 +131,35 @@ if (length(pvatm_files) == 0) {
                   nrow(receita_K), sum(receita_K$receita_K, na.rm = TRUE)))
 }
 
-# ---- Receita total a distribuir por título -----------------------------------
-receita_titulo_distribuir <- receita_A_por_titulo |>
+# ---- Títulos sem carregamento (Validations as Transactions) ------------------
+vat_df <- if (!is.null(F_VAT) && file.exists(F_VAT)) {
+  read.csv2(F_VAT, stringsAsFactors = FALSE) |>
+    dplyr::mutate(ticket_code = as.integer(ticket_code), qty_vat = as.numeric(qty_vat))
+} else {
+  tibble::tibble(ticket_code = integer(), qty_vat = numeric())
+}
+
+# ---- Receita total a distribuir por título (todos os 145 títulos) ------------
+receita_titulo_distribuir <- titulos |>
+  dplyr::select(ticket_code, titulo_nome, pvp) |>
+  dplyr::mutate(
+    ticket_code = as.integer(ticket_code),
+    pvp         = as.numeric(pvp)
+  ) |>
+  dplyr::left_join(receita_A_por_titulo, by = "ticket_code") |>
   dplyr::left_join(receita_K |> dplyr::select(ticket_code, qty_K, receita_K),
                    by = "ticket_code") |>
+  dplyr::left_join(vat_df |> dplyr::select(ticket_code, qty_vat),
+                   by = "ticket_code") |>
   dplyr::mutate(
-    receita_K          = tidyr::replace_na(receita_K, 0),
-    qty_K              = tidyr::replace_na(qty_K, 0),
+    qty_A_total        = tidyr::replace_na(as.numeric(qty_A_total), 0),
+    receita_A_total    = tidyr::replace_na(as.numeric(receita_A_total), 0),
+    qty_K              = tidyr::replace_na(as.numeric(qty_K), 0),
+    receita_K          = tidyr::replace_na(as.numeric(receita_K), 0),
+    qty_vat            = tidyr::replace_na(as.numeric(qty_vat), 0),
+    qty_total          = qty_A_total + qty_K + qty_vat,
     receita_distribuir = receita_A_total + receita_K
   ) |>
-  dplyr::left_join(titulos |> dplyr::select(ticket_code, titulo_nome, pvp),
-                   by = "ticket_code") |>
   dplyr::arrange(ticket_code)
 
 # ---- Verificação: total A = total K + A?

@@ -448,21 +448,36 @@ receitas_titulo_mesano <- TX_transacoes |>
     .groups = "drop"
   )
 
-message(sprintf("Receitas agregadas: %d linhas, %d operadores, %d títulos.",
-                nrow(receitas_titulo_mesano),
-                n_distinct(receitas_titulo_mesano$operador),
-                n_distinct(receitas_titulo_mesano$ticket_code)))
+# ---- 3. Títulos sem carregamento (Validations as Transactions) ----------------
+# Títulos gratuitos/sem carregamento mensal (ex: Sub18+TP, Sub23+TP, Navegante 12).
+# Não geram receita de venda de operador (receita A = 0), mas a quantidade ativa
+# no sistema (sistema_quantity) conta como passe vendido para a COSP.
+vat_sistema <- TX_raw |>
+  dplyr::filter(grepl("validation", source, ignore.case = TRUE),
+                ticket_operator_code == 31,
+                ticket_code > 0) |>
+  dplyr::group_by(ticket_code) |>
+  dplyr::summarise(
+    qty_vat = max(sistema_quantity, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+message(sprintf("Títulos sem carregamento (VaT): %d títulos, total = %d passes.",
+                nrow(vat_sistema), sum(vat_sistema$qty_vat, na.rm = TRUE)))
 
 # ---- Guardar outputs ---------------------------------------------------------
-pt_out <- F_PT
-rx_out <- F_RECEITAS
+pt_out  <- F_PT
+rx_out  <- F_RECEITAS
+vat_out <- F_VAT
 
-write.csv2(PT_mesano,             pt_out, row.names = FALSE)
-write.csv2(receitas_titulo_mesano, rx_out, row.names = FALSE)
+write.csv2(PT_mesano,              pt_out,  row.names = FALSE)
+write.csv2(receitas_titulo_mesano, rx_out,  row.names = FALSE)
+write.csv2(vat_sistema,            vat_out, row.names = FALSE)
 
 message("Output gravado:")
 message("  ", pt_out)
 message("  ", rx_out)
+message("  ", vat_out)
 
 # ---- Verificações básicas ----------------------------------------------------
 cat("\n--- Verificação: totais PT por operador ---\n")

@@ -26,6 +26,8 @@ PT_mesano         <- read.csv2(F_PT,
                                stringsAsFactors = FALSE)
 distancias_mesano <- read.csv2(F_DISTANCIAS,
                                stringsAsFactors = FALSE)
+titulos           <- read.csv2(file.path(LISTS_DIR, "titulos.csv"),
+                               stringsAsFactors = FALSE)
 
 # Pesos — ficheiro sem header; colunas: operador_nome, peso
 # Nomes na tabela de pesos usam OPERATOR_NAME_NAVEGANTE (ver operadores.csv)
@@ -54,19 +56,28 @@ pesos <- pesos_raw |>
   dplyr::mutate(operador = dplyr::recode(operador_nome_navegante, !!!mapa_pesos)) |>
   dplyr::select(operador, peso)
 
-# ---- Juntar PT × Distâncias × Pesos -----------------------------------------
+# ---- Juntar PT × Distâncias × Pesos (grade completa de 145 títulos × 11 operadores) ---
 PT_mesano$ticket_code         <- as.integer(PT_mesano$ticket_code)
 distancias_mesano$ticket_code <- as.integer(distancias_mesano$ticket_code)
+todos_ops <- unique(pesos$operador)
 
-pkm_base <- PT_mesano |>
-  dplyr::left_join(distancias_mesano |>
-                     dplyr::select(operador, ticket_code, distancia_km),
-                   by = c("operador", "ticket_code")) |>
+grade_completa <- tidyr::crossing(
+  ticket_code = as.integer(titulos$ticket_code),
+  operador    = todos_ops
+)
+
+pkm_base <- grade_completa |>
+  dplyr::left_join(PT_mesano |> dplyr::select(ticket_code, operador, pt_operador),
+                   by = c("ticket_code", "operador")) |>
+  dplyr::left_join(distancias_mesano |> dplyr::select(ticket_code, operador, distancia_km),
+                   by = c("ticket_code", "operador")) |>
   dplyr::left_join(pesos, by = "operador") |>
   dplyr::mutate(
-    distancia_km = dplyr::if_else(is.na(distancia_km), 0, as.numeric(distancia_km)),
-    peso         = dplyr::if_else(is.na(peso), 0, as.numeric(peso)),
-    pt_operador  = as.numeric(pt_operador)
+    pt_operador  = dplyr::coalesce(as.numeric(pt_operador), 0),
+    distancia_km = dplyr::coalesce(as.numeric(distancia_km), 0),
+    peso         = dplyr::coalesce(as.numeric(peso), 0),
+    pkm          = pt_operador * distancia_km,
+    quota_raw    = peso * pkm
   )
 
 # Verificar operadores sem peso
@@ -77,12 +88,15 @@ ops_sem_peso <- pkm_base |>
 if (length(ops_sem_peso) > 0)
   warning("Operadores sem peso definido: ", paste(ops_sem_peso, collapse = ", "))
 
-# ---- Calcular PKM e Quota_raw ------------------------------------------------
-pkm_base <- pkm_base |>
-  dplyr::mutate(
-    pkm       = pt_operador * distancia_km,
-    quota_raw = peso * pkm
-  )
+# ---- Quota global de PKM por operador (para títulos sem PKM) -----------------
+# Na metodologia oficial da TML (Tabela 1), quando um título não tem PKM
+# (ex: PACs sem utilizações no mês), utiliza-se a quota média/global de PKM
+# de cada operador no sistema: sum(quota_raw_op) / sum(quota_raw_total)
+quota_global_op <- pkm_base |>
+  dplyr::group_by(operador) |>
+  dplyr::summarise(quota_raw_total = sum(quota_raw, na.rm = TRUE), .groups = "drop") |>
+  dplyr::mutate(quota_global = quota_raw_total / sum(quota_raw_total, na.rm = TRUE)) |>
+  dplyr::select(operador, quota_global)
 
 # ---- Normalizar quotas (soma = 1 por título) ---------------------------------
 quotas_norm <- pkm_base |>
@@ -91,18 +105,14 @@ quotas_norm <- pkm_base |>
     soma_quota_raw = sum(quota_raw, na.rm = TRUE)
   ) |>
   dplyr::ungroup() |>
+  dplyr::left_join(quota_global_op, by = "operador") |>
   dplyr::mutate(
     quota = dplyr::if_else(soma_quota_raw > 0,
                            quota_raw / soma_quota_raw,
-                           NA_real_)   # assinalar: precisa de quota média
-  )
-
-# ---- Caso especial: títulos sem PKM (dist=0 para todos ou PT=0 para todos) ---
-# Usar a quota média do operador (média ponderada das quotas noutros títulos)
-quota_media_op <- quotas_norm |>
-  dplyr::filter(!is.na(quota)) |>
-  dplyr::group_by(operador) |>
-  dplyr::summarise(quota_media = mean(quota, na.rm = TRUE), .groups = "drop")
+                           quota_global),
+    quota_fonte = dplyr::if_else(soma_quota_raw > 0, "pkm", "quota_global")
+  ) |>
+  dplyr::select(-quota_global)
 
 titulos_sem_pkm <- quotas_norm |>
   dplyr::filter(soma_quota_raw == 0) |>
@@ -111,23 +121,13 @@ titulos_sem_pkm <- quotas_norm |>
 
 if (length(titulos_sem_pkm) > 0) {
   message(sprintf(
-    "Títulos sem PKM (usar quota média): %d — ticket_codes: %s",
+    "Títulos sem PKM (usada quota global): %d títulos — ex: %s",
     length(titulos_sem_pkm),
-    paste(titulos_sem_pkm, collapse = ", ")
+    paste(head(titulos_sem_pkm, 5), collapse = ", ")
   ))
 }
 
-quotas_norm <- quotas_norm |>
-  dplyr::left_join(quota_media_op, by = "operador") |>
-  dplyr::mutate(
-    quota = dplyr::if_else(is.na(quota),
-                           quota_media / sum(quota_media_op$quota_media),
-                           quota),
-    quota_fonte = dplyr::if_else(soma_quota_raw == 0, "quota_media", "pkm")
-  ) |>
-  dplyr::select(-quota_media)
-
-# Re-normalizar após substituição (garantir soma = 1)
+# Re-normalizar após substituição (garantir soma = 1 rigorosa)
 quotas_norm <- quotas_norm |>
   dplyr::group_by(ticket_code) |>
   dplyr::mutate(

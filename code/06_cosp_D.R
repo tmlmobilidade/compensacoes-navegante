@@ -54,16 +54,14 @@ if (length(saz_mes) == 0 || is.na(saz_mes))
 cat(sprintf("Sazonalidade mês %d:   %13.3f\n", MES, saz_mes))
 
 # Quantidade total de passes vendidos no sistema (SISTEMA_QUANTITY)
-# Usar receita_titulo_distribuir que já contém qty_A_total (vendas operadores)
-# + qty_K (vendas PV/ATM) → soma = passes totais do mês
-qty_total_mes <- sum(rtd$qty_A_total, na.rm = TRUE) +
-                 sum(rtd$qty_K,       na.rm = TRUE)
+# Usar receita_titulo_distribuir que contém qty_total = qty_A + qty_K + qty_vat
+qty_total_mes <- sum(rtd$qty_total, na.rm = TRUE)
 
-estimativa_passes_anuais <- round(qty_total_mes / saz_mes)
+estimativa_passes_anuais <- qty_total_mes / saz_mes
 pct_compensar <- min(1, N_PASSES_COMPENSAR / estimativa_passes_anuais)
 
-cat(sprintf("Qty passes mês:        %13d\n", qty_total_mes))
-cat(sprintf("Estimativa anual:      %13d\n", estimativa_passes_anuais))
+cat(sprintf("Qty passes mês:        %13d\n", round(qty_total_mes)))
+cat(sprintf("Estimativa anual:      %13d\n", round(estimativa_passes_anuais)))
 cat(sprintf("N passes a compensar:  %13d\n", N_PASSES_COMPENSAR))
 cat(sprintf("Percentagem a comp.:   %13.4f%%\n", pct_compensar * 100))
 
@@ -71,22 +69,21 @@ cat(sprintf("Percentagem a comp.:   %13.4f%%\n", pct_compensar * 100))
 rtd$ticket_code    <- as.integer(rtd$ticket_code)
 quotas$ticket_code <- as.integer(quotas$ticket_code)
 
-# Quantidade total por título (vendas A + K)
+# Quantidade total por título (vendas A + K + VaT)
 qty_titulo <- rtd |>
   dplyr::mutate(
-    qty_A_total = as.numeric(qty_A_total),
-    qty_K       = tidyr::replace_na(as.numeric(qty_K), 0),
-    qty_total_i = qty_A_total + qty_K
+    qty_total_i = as.numeric(qty_total)
   ) |>
   dplyr::select(ticket_code, titulo_nome, qty_total_i)
 
 cosp_titulo <- qty_titulo |>
   dplyr::mutate(
-    passes_compensar_i = pct_compensar * qty_total_i,
-    COSP_i             = round(passes_compensar_i * valor_medio_passe * (1 - RETENCAO_TML), 2)
+    passes_compensar_i = round(pct_compensar * qty_total_i, 0),
+    COSP_i             = passes_compensar_i * valor_medio_passe * (1 - RETENCAO_TML)
   )
 
-cat(sprintf("\nCOSP total (antes de distribuir): %.2f €\n",
+cat(sprintf("\nTotal passes a compensar no mês: %d\n", sum(cosp_titulo$passes_compensar_i, na.rm = TRUE)))
+cat(sprintf("COSP total (antes de distribuir): %.2f €\n",
             sum(cosp_titulo$COSP_i, na.rm = TRUE)))
 
 # ---- 5. Distribuição COSP por título e operador ------------------------------
@@ -96,18 +93,18 @@ cosp_dist <- quotas |>
   dplyr::left_join(cosp_titulo |> dplyr::select(ticket_code, COSP_i),
                    by = "ticket_code") |>
   dplyr::mutate(
-    COSP_ij = round(quota * COSP_i, 2)
+    COSP_ij = quota * COSP_i
   )
 
 # ---- 6. D(j) — COSP por operador --------------------------------------------
 D_operador <- cosp_dist |>
   dplyr::group_by(operador) |>
-  dplyr::summarise(D = sum(COSP_ij, na.rm = TRUE), .groups = "drop")
+  dplyr::summarise(D = round(sum(COSP_ij, na.rm = TRUE), 2), .groups = "drop")
 
 cat("\n--- COSP (D) por operador ---\n")
 D_operador |>
   dplyr::arrange(desc(D)) |>
-  dplyr::mutate(D = scales::number(D, big.mark = ".", decimal.mark = ",", accuracy = 0.01)) |>
+  dplyr::mutate(D = scales::number(D, big.mark = " ", decimal.mark = ",", accuracy = 0.01)) |>
   print()
 
 cat(sprintf("\nTotal D (COSP):  %.2f €\n", sum(D_operador$D, na.rm = TRUE)))
@@ -141,7 +138,7 @@ cat(sprintf("  VMC %d:              %15.2f €\n", ANO, VMC_ano))
 cat(sprintf("  N passes compensar:    %15d\n",   N_PASSES_COMPENSAR))
 cat(sprintf("  Valor médio passe:     %15.6f €\n", valor_medio_passe))
 cat(sprintf("  Sazonalidade mês %d:   %15.3f\n",   MES, saz_mes))
-cat(sprintf("  Qty passes mês:        %15d\n",   qty_total_mes))
-cat(sprintf("  Estimativa anual:      %15d\n",   estimativa_passes_anuais))
+cat(sprintf("  Qty passes mês:        %15d\n",   round(qty_total_mes)))
+cat(sprintf("  Estimativa anual:      %15d\n",   round(estimativa_passes_anuais)))
 cat(sprintf("  %% a compensar:         %15.4f%%\n", pct_compensar * 100))
 cat(sprintf("  Retenção TML:          %15.1f%%\n", RETENCAO_TML * 100))

@@ -40,7 +40,7 @@ code/
 | `APEX_ENTITY_IDS` | `c(75, 22)` | Entidades com distâncias dinâmicas (CM, CAP) |
 | `CM_SUBOPS` | `c("A1","A2","A3","A4")` | Sub-operadores da Carris Metropolitana |
 | `VMC_2023` | `112562432.41` | Valor Máximo Compensação COSP regulado |
-| `N_PASSES_COMPENSAR` | `8472289` | Nº máximo passes anuais a compensar |
+| `N_PASSES_COMPENSAR` | `8472279` | Nº máximo passes anuais a compensar (regulamentar) |
 | `RETENCAO_TML` | `0.025` | Retenção TML sobre COSP (2.5%) |
 | `TAT_FILE` | `lists/tat.csv` | Taxa de Atualização Tarifária por ano |
 
@@ -54,10 +54,11 @@ As variáveis `F_*` em `config.R` centralizam todos os caminhos.
 | `F_PT` | `PT_{SUFIXO}.csv` | `01_recibos_b.R` | Passageiros transportados por título × operador |
 | `F_PT_CM` | `PT_CM_agregado_{SUFIXO}.csv` | `01_recibos_b.R` | CM = soma de A1+A2+A3+A4 |
 | `F_RECEITAS` | `receitas_titulo_{SUFIXO}.csv` | `01_recibos_b.R` | Receitas de venda por título × operador (qty e €) |
+| `F_VAT` | `validacoes_sem_carregamento_{SUFIXO}.csv` | `01_recibos_b.R` | Quantidades de títulos gratuitos sem carregamento (VaT) |
 | `F_DISTANCIAS` | `distancias_{SUFIXO}.csv` | `02_distancias.R` | Distância média (km) por título × operador |
 | `F_QUOTAS` | `quotas_{SUFIXO}.csv` | `03_quotas.R` | PKM e quota (0–1) por título × operador |
 | `F_VENDAS_AK` | `vendas_AK_{SUFIXO}.csv` | `04_vendas_AK.R` | Receita na posse de cada operador (A) |
-| `F_RTD` | `receita_titulo_distribuir_{SUFIXO}.csv` | `04_vendas_AK.R` | Receita total a distribuir por título (A+K) |
+| `F_RTD` | `receita_titulo_distribuir_{SUFIXO}.csv` | `04_vendas_AK.R` | Receita total a distribuir por título (A+K) e qty total |
 | `F_REPARTICAO_B` | `reparticao_B_{SUFIXO}.csv` | `05_reparticao_B.R` | Distribuição B por título × operador + congelamento |
 | `F_CONGELAMENTO` | `congelamento_{SUFIXO}.csv` | `05_reparticao_B.R` | Congelamento Navegante (TAT) por operador |
 | `F_COSP_D` | `cosp_D_{SUFIXO}.csv` | `06_cosp_D.R` | COSP detalhe por título × operador |
@@ -330,7 +331,11 @@ $$
 > - $\text{PKM}_{i,j}$: Passageiro-Quilómetro (Passageiros $\times$ Distância)
 > - $\forall i$: Para todo e qualquer título $i$ (a soma das quotas entre todos os operadores $j$ perfaz $1$ ou $100\%$)
 
-Em percentagem. A soma para cada título é 1. Quando não há PKM para um título (distância=0 para todos os operadores), usa-se a quota média do operador.
+Em percentagem. A soma para cada título é 1. Quando não há PKM para um título (distância=0 para todos os operadores ou 0 validações no mês), usa-se a **quota global de PKM** do operador:
+
+$$\text{Quota Global}_j = \frac{\sum_i \text{Quota Raw}_{i,j}}{\sum_j \sum_i \text{Quota Raw}_{i,j}}$$
+
+Esta regra garante que todos os 145 títulos de `titulos.csv` (mesmo os que não tiveram validações no mês, ex.: PACs) têm quotas bem definidas somando 100%, em exata conformidade com a Tabela 1 da folha de validação da TML.
 
 ### Script: `03_quotas.R`
 
@@ -339,30 +344,26 @@ Em percentagem. A soma para cada título é 1. Quando não há PKM para um títu
 
 ---
 
-# 2. Vendas A e K
+# 2. Vendas A e K e Títulos sem Carregamento (VaT)
 
-Quanto o título não exige um carregamento mensal, é considerado apenas quando existe **pelo menos 1 validação** nesse mês. (por exemplo, passe escolar). Se 0 validações, não é considerado.
+As quantidades de títulos do mês dividem-se em 3 componentes:
 
-Sabemos isso pela tabela `reg_[OPERADOR]_reciboB_transactionsOperatorSystem_*.csv`, campo `SOURCE` == "Validations as Transcactions". O valor de `SISTEMA_QUANTITY` diz-me quantas validações houve em títulos sem carregamento (global).
-
-> Quanto há venda de um título, mas essse título não teve validações, usa-se a média das quotas para distribuir essa receita. Por exemplo: PAC (passe antigos combatentes) comprado a pvp 0€, mas que tem custo de 10€, mas não foi nunca usado pelo seu titular, tem de se compensar.
+1. **A**: quantidades vendidas nas bilheteiras de cada operador = `OPERADOR_QUANTITY` + `SIIT_QTY` (de `SOURCE == "Transaction"` nos Recibos B)
+2. **K**: quantidades vendidas por canais de venda genéricos da TML: Portal VIVA (PV) e SIBS (ATM), que vêm da tabela `ReciboB_{ANOMES}_Separação_PV_ATM.xlsx` (extraída pelo Dept ITS).
+3. **VaT (Validations as Transactions)**: títulos que não exigem carregamento mensal pago (títulos gratuitos como Navegante Sub18+TP, Sub23+TP, Navegante 12 Criança, etc.), que contam apenas quando existe pelo menos 1 validação nesse mês.
+   - O campo `sistema_quantity` dos ficheiros de transações dos Recibos B indica o total de passes ativos/usados no sistema.
+   - Estes títulos têm receita direta $0\text{ €}$ para os operadores (receita $A = 0$), mas **as suas quantidades somam para a quantidade total de passes vendidos no mês** para efeito da COSP.
 
 Temos:
-
-- **A**: quantidades vendidas de cada título por cada operador = `OPERADOR_QUANTITY` + `SIIT_QTY`
-- **K**: quantidades vendidas por canais de venda genéricos da TML: PV e SIBS, que vêm de uma tabela `ReciboB_{ANOMES}_Separação_PV_ATM.xlsx`, com a lista do ticket_code e a quantidade de venda, em PV e SIBS - **esta lista é extraída pelo Departamento ITS.**
-
-Temos o pvp, sabemos as receitas de venda em € de cada operador (A), e dos canais de venda K.
-
-Fazemos a soma por título (receita por título), incluindo os K [`receita_titulo_distribuir`]
-
-Fazemos a receita na posse do operador (A), como a soma por operador, de todos os títulos.
+- `receita_titulo_distribuir` (A+K): soma da receita por título a distribuir aos operadores.
+- `qty_total` por título = `qty_A` + `qty_K` + `qty_vat` (usada no cálculo da COSP).
+- `receita_posse_operador` (A): soma da receita de venda na posse de cada operador.
 
 ### Script: `04_vendas_AK.R`
 
 **Outputs:**
 - `F_VENDAS_AK` → `vendas_AK_{SUFIXO}.csv`: receita A por operador (colunas `operador`, `receita_A`, `qty_A`)
-- `F_RTD` → `receita_titulo_distribuir_{SUFIXO}.csv`: receita total a distribuir por título (colunas `ticket_code`, `receita_A_total`, `qty_A_total`, `receita_K`, `qty_K`, `receita_distribuir`)
+- `F_RTD` → `receita_titulo_distribuir_{SUFIXO}.csv`: receita e quantidades totais por título (colunas `ticket_code`, `titulo_nome`, `pvp`, `qty_A_total`, `receita_A_total`, `qty_K`, `receita_K`, `qty_vat`, `qty_total`, `receita_distribuir`)
 
 ---
 
@@ -411,31 +412,46 @@ $$
 
 COSP - Compensação de Obrigação de Serviço Público
 
-Há um valor máximo de compensação (VMC), atualizado à TAT todos os anos, quando se vende **até** 8.472.289 passes por ano.
+Há um valor máximo de compensação (VMC), atualizado à TAT todos os anos, quando se vende **até** 8.472.279 passes por ano.
 
-O VMC regulado para 2023 = 112562432.41
+- O VMC regulado para 2023 = 112 562 432,41 €
+- Nº máximo passes a compensar por ano = **8 472 279** (`N_PASSES_COMPENSAR`)
+- Sazonalidade mensal (`lists/sazonalidade.csv`), ex: Maio = 0,087 (8,7%)
+- Retenção regulamentar TML = 2,5% (`RETENCAO_TML = 0.025`)
+- VMC atualizado: $\text{VMC}_{\text{ano}} = \text{VMC}_{2023} \times \prod (1 + \text{TAT}_{\text{ano}})$, arredondado ao cêntimo. Para 2026: 125 006 780,46 €
+- Valor médio compensação por passe = $\text{VMC}_{\text{ano}} / \text{N\_PASSES\_COMPENSAR} = 14{,}754800\text{ €}$
 
-nº passes a compensar = 8472289
+### Fórmulas de cálculo:
 
-Há sazonalidade mensal (`lists/sazonalidade.csv`)
+1. **Quantidade total de passes do mês**:
+   $$\text{Qty Total Mês} = \sum_i (\text{qty\_A}_i + \text{qty\_K}_i + \text{qty\_vat}_i)$$
+   *(Em Maio/2026: $414\,374 + 224\,379 + 436\,335 = \mathbf{1\,075\,088}\text{ passes}$)*
+2. **Estimativa anual de passes**:
+   $$\text{Estimativa Anual} = \frac{\text{Qty Total Mês}}{\text{Sazonalidade Mês}}$$
+   *(Em Maio/2026: $1\,075\,088 / 0{,}087 = \mathbf{12\,357\,333}\text{ passes}$)*
+3. **Percentagem de passes a compensar**:
+   $$\text{Pct Compensar} = \min\left(1, \frac{\text{N\_PASSES\_COMPENSAR}}{\text{Estimativa Anual}}\right)$$
+   *(Em Maio/2026: $8\,472\,279 / 12\,357\,333 = \mathbf{68{,}5607\%}$)*
+4. **N.º de passes a compensar por título $i$**:
+   $$\text{Passes Compensar}_i = \text{round}(\text{Pct Compensar} \times \text{Qty Total}_i)$$
+   *(A soma de todos os títulos em Maio/2026 perfaz exatamente **737 085 passes a compensar**)*
+5. **COSP por título $i$**:
+   $$\text{COSP}_i = \text{Passes Compensar}_i \times \text{Valor Médio Passe} \times (1 - \text{Retenção TML})$$
+6. **Distribuição por operador $j$ (D)**:
+   $$\text{COSP}_{i,j} = \text{Quota}_{i,j} \times \text{COSP}_i \quad \Longrightarrow \quad D_j = \sum_i \text{COSP}_{i,j}$$
 
-Há uma retenção de 2.5% do valor a compensar, que fica na TML todos os meses, e que depois é apurado no fim do ano e acertado (retencao_tml = 2.5%)
+> [!IMPORTANT]
+> **Esclarecimento sobre a quantidade 737 085 vs passes do mês:**  
+> **737 085** é a quantidade total de **passes a compensar no mês** (total da coluna 10 da Tabela 5), após aplicação da percentagem regulamentar de $68{,}5607\%$ sobre o total real de passes do mês (**1 075 088**).  
+> Sem a inclusão dos $436\,335$ passes gratuitos/sem carregamento (`Validations as Transactions`), a estimativa anual ficava artificialmente abaixo do teto regulamentar ($7{,}34\text{ M} < 8{,}47\text{ M}$), aplicando erradamente $100\%$ de compensação e desvirtuando os valores de todos os operadores.
 
-Estimativa do N.º passes anuais vendidos = sazonalidade * número total de passes vendidos (sum SISTEMA_QUANTITY)
-
-Percentagem do Nº Passes vendidos a compensar = se nº passes a compensar maior que Estimativa do N.º passes anuais vendidos, 100%. c.c. Estimativa do N.º passes anuais vendidos / nº passes a compensar. Dá uma percentagem
-
-VMC_2026 = VMC_2023 (regulado) * [(1+TAT_2024)(1+TAT_2025)(1+TAT_2026) ], arredondado ao cêntimo.
-
-O valor médio compensação por passe = VMC_2026 / nº passes a compensar
-
-Nº passes a compensar i = Percentagem do Nº Passes vendidos a compensar * Quantidades vendidas por título i
-
-COSP i = Nº passes a compensar i * valor médio compensação por passe * (1-retencao_tml)
-
-Distribuição COSP i,j = COSP i * Quota i,j
-
-Distribuição COSP j (D)= sum( Distribuição COSP i,j), j
+> [!NOTE]
+> **Transtejo (TT) e Soflusa (SL) — COSP (D) vs Receita Bilheteira (B):**  
+> Na Tabela 6 (Transferências Finais), TT e SL são apresentadas agregadas como `TT + SL = 351 930,61 €`.  
+> No entanto, no detalhe por operador:
+> - **Tabela 4 (Receita B devida):** TT = $300\,021{,}95\text{ €}$, SL = $577\,756{,}13\text{ €}$ (Soma $= 877\,778{,}09\text{ €}$)
+> - **Tabela 5 (COSP D por conta):** TT = $128\,094{,}46\text{ €}$, SL = $223\,836{,}15\text{ €}$ (Soma $= 351\,930{,}61\text{ €}$)  
+> Ao conferir os valores, ter o cuidado de não comparar a COSP (D) com a Receita Bilheteira (B).
 
 ### Script: `06_cosp_D.R`
 
