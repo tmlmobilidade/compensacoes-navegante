@@ -167,10 +167,10 @@ quotas_mesano |>
   dplyr::summarise(
     n_titulos    = dplyr::n(),
     quota_media  = round(mean(quota, na.rm = TRUE) * 100, 2),
-    pkm_total    = round(sum(pkm, na.rm = TRUE) / 1e6, 2),
+    pkm_total    = round(sum(pkm, na.rm = TRUE), 0),
     .groups = "drop"
   ) |>
   dplyr::arrange(desc(quota_media)) |>
   dplyr::rename(`Quota média (%)` = quota_media,
-                `PKM total (M)` = pkm_total) |>
+                `PKM total` = pkm_total) |>
   print()
