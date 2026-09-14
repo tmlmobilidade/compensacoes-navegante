@@ -99,15 +99,15 @@ cosp_dist <- quotas |>
 # ---- 6. D(j) — COSP por operador --------------------------------------------
 D_operador <- cosp_dist |>
   dplyr::group_by(operador) |>
-  dplyr::summarise(D = round(sum(COSP_ij, na.rm = TRUE), 2), .groups = "drop")
+  dplyr::summarise(cosp_D = round(sum(COSP_ij, na.rm = TRUE), 2), .groups = "drop")
 
 cat("\n--- COSP (D) por operador ---\n")
 D_operador |>
-  dplyr::arrange(desc(D)) |>
-  dplyr::mutate(D = scales::number(D, big.mark = " ", decimal.mark = ",", accuracy = 0.01)) |>
+  dplyr::arrange(desc(cosp_D)) |>
+  dplyr::mutate(cosp_D = scales::number(cosp_D, big.mark = " ", decimal.mark = ",", accuracy = 0.01)) |>
   print()
 
-cat(sprintf("\nTotal D (COSP):  %.2f €\n", sum(D_operador$D, na.rm = TRUE)))
+cat(sprintf("\nTotal D (COSP):  %.2f €\n", sum(D_operador$cosp_D, na.rm = TRUE)))
 
 # ---- Guardar output ----------------------------------------------------------
 # Tabela completa com detalhes
