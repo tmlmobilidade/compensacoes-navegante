@@ -19,6 +19,7 @@ code/
 ├── 05_reparticao_B.R         # Distribui receita B + Congelamento TAT
 ├── 06_cosp_D.R               # Calcula COSP (D)
 ├── 07_transferencias_F.R     # Calcula transferências finais F
+├── 08_tables.R               # Exporta tabela de transferências em Excel (xlsx)
 ├── 99_run_all.R              # Script mestre — corre tudo em sequência
 ├── query_SL_TT.sql           # Query Oracle para separação TT/SL (Query 2b)
 └── query_CM_fiscaismoveis.sql # Query Oracle para fiscais móveis CM (Query 2c)
@@ -51,19 +52,21 @@ As variáveis `F_*` em `config.R` centralizam todos os caminhos.
 
 | Variável R | Ficheiro | Produzido em | Conteúdo |
 |---|---|---|---|
-| `F_PT` | `PT_{SUFIXO}.csv` | `01_recibos_b.R` | Passageiros transportados por título × operador |
-| `F_PT_CM` | `PT_CM_agregado_{SUFIXO}.csv` | `01_recibos_b.R` | CM = soma de A1+A2+A3+A4 |
-| `F_RECEITAS` | `receitas_titulo_{SUFIXO}.csv` | `01_recibos_b.R` | Receitas de venda por título × operador (qty e €) |
-| `F_VAT` | `validacoes_sem_carregamento_{SUFIXO}.csv` | `01_recibos_b.R` | Quantidades de títulos gratuitos sem carregamento (VaT) |
-| `F_DISTANCIAS` | `distancias_{SUFIXO}.csv` | `02_distancias.R` | Distância média (km) por título × operador |
-| `F_QUOTAS` | `quotas_{SUFIXO}.csv` | `03_quotas.R` | PKM e quota (0–1) por título × operador |
-| `F_VENDAS_AK` | `vendas_AK_{SUFIXO}.csv` | `04_vendas_AK.R` | Receita na posse de cada operador (A) |
-| `F_RTD` | `receita_titulo_distribuir_{SUFIXO}.csv` | `04_vendas_AK.R` | Receita total a distribuir por título (A+K) e qty total |
-| `F_REPARTICAO_B` | `reparticao_B_{SUFIXO}.csv` | `05_reparticao_B.R` | Distribuição B por título × operador + congelamento |
-| `F_CONGELAMENTO` | `congelamento_{SUFIXO}.csv` | `05_reparticao_B.R` | Congelamento Navegante (TAT) por operador |
-| `F_COSP_D` | `cosp_D_{SUFIXO}.csv` | `06_cosp_D.R` | COSP detalhe por título × operador |
-| `F_D_OPERADOR` | `D_operador_{SUFIXO}.csv` | `06_cosp_D.R` | COSP total (D) por operador |
-| `F_TRANSFERENCIAS` | `transferencias_F_{SUFIXO}.csv` | `07_transferencias_F.R` | **Tabela final**: A, B, D, Congelamento, F, Total |
+| `F_PT` | `1a_PT_{SUFIXO}.csv` | `01_recibos_b.R` | Passageiros transportados por título × operador |
+| `F_PT_CM` | `1b_PT_CM_{SUFIXO}.csv` | `01_recibos_b.R` | CM = soma de A1+A2+A3+A4 |
+| `F_RECEITAS` | `1c_receitas_titulo_{SUFIXO}.csv` | `01_recibos_b.R` | Receitas de venda por título × operador (qty e €) |
+| `F_VAT` | `1d_validacoes_{SUFIXO}.csv` | `01_recibos_b.R` | Quantidades de títulos gratuitos sem carregamento (VaT) |
+| `F_DISTANCIAS` | `1e_distancias_{SUFIXO}.csv` | `02_distancias.R` | Distância média (km) por título × operador |
+| `F_QUOTAS` | `1_quotas_{SUFIXO}.csv` | `03_quotas.R` | PKM e quota (0–1) por título × operador |
+| `F_VENDAS_A` | `2_vendas_A_{SUFIXO}.csv` | `04_vendas_AK.R` | Receita na posse de cada operador (A) |
+| `F_VENDAS_K` | `2_vendas_K_{SUFIXO}.csv` | `04_vendas_AK.R` | Vendas e receitas dos canais partilhados TML (Portal VIVA e SIBS/ATM) |
+| `F_RTD` | `4a_receita_titulo_distribuir_{SUFIXO}.csv` | `04_vendas_AK.R` | Receita total a distribuir por título (A+K) e qty total |
+| `F_REPARTICAO_B` | `4b_reparticao_B_{SUFIXO}.csv` | `05_reparticao_B.R` | Distribuição B por título × operador + congelamento |
+| `F_CONGELAMENTO` | `4_receitaB_congelamento_{SUFIXO}.csv` | `05_reparticao_B.R` | Receita B devida + Congelamento Navegante (TAT) por operador |
+| `F_COSP_D` | `5a_cosp_{SUFIXO}.csv` | `06_cosp_D.R` | COSP detalhe por título × operador |
+| `F_D_OPERADOR` | `5_cosp_operador_{SUFIXO}.csv` | `06_cosp_D.R` | COSP total (D) por operador |
+| `F_TRANSFERENCIAS` | `6_transferencias_{SUFIXO}.csv` | `07_transferencias_F.R` | **Tabela final**: A, B, D, Congelamento, F, Total |
+| `F_TABELA_XLSX` | `tabela_transferencias_{SUFIXO}.xlsx` | `08_tables.R` | **Workbook Excel**: Folha 1 (longo) e Folha 2 (cruzado) |
 
 ---
 
@@ -362,8 +365,9 @@ Temos:
 ### Script: `04_vendas_AK.R`
 
 **Outputs:**
-- `F_VENDAS_AK` → `vendas_AK_{SUFIXO}.csv`: receita A por operador (colunas `operador`, `receita_A`, `qty_A`)
-- `F_RTD` → `receita_titulo_distribuir_{SUFIXO}.csv`: receita e quantidades totais por título (colunas `ticket_code`, `titulo_nome`, `pvp`, `qty_A_total`, `receita_A_total`, `qty_K`, `receita_K`, `qty_vat`, `qty_total`, `receita_distribuir`)
+- `F_VENDAS_A` → `2_vendas_A_{SUFIXO}.csv`: receita A por operador (colunas `operador`, `receita_A`, `qty_A`)
+- `F_VENDAS_K` → `2_vendas_K_{SUFIXO}.csv`: vendas e receita K por título e canal (colunas `ticket_code`, `titulo_nome`, `pvp`, `qty_K_pv`, `receita_K_pv`, `qty_K_atm`, `receita_K_atm`, `qty_K`, `receita_K`)
+- `F_RTD` → `4a_receita_titulo_distribuir_{SUFIXO}.csv`: receita e quantidades totais por título (colunas `ticket_code`, `titulo_nome`, `pvp`, `qty_A_total`, `receita_A_total`, `qty_K`, `receita_K`, `qty_vat`, `qty_total`, `receita_distribuir`)
 
 ---
 
@@ -403,8 +407,8 @@ $$
 ### Script: `05_reparticao_B.R`
 
 **Outputs:**
-- `F_REPARTICAO_B` → `reparticao_B_{SUFIXO}.csv`: colunas `operador`, `ticket_code`, `titulo_nome`, `dist_receita`, `receita_compensar`
-- `F_CONGELAMENTO` → `congelamento_{SUFIXO}.csv`: colunas `operador`, `B` (receita devida total), `congelamento`
+- `F_REPARTICAO_B` → `4b_reparticao_B_{SUFIXO}.csv`: colunas `operador`, `ticket_code`, `titulo_nome`, `dist_receita`, `receita_compensar`
+- `F_CONGELAMENTO` → `4_receitaB_congelamento_{SUFIXO}.csv`: colunas `operador`, `receita_B` (receita devida total), `congelamento_B`
 
 ---
 
@@ -456,8 +460,8 @@ Há um valor máximo de compensação (VMC), atualizado à TAT todos os anos, qu
 ### Script: `06_cosp_D.R`
 
 **Outputs:**
-- `F_COSP_D` → `cosp_D_{SUFIXO}.csv`: detalhe COSP por título × operador
-- `F_D_OPERADOR` → `D_operador_{SUFIXO}.csv`: COSP total (D) por operador
+- `F_COSP_D` → `5a_cosp_{SUFIXO}.csv`: detalhe COSP por título × operador
+- `F_D_OPERADOR` → `5_cosp_operador_{SUFIXO}.csv`: COSP total (D) por operador, coluna `cosp_D`
 
 ---
 
@@ -484,7 +488,7 @@ A COSP e o Congelamento são pagos pelo programa "Incentiva". O "Incentiva" é p
 ### Script: `07_transferencias_F.R`
 
 **Outputs:**
-- `F_TRANSFERENCIAS` → `transferencias_F_{SUFIXO}.csv`: tabela final por operador com colunas `operador`, `nome_operador`, `receita_A` (A), `B`, `D`, `congelamento`, `F_transferencia`, `total_transferir`, `nota`, `pagamento_imediato`, `pagamento_incentiva`
+- `F_TRANSFERENCIAS` → `6_transferencias_{SUFIXO}.csv`: tabela final por operador com colunas `operador`, `nome_operador`, `receita_A`, `receita_B`, `cosp_D`, `congelamento_B`, `F_transferencia`, `total_transferir`, `nota`, `pagamento_imediato`, `pagamento_incentiva`
 
 ---
 
