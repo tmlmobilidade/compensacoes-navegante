@@ -5,7 +5,7 @@
 # Alterar ANO e MES para correr para outro mês.
 
 ANO <- if (!is.na(Sys.getenv("ANO", unset = NA))) as.integer(Sys.getenv("ANO")) else 2026
-MES <- if (!is.na(Sys.getenv("MES", unset = NA))) as.integer(Sys.getenv("MES")) else 6      # 5 = maio, 6 = junho, etc.
+MES <- if (!is.na(Sys.getenv("MES", unset = NA))) as.integer(Sys.getenv("MES")) else 5      # 5 = maio, 6 = junho, etc.
 
 # ---- Caminhos base -----------------------------------------------------------
 BASE_DIR <- here::here()   # raiz do projecto (onde está o code/)
@@ -37,19 +37,22 @@ dir.create(OUT_DIR,   showWarnings = FALSE, recursive = TRUE)
 # ---- Nomes de ficheiros de output (centralizados) ----------------------------
 # Todos os ficheiros intermédios e finais usam SUFIXO no nome.
 # Alterar MES/ANO em cima actualiza automaticamente todos os caminhos.
-F_PT            <- file.path(OUT_DIR, paste0("PT_",                         SUFIXO, ".csv"))
-F_PT_CM         <- file.path(OUT_DIR, paste0("PT_CM_agregado_",             SUFIXO, ".csv"))
-F_RECEITAS      <- file.path(OUT_DIR, paste0("receitas_titulo_",            SUFIXO, ".csv"))
-F_DISTANCIAS    <- file.path(OUT_DIR, paste0("distancias_",                 SUFIXO, ".csv"))
-F_QUOTAS        <- file.path(OUT_DIR, paste0("quotas_",                     SUFIXO, ".csv"))
-F_VENDAS_AK     <- file.path(OUT_DIR, paste0("vendas_AK_",                  SUFIXO, ".csv"))
-F_RTD           <- file.path(OUT_DIR, paste0("receita_titulo_distribuir_",  SUFIXO, ".csv"))
-F_REPARTICAO_B  <- file.path(OUT_DIR, paste0("reparticao_B_",              SUFIXO, ".csv"))
-F_CONGELAMENTO  <- file.path(OUT_DIR, paste0("congelamento_",                 SUFIXO, ".csv"))
-F_COSP_D        <- file.path(OUT_DIR, paste0("cosp_D_",                        SUFIXO, ".csv"))
-F_D_OPERADOR    <- file.path(OUT_DIR, paste0("D_operador_",                 SUFIXO, ".csv"))
-F_VAT           <- file.path(OUT_DIR, paste0("validacoes_sem_carregamento_",   SUFIXO, ".csv"))
-F_TRANSFERENCIAS <- file.path(OUT_DIR, paste0("transferencias_F_",          SUFIXO, ".csv"))
+F_PT            <- file.path(OUT_DIR, paste0("1a_PT_",                        SUFIXO, ".csv"))
+F_PT_CM         <- file.path(OUT_DIR, paste0("1b_PT_CM_",                    SUFIXO, ".csv"))
+F_RECEITAS      <- file.path(OUT_DIR, paste0("1c_receitas_titulo_",          SUFIXO, ".csv"))
+F_DISTANCIAS    <- file.path(OUT_DIR, paste0("1e_distancias_",               SUFIXO, ".csv"))
+F_QUOTAS        <- file.path(OUT_DIR, paste0("1_quotas_",                    SUFIXO, ".csv"))
+F_VENDAS_A      <- file.path(OUT_DIR, paste0("2_vendas_A_",                  SUFIXO, ".csv"))
+F_VENDAS_K      <- file.path(OUT_DIR, paste0("2_vendas_K_",                  SUFIXO, ".csv"))
+F_VENDAS_AK     <- F_VENDAS_A   # alias de compatibilidade
+F_RTD           <- file.path(OUT_DIR, paste0("4a_receita_titulo_distribuir_", SUFIXO, ".csv"))
+F_REPARTICAO_B  <- file.path(OUT_DIR, paste0("4b_reparticao_B_",             SUFIXO, ".csv"))
+F_CONGELAMENTO  <- file.path(OUT_DIR, paste0("4_receitaB_congelamento_",     SUFIXO, ".csv"))
+F_COSP_D        <- file.path(OUT_DIR, paste0("5a_cosp_",                     SUFIXO, ".csv"))
+F_D_OPERADOR    <- file.path(OUT_DIR, paste0("5_cosp_operador_",             SUFIXO, ".csv"))
+F_VAT           <- file.path(OUT_DIR, paste0("1d_validacoes_",               SUFIXO, ".csv"))
+F_TRANSFERENCIAS <- file.path(OUT_DIR, paste0("6_transferencias_",           SUFIXO, ".csv"))
+F_TABELA_XLSX   <- file.path(OUT_DIR, paste0("tabela_transferencias_",       SUFIXO, ".xlsx"))
 
 # ---- Função auxiliar para selecção de ficheiros recentes ---------------------
 #' Seleciona o ficheiro mais recente que corresponda a um padrão,
