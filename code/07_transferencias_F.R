@@ -19,19 +19,19 @@
 #     (só após TML receber do Estado)
 #
 # Inputs:
-#   OUT_DIR/vendas_AK_mesano.csv
-#   OUT_DIR/congelamento_mesano.csv
-#   OUT_DIR/D_operador_mesano.csv
+#   OUT_DIR/2_vendas_AK_mesano.csv
+#   OUT_DIR/4_receitaB_congelamento_mesano.csv
+#   OUT_DIR/5_cosp_operador_mesano.csv
 #   lists/operadores.csv
 #
 # Output:
-#   OUT_DIR/transferencias_F_mesano.csv
+#   OUT_DIR/6_transferencias_mesano.csv
 # =============================================================================
 
 source(here::here("code", "config.R"))
 
-vendas_A   <- read.csv2(F_VENDAS_AK,
-                        stringsAsFactors = FALSE)
+vendas_A   <- read.csv2(F_VENDAS_A,
+                      stringsAsFactors = FALSE)
 cong       <- read.csv2(F_CONGELAMENTO,
                         stringsAsFactors = FALSE)
 D_op       <- read.csv2(F_D_OPERADOR,
@@ -45,26 +45,26 @@ op_nomes <- operadores |>
   dplyr::rename(operador = ENTITY_ABBREVIATION, nome_operador = ENTITY_NAME)
 
 # ---- Juntar A, B, D, Cong por operador ---------------------------------------
-# B está em congelamento_mesano.csv (coluna B)
+# receita_B está em 4_receitaB_congelamento_mesano.csv (coluna receita_B)
 transferencias <- cong |>
-  dplyr::select(operador, B, congelamento) |>
+  dplyr::select(operador, receita_B, congelamento_B) |>
   dplyr::full_join(
     vendas_A |> dplyr::select(operador, receita_A),
     by = "operador"
   ) |>
   dplyr::full_join(D_op, by = "operador") |>
   dplyr::mutate(
-    B            = as.numeric(B),
-    congelamento = as.numeric(congelamento),
-    receita_A    = as.numeric(receita_A),
-    D            = as.numeric(D),
+    receita_B      = as.numeric(receita_B),
+    congelamento_B = as.numeric(congelamento_B),
+    receita_A      = as.numeric(receita_A),
+    cosp_D         = as.numeric(cosp_D),
     # Substituir NA por 0 (operador sem vendas próprias ou sem COSP)
-    receita_A    = tidyr::replace_na(receita_A, 0),
-    D            = tidyr::replace_na(D, 0),
-    congelamento = tidyr::replace_na(congelamento, 0),
+    receita_A      = tidyr::replace_na(receita_A, 0),
+    cosp_D         = tidyr::replace_na(cosp_D, 0),
+    congelamento_B = tidyr::replace_na(congelamento_B, 0),
     # Calcular transferência
-    F_transferencia  = B + D - receita_A,
-    total_transferir = F_transferencia + congelamento
+    F_transferencia  = receita_B + cosp_D - receita_A,
+    total_transferir = F_transferencia + congelamento_B
   )
 
 # ---- Notas por operador ------------------------------------------------------
@@ -75,7 +75,7 @@ transferencias <- transferencias |>
         "Cascais: sem pagamento mensal — aguardar acerto anual (gratuitidade municipal)",
       total_transferir < 0 ~
         glue::glue("Excedente de {scales::number(abs(total_transferir), big.mark='.', decimal.mark=',')}€ — devolução à TML ou a Fertagus (TST)"),
-      D > 0 | congelamento > 0 ~
+      cosp_D > 0 | congelamento_B > 0 ~
         "COSP e Congelamento pagos via Incentiva (após recebimento do Estado)",
       TRUE ~ ""
     ),
@@ -87,7 +87,7 @@ transferencias <- transferencias |>
     pagamento_incentiva = dplyr::case_when(
       operador == "CAP"     ~ 0,
       total_transferir < 0  ~ 0,
-      TRUE                  ~ congelamento + D
+      TRUE                  ~ congelamento_B + cosp_D
     )
   )
 
@@ -101,7 +101,7 @@ mes_nome <- c("Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
               "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro")[MES]
 cat("\n=== TRANSFERÊNCIAS FINAIS —", mes_nome, ANO, "===\n\n")
 transferencias |>
-  dplyr::select(operador, nome_operador, receita_A, B, D, congelamento,
+  dplyr::select(operador, nome_operador, receita_A, receita_B, cosp_D, congelamento_B,
                 F_transferencia, total_transferir, nota) |>
   dplyr::arrange(desc(abs(total_transferir))) |>
   dplyr::mutate(dplyr::across(where(is.numeric), ~ round(.x, 2))) |>
@@ -110,9 +110,9 @@ transferencias |>
 # Totais de verificação
 cat(sprintf("\n--- Totais ---\n"))
 cat(sprintf("  Sum(A):               %12.2f €\n", sum(transferencias$receita_A, na.rm = TRUE)))
-cat(sprintf("  Sum(B):               %12.2f €\n", sum(transferencias$B, na.rm = TRUE)))
-cat(sprintf("  Sum(D):               %12.2f €\n", sum(transferencias$D, na.rm = TRUE)))
-cat(sprintf("  Sum(Congelamento):    %12.2f €\n", sum(transferencias$congelamento, na.rm = TRUE)))
+cat(sprintf("  Sum(B):               %12.2f €\n", sum(transferencias$receita_B, na.rm = TRUE)))
+cat(sprintf("  Sum(D):               %12.2f €\n", sum(transferencias$cosp_D, na.rm = TRUE)))
+cat(sprintf("  Sum(Congelamento):    %12.2f €\n", sum(transferencias$congelamento_B, na.rm = TRUE)))
 cat(sprintf("  Sum(F):               %12.2f €\n", sum(transferencias$F_transferencia, na.rm = TRUE)))
 cat(sprintf("  Sum(Total transferir):%12.2f €\n", sum(transferencias$total_transferir, na.rm = TRUE)))
 
@@ -126,7 +126,7 @@ rtd_check <- tryCatch(
 total_K_check <- if (!is.null(rtd_check)) sum(as.numeric(rtd_check$receita_K), na.rm = TRUE) else 0
 total_A_mais_K <- sum(transferencias$receita_A, na.rm = TRUE) + total_K_check
 
-dif_AB <- sum(transferencias$B, na.rm = TRUE) - total_A_mais_K
+dif_AB <- sum(transferencias$receita_B, na.rm = TRUE) - total_A_mais_K
 if (abs(dif_AB) > 1) {
   warning(sprintf("DISCREPÂNCIA Sum(A+K) vs Sum(B): %.2f €", dif_AB))
 } else {
@@ -141,15 +141,16 @@ message("\nOutput gravado: ", transf_out)
 # ---- Tabela resumo bonita (para copiar) --------------------------------------
 cat("\n--- Tabela resumo (valores em €, arredondados ao cêntimo) ---\n")
 transferencias |>
-  dplyr::filter(operador != "CAP" | B > 0) |>
+  dplyr::filter(operador != "CAP" | receita_B > 0) |>
   dplyr::select(Operador = operador,
                 `A (na posse)` = receita_A,
-                `B (devida)`   = B,
-                `D (COSP)`     = D,
-                `Congel.`      = congelamento,
+                `B (devida)`   = receita_B,
+                `D (COSP)`     = cosp_D,
+                `Congel.`      = congelamento_B,
                 `F (transf.)`  = F_transferencia,
                 `Total`        = total_transferir) |>
   dplyr::mutate(dplyr::across(where(is.numeric), ~ tidyr::replace_na(.x, 0))) |>
   dplyr::mutate(dplyr::across(where(is.numeric), ~ round(.x, 2))) |>
   tibble::as_tibble() |>
   print(n = Inf)
+
