@@ -82,7 +82,7 @@ if (max_dif > 0.05) {
 B_operador <- dist_ij |>
   dplyr::group_by(operador) |>
   dplyr::summarise(
-    B = round(sum(dist_receita, na.rm = TRUE), 2),
+    receita_B = round(sum(dist_receita, na.rm = TRUE), 2),
     .groups = "drop"
   )
 
@@ -90,7 +90,7 @@ B_operador <- dist_ij |>
 congelamento_operador <- dist_ij |>
   dplyr::group_by(operador) |>
   dplyr::summarise(
-    congelamento = round(sum(receita_compensar, na.rm = TRUE), 2),
+    congelamento_B = round(sum(receita_compensar, na.rm = TRUE), 2),
     .groups = "drop"
   )
 
@@ -98,15 +98,15 @@ congelamento_operador <- dist_ij |>
 cat("\n--- Repartição B e Congelamento por operador ---\n")
 B_operador |>
   dplyr::left_join(congelamento_operador, by = "operador") |>
-  dplyr::arrange(desc(B)) |>
+  dplyr::arrange(desc(receita_B)) |>
   dplyr::mutate(
-    B            = scales::number(B,            big.mark = ".", decimal.mark = ",", accuracy = 0.01),
-    congelamento = scales::number(congelamento, big.mark = ".", decimal.mark = ",", accuracy = 0.01)
+    receita_B      = scales::number(receita_B,      big.mark = ".", decimal.mark = ",", accuracy = 0.01),
+    congelamento_B = scales::number(congelamento_B, big.mark = ".", decimal.mark = ",", accuracy = 0.01)
   ) |>
   print()
 
-total_B   <- sum(B_operador$B, na.rm = TRUE)
-total_cong <- sum(congelamento_operador$congelamento, na.rm = TRUE)
+total_B    <- sum(B_operador$receita_B, na.rm = TRUE)
+total_cong <- sum(congelamento_operador$congelamento_B, na.rm = TRUE)
 total_dist <- sum(rtd$receita_distribuir, na.rm = TRUE)
 
 cat(sprintf("\nTotal B (receita devida):    %12.2f €\n", total_B))
@@ -122,7 +122,7 @@ cong_out <- F_CONGELAMENTO
 
 # Tabela detalhada por título × operador
 write.csv2(dist_ij,               rep_out,  row.names = FALSE)
-# Congelamento por operador (com B para referência)
+# Congelamento por operador (com receita_B para referência)
 congelamento_saida <- B_operador |>
   dplyr::left_join(congelamento_operador, by = "operador")
 write.csv2(congelamento_saida,    cong_out, row.names = FALSE)
