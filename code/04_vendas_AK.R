@@ -119,16 +119,23 @@ if (length(pvatm_files) == 0) {
 
   # Calcular receita K = qty_K × pvp do título
   receita_K <- receita_K_qty |>
-    dplyr::left_join(titulos |> dplyr::select(ticket_code, pvp),
+    dplyr::left_join(titulos |> dplyr::select(ticket_code, titulo_nome, pvp),
                      by = "ticket_code") |>
     dplyr::mutate(
-      pvp       = as.numeric(pvp),
-      receita_K = qty_K * pvp
+      pvp           = as.numeric(pvp),
+      receita_K_pv  = round(qty_K_pv * pvp, 2),
+      receita_K_atm = round(qty_K_atm * pvp, 2),
+      receita_K     = round(qty_K * pvp, 2)
     ) |>
-    dplyr::select(ticket_code, qty_K, qty_K_pv, qty_K_atm, receita_K)
+    dplyr::select(ticket_code, titulo_nome, pvp,
+                  qty_K_pv, receita_K_pv,
+                  qty_K_atm, receita_K_atm,
+                  qty_K, receita_K)
 
-  message(sprintf("Receita K: %d títulos, total = %.2f €",
-                  nrow(receita_K), sum(receita_K$receita_K, na.rm = TRUE)))
+  message(sprintf("Receita K: %d títulos, total = %.2f € (PV: %.2f €, ATM: %.2f €)",
+                  nrow(receita_K), sum(receita_K$receita_K, na.rm = TRUE),
+                  sum(receita_K$receita_K_pv, na.rm = TRUE),
+                  sum(receita_K$receita_K_atm, na.rm = TRUE)))
 }
 
 # ---- Títulos sem carregamento (Validations as Transactions) ------------------
@@ -177,24 +184,15 @@ if (abs(total_distribuir - (total_A + total_K)) > 0.01)
   warning("DISCREPÂNCIA: total_distribuir ≠ A + K!")
 
 # ---- Guardar outputs ---------------------------------------------------------
-# Vendas A (por operador)
-vendas_AK <- receita_posse_operador |>
-  dplyr::left_join(
-    receita_K |>
-      dplyr::summarise(receita_K_total = sum(receita_K, na.rm = TRUE),
-                       qty_K_total = sum(qty_K, na.rm = TRUE)) |>
-      dplyr::mutate(operador = "K_PV_ATM"),
-    by = "operador"
-  )
-# (receita K fica associada ao "operador" K_PV_ATM para referência;
-#  a distribuição real é feita por título em receita_titulo_distribuir)
+vendas_a_out <- F_VENDAS_A
+vendas_k_out <- F_VENDAS_K
+rtd_out      <- F_RTD
 
-ak_out   <- F_VENDAS_AK
-rtd_out  <- F_RTD
-
-write.csv2(receita_posse_operador,    ak_out,  row.names = FALSE)
-write.csv2(receita_titulo_distribuir, rtd_out, row.names = FALSE)
+write.csv2(receita_posse_operador,    vendas_a_out, row.names = FALSE)
+write.csv2(receita_K,                 vendas_k_out, row.names = FALSE)
+write.csv2(receita_titulo_distribuir, rtd_out,      row.names = FALSE)
 
 message("Outputs gravados:")
-message("  ", ak_out)
+message("  ", vendas_a_out)
+message("  ", vendas_k_out)
 message("  ", rtd_out)
