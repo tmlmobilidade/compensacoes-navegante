@@ -5,7 +5,7 @@
 # Alterar ANO e MES para correr para outro mês.
 
 ANO <- if (!is.na(Sys.getenv("ANO", unset = NA))) as.integer(Sys.getenv("ANO")) else 2026
-MES <- if (!is.na(Sys.getenv("MES", unset = NA))) as.integer(Sys.getenv("MES")) else 5      # 5 = maio, 6 = junho, etc.
+MES <- if (!is.na(Sys.getenv("MES", unset = NA))) as.integer(Sys.getenv("MES")) else 6      # 5 = maio, 6 = junho, etc.
 
 # ---- Caminhos base -----------------------------------------------------------
 BASE_DIR <- here::here()   # raiz do projecto (onde está o code/)
@@ -22,7 +22,7 @@ mes_abrev     <- meses_pt[MES]                      # ex: "mai"
 mes_nome      <- meses_pt_nome[MES]                 # ex: "Maio"
 mes_ano       <- sprintf("%02d_%s_%d", MES, mes_abrev, ANO)   # ex: "05_mai_2026"
 DATA_DIR      <- file.path(BASE_DIR, mes_ano)
-REPLICATE_DIR <- file.path(BASE_DIR, paste0(mes_ano, "_replicate"))
+REPLICATE_DIR <- file.path(BASE_DIR, paste0(mes_ano, "_replicate")) # estava a usar este para output intermédio, mas ajustar para input/output final
 INPUT_DIR     <- file.path(REPLICATE_DIR, "input")
 OUT_DIR       <- file.path(REPLICATE_DIR, "output")
 
