@@ -168,13 +168,13 @@ folha2 <- folha2 |>
     parcela_partilhada = case_when(
       nome_tab == "TOTAL" ~ total_K,
       total_tml <= 0      ~ 0,
-      TRUE                ~ round(pct2 * total_K, 2)
+      TRUE                ~ round(pct2 * total_K, 3)
     ),
     # Parcela Incentiva +TP: restante do valor a transferir pela TML
     parcela_incentiva  = case_when(
-      nome_tab == "TOTAL" ~ round(total_tml - total_K, 2),
+      nome_tab == "TOTAL" ~ round(total_tml - total_K, 3),
       total_tml <= 0      ~ 0,
-      TRUE                ~ round(total_tml - parcela_partilhada, 2)
+      TRUE                ~ round(total_tml - parcela_partilhada, 3)
     )
   )
 
