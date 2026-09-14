@@ -66,13 +66,14 @@ cat(sprintf("%s\n\n", strrep("#", 70)))
 
 # ---- Executar passos ---------------------------------------------------------
 resultados <- list(
-  "01_recibos_b.R"     = run_step("01_recibos_b.R",     "Agrega Recibos B"),
-  "02_distancias.R"    = run_step("02_distancias.R",    "Distâncias médias"),
-  "03_quotas.R"        = run_step("03_quotas.R",        "Quotas PKM"),
-  "04_vendas_AK.R"     = run_step("04_vendas_AK.R",     "Vendas A + K"),
-  "05_reparticao_B.R"  = run_step("05_reparticao_B.R",  "Repartição B + Congelamento"),
-  "06_cosp_D.R"        = run_step("06_cosp_D.R",        "COSP (D)"),
-  "07_transferencias_F.R" = run_step("07_transferencias_F.R", "Transferências (F)")
+  "01_recibos_b.R"        = run_step("01_recibos_b.R",        "Agrega Recibos B"),
+  "02_distancias.R"       = run_step("02_distancias.R",       "Distâncias médias"),
+  "03_quotas.R"           = run_step("03_quotas.R",           "Quotas PKM"),
+  "04_vendas_AK.R"        = run_step("04_vendas_AK.R",        "Vendas A + K"),
+  "05_reparticao_B.R"     = run_step("05_reparticao_B.R",     "Repartição B + Congelamento"),
+  "06_cosp_D.R"           = run_step("06_cosp_D.R",           "COSP (D)"),
+  "07_transferencias_F.R" = run_step("07_transferencias_F.R", "Transferências (F)"),
+  "08_tables.R"           = run_step("08_tables.R",           "Exporta Excel final")
 )
 
 # ---- Sumário final -----------------------------------------------------------
@@ -98,7 +99,7 @@ cat(sprintf("Output em:         %s\n", OUT_DIR))
 # ---- Ficheiros gerados -------------------------------------------------------
 if (n_ok == length(resultados)) {
   cat("\nFicheiros gerados:\n")
-  ficheiros_out <- list.files(OUT_DIR, pattern = "\\.csv$", full.names = FALSE)
+  ficheiros_out <- list.files(OUT_DIR, pattern = "\\.(csv|xlsx)$", full.names = FALSE)
   for (f in sort(ficheiros_out)) {
     fsize <- file.size(file.path(OUT_DIR, f))
     cat(sprintf("  %-50s %6.1f KB\n", f, fsize / 1024))
@@ -115,9 +116,9 @@ if (n_ok == length(resultados)) {
       dplyr::select(Operador = operador,
                     Nome = nome_operador,
                     `A (posse)` = receita_A,
-                    `B (devida)` = B,
-                    `D (COSP)` = D,
-                    `Congel.` = congelamento,
+                    `B (devida)` = receita_B,
+                    `D (COSP)` = cosp_D,
+                    `Congel.` = congelamento_B,
                     `F (transf.)` = F_transferencia,
                     `Total` = total_transferir) |>
       dplyr::mutate(dplyr::across(where(is.numeric), ~ tidyr::replace_na(.x, 0))) |>
