@@ -1,7 +1,0 @@
-Ainda em relação aos arredondamentos, na Folha 5 do workbook.
-PArece que o Total de Passes a Compensar no Mês está a ser arredondado na soma deles (code/08_tables.R#L842).
-ao contrário da colega, que os arredonda à unidade em cada título depois de multiplicado pela Percentagem.
-A diferença, para maio, é: a colega tem 737085, e eu tenho 737088.
-Em todo o caso, isto em nada altera os valores monetários, que estão corretos.
-
-Penso que também pode fazer sentido meter a tabela de 5a_cosp_...csv abaixo do resumo por operador, em formato wide (por operador).
