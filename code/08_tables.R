@@ -593,12 +593,65 @@ writeData(wb, ws_ak, x = as.data.frame(t(c("Métrica", "Quantidade Total", "Rece
           startRow = rw_cons + 1, startCol = 6, colNames = FALSE)
 addStyle(wb, ws_ak, st_header_gold, rows = rw_cons + 1, cols = 6:9, gridExpand = TRUE)
 
-writeData(wb, ws_ak, x = as.data.frame(t(c("Vendas A + K", total_qty_a + qty_k_tot, total_rec_a + rec_k_tot, 1.0))),
-          startRow = rw_cons + 2, startCol = 6, colNames = FALSE)
-addStyle(wb, ws_ak, st_total_lbl, rows = rw_cons + 2, cols = 6)
-addStyle(wb, ws_ak, st_total_int, rows = rw_cons + 2, cols = 7)
-addStyle(wb, ws_ak, st_total_num, rows = rw_cons + 2, cols = 8)
-addStyle(wb, ws_ak, st_total_pct, rows = rw_cons + 2, cols = 9)
+total_qty_all <- total_qty_a + qty_k_tot
+total_rec_all <- total_rec_a + rec_k_tot
+
+df_cons <- tibble(
+  Metrica          = c("Vendas A", "Vendas K", "Vendas A + K"),
+  Quantidade_Total = as.numeric(c(total_qty_a, qty_k_tot, total_qty_all)),
+  Receita_Total    = as.numeric(c(total_rec_a, rec_k_tot, total_rec_all)),
+  Pct_Total        = c(
+    if (total_rec_all > 0) total_rec_a / total_rec_all else 0,
+    if (total_rec_all > 0) rec_k_tot / total_rec_all else 0,
+    1.0
+  )
+)
+writeData(wb, ws_ak, x = df_cons, startRow = rw_cons + 2, startCol = 6, colNames = FALSE)
+
+# Estilos das linhas de detalhe (Vendas A e Vendas K)
+for (i in 1:2) {
+  rw <- rw_cons + 1 + i
+  addStyle(wb, ws_ak, createStyle(halign = "left", border = "TopBottomLeftRight",
+                                  borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 6)
+  addStyle(wb, ws_ak, createStyle(numFmt = "#,##0", halign = "right", border = "TopBottomLeftRight",
+                                  borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 7)
+  addStyle(wb, ws_ak, createStyle(numFmt = "#,##0.00", halign = "right", border = "TopBottomLeftRight",
+                                  borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 8)
+  addStyle(wb, ws_ak, createStyle(numFmt = "0.00%", halign = "right", border = "TopBottomLeftRight",
+                                  borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 9)
+}
+
+# Estilos da linha de total (Vendas A + K)
+rw_tot_cons <- rw_cons + 4
+st_cons_lbl <- createStyle(
+  fgFill = cor_gold_light, textDecoration = "bold",
+  halign = "left", border = "TopBottomLeftRight",
+  borderColour = cor_border_soft, fontSize = 9
+)
+st_cons_int <- createStyle(
+  fgFill = cor_gold_light, textDecoration = "bold",
+  numFmt = "#,##0", halign = "right",
+  border = "TopBottomLeftRight", borderColour = cor_border_soft, fontSize = 9
+)
+st_cons_num <- createStyle(
+  fgFill = cor_gold_light, textDecoration = "bold",
+  numFmt = "#,##0.00", halign = "right",
+  border = "TopBottomLeftRight", borderColour = cor_border_soft, fontSize = 9
+)
+st_cons_pct <- createStyle(
+  fgFill = cor_gold_light, textDecoration = "bold",
+  numFmt = "0.00%", halign = "right",
+  border = "TopBottomLeftRight", borderColour = cor_border_soft, fontSize = 9
+)
+
+addStyle(wb, ws_ak, st_cons_lbl, rows = rw_tot_cons, cols = 6)
+addStyle(wb, ws_ak, st_cons_int, rows = rw_tot_cons, cols = 7)
+addStyle(wb, ws_ak, st_cons_num, rows = rw_tot_cons, cols = 8)
+addStyle(wb, ws_ak, st_cons_pct, rows = rw_tot_cons, cols = 9)
 
 # Secção 2.2: Tabela Detalhada por Título (linha 19)
 row_det <- 18
