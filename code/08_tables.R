@@ -75,11 +75,9 @@ titulos_df$pvp         <- as.numeric(titulos_df$pvp)
 # ---- 1. Carregar Dados de Output ---------------------------------------------
 # 1.1 Transferências
 transf_raw <- read.csv2(F_TRANSFERENCIAS, stringsAsFactors = FALSE, dec = ",")
-if ("receita_B" %in% names(transf_raw) && !"B" %in% names(transf_raw)) transf_raw$B <- transf_raw$receita_B
-if ("cosp_D" %in% names(transf_raw) && !"D" %in% names(transf_raw)) transf_raw$D <- transf_raw$cosp_D
 if ("congelamento_B" %in% names(transf_raw) && !"congelamento" %in% names(transf_raw)) transf_raw$congelamento <- transf_raw$congelamento_B
 
-num_cols_tr <- c("B", "congelamento", "receita_A", "D", "F_transferencia", "total_transferir")
+num_cols_tr <- c("receita_B", "congelamento", "receita_A", "cosp_D", "F_transferencia", "total_transferir")
 transf_raw[num_cols_tr] <- lapply(transf_raw[num_cols_tr], function(x) as.numeric(gsub(",", ".", x)))
 
 # 1.2 Quotas
@@ -220,16 +218,16 @@ transf_g <- transf_raw |>
   group_by(nome_tab) |>
   summarise(
     receita_A        = sum(receita_A,        na.rm = TRUE),
-    B                = sum(B,                na.rm = TRUE),
+    receita_B        = sum(receita_B,        na.rm = TRUE),
     congelamento     = sum(congelamento,     na.rm = TRUE),
-    D                = sum(D,                na.rm = TRUE),
+    cosp_D           = sum(cosp_D,           na.rm = TRUE),
     F_transferencia  = sum(F_transferencia,  na.rm = TRUE),
     total_transferir = sum(total_transferir, na.rm = TRUE),
     .groups = "drop"
   ) |>
   mutate(
-    C  = receita_A - B,
-    SG = C - D
+    C  = receita_A - receita_B,
+    SG = C - cosp_D
   )
 
 # Ordenar operadores
@@ -270,14 +268,14 @@ transf_g_calc <- transf_g_calc |>
 total_row_g <- tibble(
   nome_tab           = "TOTAL",
   receita_A          = sum(transf_g_calc$receita_A),
-  B                  = sum(transf_g_calc$B),
+  receita_B          = sum(transf_g_calc$receita_B),
   C                  = sum(transf_g_calc$C),
-  D                  = sum(transf_g_calc$D),
+  cosp_D             = sum(transf_g_calc$cosp_D),
   SG                 = sum(transf_g_calc$SG),
   F_transferencia    = sum(transf_g_calc$F_transferencia),
   congelamento       = sum(transf_g_calc$congelamento),
   total_transferir   = sum(transf_g_calc$total_transferir),
-  transf_entre_ops   = 0.0,
+  transf_entre_ops   = sum(transf_g_calc$transf_entre_ops),
   total_tml          = sum(transf_g_calc$total_tml),
   pct                = sum(transf_g_calc$pct),
   parcela_partilhada = sum(transf_g_calc$parcela_partilhada),
@@ -286,12 +284,17 @@ total_row_g <- tibble(
 
 tabela_global <- bind_rows(
   transf_g_calc |> select(
-    nome_tab, receita_A, B, C, D, SG, F_transferencia, congelamento,
+    nome_tab, receita_A, receita_B, C, cosp_D, SG, F_transferencia, congelamento,
     total_transferir, transf_entre_ops, total_tml, pct,
     parcela_partilhada, parcela_incentiva
   ),
   total_row_g
-)
+) |>
+mutate(
+  total_transferir = round(total_transferir, 2),
+  parcela_partilhada = round(parcela_partilhada, 2),
+  parcela_incentiva  = round(parcela_incentiva, 2)
+  )
 
 # Nomes de exibição
 names_global <- c(
@@ -347,7 +350,7 @@ for (i in seq_len(n_g)) {
     addStyle(wb, ws_g, createStyle(fgFill = cor_zero, numFmt = "#,##0.00", halign = "right",
                                    border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
              rows = rw, cols = c(2:11, 13:14), gridExpand = TRUE)
-    addStyle(wb, ws_g, createStyle(fgFill = cor_zero, numFmt = "0.0000%", halign = "right",
+    addStyle(wb, ws_g, createStyle(fgFill = cor_zero, numFmt = "0.000%", halign = "right", # 3 casas decimais
                                    border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
              rows = rw, cols = 12)
   } else {
@@ -358,7 +361,7 @@ for (i in seq_len(n_g)) {
     addStyle(wb, ws_g, createStyle(fgFill = fg, numFmt = "#,##0.00", halign = "right",
                                    border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
              rows = rw, cols = c(2:11, 13:14), gridExpand = TRUE)
-    addStyle(wb, ws_g, createStyle(fgFill = fg, numFmt = "0.0000%", halign = "right",
+    addStyle(wb, ws_g, createStyle(fgFill = fg, numFmt = "0.000%", halign = "right", # 3 casas decimais
                                    border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
              rows = rw, cols = 12)
   }
@@ -993,8 +996,8 @@ make_wide_f <- function(metrica, val_fn) {
 
 folha6_rows <- list(
   make_wide_f("Receita na posse do operador [A]",             function(r) r$receita_A),
-  make_wide_f("Receita bilheteira devida ao operador [B]",     function(r) r$B),
-  make_wide_f("Pagamento por conta COSP devida ao operador [D]", function(r) r$D),
+  make_wide_f("Receita bilheteira devida ao operador [B]",     function(r) r$receita_B),
+  make_wide_f("Pagamento por conta COSP devida ao operador [D]", function(r) r$cosp_D),
   make_wide_f("Transferência [F = B + D - A]",                function(r) r$F_transferencia),
   make_wide_f("Congelamento Navegante [CongNavB]",            function(r) r$congelamento),
   make_wide_f("Total a transferir [F + CongNavB]",            function(r) r$total_transferir),

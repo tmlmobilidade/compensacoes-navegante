@@ -99,7 +99,7 @@ cosp_dist <- quotas |>
 # ---- 6. D(j) — COSP por operador --------------------------------------------
 D_operador <- cosp_dist |>
   dplyr::group_by(operador) |>
-  dplyr::summarise(cosp_D = round(sum(COSP_ij, na.rm = TRUE), 2), .groups = "drop")
+  dplyr::summarise(cosp_D = sum(COSP_ij, na.rm = TRUE), .groups = "drop")
 
 cat("\n--- COSP (D) por operador ---\n")
 D_operador |>

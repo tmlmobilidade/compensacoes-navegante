@@ -82,7 +82,7 @@ if (max_dif > 0.05) {
 B_operador <- dist_ij |>
   dplyr::group_by(operador) |>
   dplyr::summarise(
-    receita_B = round(sum(dist_receita, na.rm = TRUE), 2),
+    receita_B = sum(dist_receita, na.rm = TRUE),
     .groups = "drop"
   )
 
@@ -90,7 +90,7 @@ B_operador <- dist_ij |>
 congelamento_operador <- dist_ij |>
   dplyr::group_by(operador) |>
   dplyr::summarise(
-    congelamento_B = round(sum(receita_compensar, na.rm = TRUE), 2),
+    congelamento_B = sum(receita_compensar, na.rm = TRUE),
     .groups = "drop"
   )
 
