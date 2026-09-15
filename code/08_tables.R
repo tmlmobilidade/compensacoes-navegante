@@ -1018,8 +1018,6 @@ cosp_wide <- titulos_df |>
   mutate(across(all_of(ordem_ops_sep), ~ replace_na(.x, 0))) |>
   arrange(ticket_code)
 
-cosp_wide$total_cosp_titulo <- rowSums(cosp_wide[, ordem_ops_sep], na.rm = TRUE)
-
 # Linha de totais
 cosp_wide_totais <- tibble(
   ticket_code        = NA_integer_,
@@ -1030,12 +1028,11 @@ cosp_wide_totais <- tibble(
   COSP_i             = sum(cosp_wide$COSP_i,             na.rm = TRUE)
 )
 for (op in ordem_ops_sep) cosp_wide_totais[[op]] <- sum(cosp_wide[[op]], na.rm = TRUE)
-cosp_wide_totais$total_cosp_titulo <- sum(cosp_wide$total_cosp_titulo, na.rm = TRUE)
 
 cosp_wide_out <- bind_rows(cosp_wide, cosp_wide_totais)
 
-# Colunas: código, nome, pvp, qty, passes, COSP_i, [11 ops], total = 17 cols
-n_det_cols <- 6 + length(ordem_ops_sep) + 1
+# Colunas: código, nome, pvp, qty, passes, COSP_i, [11 ops] = 17 cols sem a redundante
+n_det_cols <- 6 + length(ordem_ops_sep)
 
 rw_det_cosp <- rw_tab_cosp + n_cop + 3   # 2 linhas de espaço após tabela operador
 
@@ -1046,7 +1043,7 @@ addStyle(wb, ws_cosp, st_sub_header, rows = rw_det_cosp, cols = 1:n_det_cols, gr
 
 names_det_cosp <- c("Código", "Designação do Título", "PVP (€)",
                     "Qtd Vendida", "Passes a Compensar", "COSP Título (€)",
-                    ordem_ops_sep, "TOTAL COSP Título (€)")
+                    ordem_ops_sep)
 writeData(wb, ws_cosp, x = as.data.frame(t(names_det_cosp)),
           startRow = rw_det_cosp + 1, startCol = 1, colNames = FALSE)
 addStyle(wb, ws_cosp, st_header_gold, rows = rw_det_cosp + 1, cols = 1:n_det_cols, gridExpand = TRUE)
@@ -1060,12 +1057,12 @@ for (i in seq_len(n_det_rows)) {
   is_tot <- (i == n_det_rows)
   fg     <- if (is_tot) cor_gold_light else if (i %% 2 == 0) cor_alt_row else cor_white
   col_ops_start <- 7
-  col_ops_end   <- 6 + length(ordem_ops_sep)
+  col_ops_end   <- n_det_cols
 
   if (is_tot) {
     addStyle(wb, ws_cosp, st_total_lbl, rows = rw, cols = 1:3, gridExpand = TRUE)
     addStyle(wb, ws_cosp, st_total_int, rows = rw, cols = 4:5, gridExpand = TRUE)
-    addStyle(wb, ws_cosp, st_total_num, rows = rw, cols = c(6, col_ops_start:n_det_cols), gridExpand = TRUE)
+    addStyle(wb, ws_cosp, st_total_num, rows = rw, cols = 6:n_det_cols, gridExpand = TRUE)
   } else {
     addStyle(wb, ws_cosp, createStyle(fgFill = fg, halign = "center", border = "LeftRight",
                                       borderColour = cor_border_soft, fontSize = 9),
@@ -1091,8 +1088,7 @@ setColWidths(wb, ws_cosp, cols = 2,                    widths = 32)
 setColWidths(wb, ws_cosp, cols = 3,                    widths = 10)
 setColWidths(wb, ws_cosp, cols = 4:5,                  widths = 14)
 setColWidths(wb, ws_cosp, cols = 6,                    widths = 18)
-setColWidths(wb, ws_cosp, cols = 7:(6 + length(ordem_ops_sep)), widths = 13)
-setColWidths(wb, ws_cosp, cols = n_det_cols,            widths = 20)
+setColWidths(wb, ws_cosp, cols = 7:n_det_cols,         widths = 13)
 # freezePane(wb, ws_cosp, firstActiveRow = rw_det_cosp + 2, firstActiveCol = 3)
 
 
