@@ -135,6 +135,7 @@ cor_gold_light  <- "#FFF2CC"  # Fundo para totais e destaques
 cor_op_col      <- "#FAF6EC"  # Fundo suave para colunas de identificação
 cor_alt_row     <- "#FCFBF7"  # Linhas alternadas muito subtis
 cor_white       <- "#FFFFFF"
+cor_darkgray    <- "#2c2c2c"  # Cinzento escuro para texto
 cor_border      <- "#e5b32b"  # Dourado para bordas
 cor_border_soft <- "#D9D9D9"  # Cinzento suave para grelha
 cor_neg         <- "#FFC7CE"  # Fundo para excedentes negativos
@@ -146,25 +147,25 @@ wb <- createWorkbook()
 st_title <- createStyle(
   fontSize = 13, textDecoration = "bold",
   halign = "left", valign = "center",
-  fgFill = cor_gold_dark, fontColour = "#FFFFFF"
+  fgFill = cor_gold_dark, fontColour = cor_darkgray
 )
 
 st_header_gold <- createStyle(
-  fgFill = cor_gold_dark, fontColour = "#FFFFFF",
+  fgFill = cor_gold_dark, fontColour = cor_darkgray,
   halign = "center", valign = "center",
   textDecoration = "bold", border = "TopBottomLeftRight",
   borderColour = cor_border, wrapText = TRUE, fontSize = 9
 )
 
 st_header_op <- createStyle(
-  fgFill = cor_gold_dark, fontColour = "#FFFFFF",
+  fgFill = cor_gold_dark, fontColour = cor_darkgray,
   halign = "left", valign = "center",
   textDecoration = "bold", border = "TopBottomLeftRight",
   borderColour = cor_border, fontSize = 9
 )
 
 st_sub_header <- createStyle(
-  fgFill = cor_gold_sub, fontColour = "#FFFFFF",
+  fgFill = cor_gold_sub, fontColour = cor_darkgray,
   halign = "center", valign = "center",
   textDecoration = "bold", border = "TopBottomLeftRight",
   borderColour = cor_border, fontSize = 9
