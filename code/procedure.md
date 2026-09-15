@@ -482,9 +482,10 @@ Há um valor máximo de compensação (VMC), atualizado à TAT todos os anos, qu
 >      1. `total_transferir` e `total_tml` são arredondados a 2 casas decimais: `round(..., 2)`.
 >      2. `soma_total_tml` é a soma dos `total_tml` já arredondados.
 >      3. A percentagem de cada operador é calculada como $\text{pct} = \text{total\_tml} / \text{soma\_total\_tml}$.
->      4. A `parcela_partilhada` usa a fórmula `=ARRED(pct * Total_Vendas_K; 2)`.
+>      4. A `parcela_partilhada` é inicialmente calculada como `=ARRED(pct * Total_Vendas_K; 2)`.
+>         - **Reconciliação Automática de Cêntimos (Método dos Maiores Restos)**: Caso o somatório dos arredondamentos difira de `Total_Vendas_K` em $\pm k$ cêntimos (típico desvio de 1 ou 2 cêntimos por acumulação de arredondamentos), o algoritmo ajusta automaticamente $0{,}01\text{ €}$ nos operadores com os maiores resíduos de arredondamento. Isto replica de forma determinística e automática os acertos manuais que a colega realizava no Excel.
 >      5. A `parcela_incentiva` é obtida por subtração: $\text{total\_tml} - \text{parcela\_partilhada}$ (ambos já arredondados a 2 casas).
->      6. A linha **TOTAL** soma as colunas resultantes, garantindo que o total bate certo com os valores visíveis e totaliza exatamente o montante das Vendas K.
+>      6. A linha **TOTAL** soma as colunas resultantes, garantindo que o total bate certo com os valores visíveis e totaliza **SEMPRE 100% exatamente o montante das Vendas K**.
 
 
 ---

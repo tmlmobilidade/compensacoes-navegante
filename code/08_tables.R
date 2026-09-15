@@ -263,13 +263,45 @@ transf_g_calc <- transf_g_calc |>
 # 2. Soma do total TML a partir dos valores já arredondados
 soma_total_tml <- sum(transf_g_calc$total_tml, na.rm = TRUE)
 
-# 3. Percentagens e Parcelas calculadas a partir dos valores arredondados
-#    (parcela_partilhada usa exatamente =ARRED(pct * total_K_val; 2))
+# 3. Percentagens e Parcelas com reconciliação de cêntimos (Largest Remainder Method)
+#    Garante que a soma de parcela_partilhada é SEMPRE igual a total_K_val ao cêntimo exato,
+#    ajustando automaticamente os cêntimos de arredondamento onde o resíduo foi maior.
+transf_g_calc <- transf_g_calc |>
+  mutate(
+    pct = if (soma_total_tml > 0) total_tml / soma_total_tml else 0,
+    val_partilhada_raw = if_else(nome_tab == "MTS", 0, pct * total_K_val),
+    parcela_partilhada = round(val_partilhada_raw, 2)
+  )
+
+# Verificar discrepância de cêntimos em relação ao total de Vendas K
+dif_centimos <- round(sum(transf_g_calc$parcela_partilhada, na.rm = TRUE) - total_K_val, 2)
+n_ajustes    <- as.integer(round(abs(dif_centimos) * 100))
+
+if (n_ajustes > 0) {
+  # Calcular o resíduo de arredondamento para cada operador (excluindo MTS que é 0)
+  idx_validos <- which(transf_g_calc$nome_tab != "MTS")
+  residuos    <- transf_g_calc$parcela_partilhada[idx_validos] - transf_g_calc$val_partilhada_raw[idx_validos]
+  
+  if (dif_centimos > 0) {
+    # Soma deu a mais: subtrair 0.01 aos operadores que tiveram maior ganho no arredondamento
+    idx_ordenados <- idx_validos[order(-residuos)]
+    alvos <- head(idx_ordenados, n_ajustes)
+    transf_g_calc$parcela_partilhada[alvos] <- transf_g_calc$parcela_partilhada[alvos] - 0.01
+    message(sprintf("✓ Ajuste de cêntimos em parcela_partilhada (-0.01€ em: %s)",
+                    paste(transf_g_calc$nome_tab[alvos], collapse = ", ")))
+  } else {
+    # Soma deu a menos: somar 0.01 aos operadores que tiveram maior perda no arredondamento
+    idx_ordenados <- idx_validos[order(residuos)]
+    alvos <- head(idx_ordenados, n_ajustes)
+    transf_g_calc$parcela_partilhada[alvos] <- transf_g_calc$parcela_partilhada[alvos] + 0.01
+    message(sprintf("✓ Ajuste de cêntimos em parcela_partilhada (+0.01€ em: %s)",
+                    paste(transf_g_calc$nome_tab[alvos], collapse = ", ")))
+  }
+}
+
 transf_g_display <- transf_g_calc |>
   mutate(
-    pct                = if (soma_total_tml > 0) total_tml / soma_total_tml else 0,
-    parcela_partilhada = if_else(nome_tab == "MTS", 0, round(pct * total_K_val, 2)),
-    parcela_incentiva  = if_else(nome_tab == "MTS", 0, total_tml - parcela_partilhada)
+    parcela_incentiva = if_else(nome_tab == "MTS", 0, total_tml - parcela_partilhada)
   ) |>
   select(
     nome_tab, receita_A, receita_B, C, cosp_D, SG, F_transferencia, congelamento,
