@@ -189,7 +189,7 @@ st_total_int <- createStyle(
 
 st_total_pct <- createStyle(
   fgFill = cor_gold_light, textDecoration = "bold",
-  numFmt = "0.0000%", halign = "right",
+  numFmt = "0.000%", halign = "right",
   border = "TopBottomLeftRight", borderColour = cor_border, fontSize = 9
 )
 
@@ -257,44 +257,58 @@ transf_g_calc <- transf_g |>
 soma_total_tml <- sum(transf_g_calc$total_tml, na.rm = TRUE)
 
 # Percentagens e Parcelas
+# Percentagens e Parcelas (precisão total — arredondamentos feitos em transf_g_display)
 transf_g_calc <- transf_g_calc |>
   mutate(
     pct = if (soma_total_tml > 0) total_tml / soma_total_tml else 0,
     parcela_partilhada = if_else(nome_tab == "MTS", 0, pct * total_K_val),
     parcela_incentiva  = if_else(nome_tab == "MTS", 0, total_tml - parcela_partilhada)
+    pct                = if (soma_total_tml > 0) total_tml / soma_total_tml else 0,
+    parcela_partilhada = if_else(nome_tab == "MTS", 0, pct * total_K_val)
+    # parcela_incentiva calculada depois, sobre total_tml e parcela_partilhada já arredondados
   )
 
-# Linha TOTAL
-total_row_g <- tibble(
-  nome_tab           = "TOTAL",
-  receita_A          = sum(transf_g_calc$receita_A),
-  receita_B          = sum(transf_g_calc$receita_B),
-  C                  = sum(transf_g_calc$C),
-  cosp_D             = sum(transf_g_calc$cosp_D),
-  SG                 = sum(transf_g_calc$SG),
-  F_transferencia    = sum(transf_g_calc$F_transferencia),
-  congelamento       = sum(transf_g_calc$congelamento),
-  total_transferir   = sum(transf_g_calc$total_transferir),
-  transf_entre_ops   = sum(transf_g_calc$transf_entre_ops),
-  total_tml          = sum(transf_g_calc$total_tml),
-  pct                = sum(transf_g_calc$pct),
-  parcela_partilhada = sum(transf_g_calc$parcela_partilhada),
-  parcela_incentiva  = sum(transf_g_calc$parcela_incentiva)
-)
-
-tabela_global <- bind_rows(
-  transf_g_calc |> select(
+# Arredondar as três colunas que a colega apresenta com 2 casas decimais,
+# ANTES de calcular o total — assim o TOTAL é a soma dos valores visíveis
+# Arredondar as colunas que a colega apresenta com 2 casas decimais,
+# ANTES de calcular o total — assim o TOTAL é a soma dos valores visíveis.
+# parcela_incentiva é recalculada aqui sobre valores já arredondados.
+transf_g_display <- transf_g_calc |>
+  select(
     nome_tab, receita_A, receita_B, C, cosp_D, SG, F_transferencia, congelamento,
     total_transferir, transf_entre_ops, total_tml, pct,
     parcela_partilhada, parcela_incentiva
-  ),
-  total_row_g
-) |>
-mutate(
-  total_transferir = round(total_transferir, 2),
-  parcela_partilhada = round(parcela_partilhada, 2),
-  parcela_incentiva  = round(parcela_incentiva, 2)
+    parcela_partilhada
+  ) |>
+  mutate(
+    total_transferir   = round(total_transferir,   2),
+    total_tml          = round(total_tml,          2),
+    parcela_partilhada = round(parcela_partilhada, 2)
+  #  parcela_incentiva  = round(parcela_incentiva,  2)
+    parcela_partilhada = round(parcela_partilhada, 2),
+    # parcela_incentiva = total_tml - parcela_partilhada, ambos já arredondados
+    parcela_incentiva  = if_else(nome_tab == "MTS", 0, total_tml - parcela_partilhada)
   )
+
+# Linha TOTAL: soma dos valores já arredondados por operador
+total_row_g <- tibble(
+  nome_tab           = "TOTAL",
+  receita_A          = sum(transf_g_display$receita_A),
+  receita_B          = sum(transf_g_display$receita_B),
+  C                  = sum(transf_g_display$C),
+  cosp_D             = sum(transf_g_display$cosp_D),
+  SG                 = sum(transf_g_display$SG),
+  F_transferencia    = sum(transf_g_display$F_transferencia),
+  congelamento       = sum(transf_g_display$congelamento),
+  total_transferir   = sum(transf_g_display$total_transferir),
+  transf_entre_ops   = sum(transf_g_display$transf_entre_ops, na.rm = TRUE),
+  total_tml          = sum(transf_g_display$total_tml),
+  pct                = sum(transf_g_display$pct),
+  parcela_partilhada = sum(transf_g_display$parcela_partilhada),
+  parcela_incentiva  = sum(transf_g_display$parcela_incentiva)
+)
+
+tabela_global <- bind_rows(transf_g_display, total_row_g)
 
 # Nomes de exibição
 names_global <- c(
@@ -856,6 +870,7 @@ params_df <- tibble(
     scales::number(VMC_ano, accuracy = 0.01, big.mark = " ", decimal.mark = ",", suffix = " €"),
     scales::number(N_PASSES_COMPENSAR, accuracy = 1, big.mark = " ", decimal.mark = ","),
     scales::number(valor_medio_passe, accuracy = 0.000001, decimal.mark = ",", suffix = " €"),
+    scales::number(valor_medio_passe, accuracy = 0.0001, decimal.mark = ",", suffix = " €"),
     scales::percent(RETENCAO_TML, accuracy = 0.01, decimal.mark = ","),
     scales::percent(saz_mes, accuracy = 0.01, decimal.mark = ","),
     scales::number(round(qty_total_mes), accuracy = 1, big.mark = " ", decimal.mark = ","),
