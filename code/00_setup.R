@@ -11,7 +11,8 @@ pkgs_needed <- c(
   "glue",        # interpolação de strings
   "here",        # caminhos relativos robustos
   "lubridate",   # datas
-  "scales"       # formatação de números
+  "scales",      # formatação de números
+  "openxlsx"     # criação e formatação avançada de Excel (.xlsx)
 )
 
 pkgs_missing <- pkgs_needed[!sapply(pkgs_needed, requireNamespace, quietly = TRUE)]
@@ -30,6 +31,7 @@ suppressPackageStartupMessages({
   library(here)
   library(lubridate)
   library(scales)
+  library(openxlsx)
 })
 
 message("Pacotes carregados com sucesso.")

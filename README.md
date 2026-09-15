@@ -11,6 +11,7 @@ Replica com precisão matemática a metodologia regulamentar (Regulamento n.º 1
 - **Repartição de Receitas (B)** e **Congelamento Tarifário (TAT)**
 - **Compensação por Obrigações de Serviço Público — COSP (D)**
 - **Apuramento Final de Transferências Financeiras (F)**
+- **Relatório Oficial em Excel (XLSX)**: Quadro cruzado de 14 colunas com transferências entre operadores (MTS/FT), rateio de canais partilhados (Total K) e verbas do Incentiva +TP
 
 ---
 
@@ -65,7 +66,7 @@ MES <- 5       # 5 = Maio, 6 = Junho, etc.
 Rscript code/00_setup.R
 ```
 
-*(Verifica e instala automaticamente os pacotes: `tidyverse`, `readxl`, `writexl`, `janitor`, `glue`, `here`, `lubridate`, `scales`)*
+*(Verifica e instala automaticamente os pacotes: `tidyverse`, `readxl`, `writexl`, `janitor`, `glue`, `here`, `lubridate`, `scales`, `openxlsx`)*
 
 ### Passo 3: Executar o Pipeline Completo
 
@@ -81,19 +82,23 @@ Tempo de execução típico: **~3 a 4 segundos**.
 
 Os resultados são gerados na pasta `{MES}_{mes_abrev}_{ANO}_replicate/output/` com o sufixo do mês (ex: `mai26`):
 
-
-| Ficheiro                                          | Descrição                                                                                                                                                          |
+| Ficheiro | Descrição |
 | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`transferencias_F_{SUFIXO}.csv`**               | **Tabela final de compensações**: receitas na posse (A), receitas devidas (B), COSP (D), congelamento tarifário e saldo financeiro a transferir (F) por operador. |
-| `PT_{SUFIXO}.csv`                                 | Passageiros transportados agregados por título e operador.                                                                                                          |
-| `PT_CM_agregado_{SUFIXO}.csv`                     | Agregação explícita das áreas A1 a A4 + fiscais da Carris Metropolitana.                                                                                         |
-| `receitas_titulo_{SUFIXO}.csv`                    | Quantidade e receita de vendas de títulos por operador.                                                                                                             |
-| `distancias_{SUFIXO}.csv`                         | Distâncias médias (km) utilizadas por operador e título.                                                                                                          |
-| `quotas_{SUFIXO}.csv`                             | Passageiro-Quilómetro (PKM) e quotas de repartição (0 a 1).                                                                                                       |
-| `vendas_AK_{SUFIXO}.csv`                          | Resumo de vendas A e K por operador.                                                                                                                                 |
-| `reparticao_B_{SUFIXO}.csv`                       | Detalhe da receita B e congelamento TAT por título e operador.                                                                                                      |
-| `congelamento_{SUFIXO}.csv`                       | Valor do congelamento tarifário por operador.                                                                                                                       |
-| `cosp_D_{SUFIXO}.csv` e `D_operador_{SUFIXO}.csv` | Compensação por OSP (COSP) detalhada e total por operador.                                                                                                         |
+| **`tabela_transferencias_{SUFIXO}.xlsx`**          | **Workbook Excel oficial consolidado**: <br>• `0 - Global`: Quadro oficial de 14 colunas com apuramento TML, acerto entre operadores (MTS $\rightarrow$ FT), rateio dos canais partilhados ($K$) e dotação Incentiva +TP.<br>• `1 - Quotas`: Matriz de quotas de repartição por título e operador.<br>• `2 - Vendas AK`: Resumo de bilheteiras (A) e canais externos (K).<br>• `4 - Receita B e CongNav B`: Síntese de receita devida e congelamento.<br>• `5 - Pag Conta COSP D`: Parâmetros regulamentares COSP e pagamentos.<br>• `6 - Transferencias F`: Formato longo por métrica. |
+| **`6_transferencias_{SUFIXO}.csv`**                | **Tabela final de compensações (CSV)**: receitas na posse (`receita_A`), receitas devidas (`receita_B`), saldo (`saldo_C`), COSP (`cosp_D`), saldo global (`SG`), transferências (`F_transferencia`), congelamento (`congelamento_B`) e total a transferir por operador. |
+| `1a_PT_{SUFIXO}.csv`                                | Passageiros transportados (validações) agregados por título e operador.                                                                                               |
+| `1b_PT_CM_{SUFIXO}.csv`                             | Agregação explícita das áreas A1 a A4 + fiscais móveis da Carris Metropolitana.                                                                                      |
+| `1c_receitas_titulo_{SUFIXO}.csv`                   | Quantidade e receita de vendas de títulos por operador (Recibos B).                                                                                                   |
+| `1d_validacoes_{SUFIXO}.csv`                        | Quantidades de títulos gratuitos sem carregamento prévio (VaT).                                                                                                      |
+| `1e_distancias_{SUFIXO}.csv`                        | Distâncias médias (km) utilizadas por operador e título.                                                                                                              |
+| `1_quotas_{SUFIXO}.csv`                             | Passageiro-Quilómetro (PKM) e quotas de repartição regulamentares (0 a 1).                                                                                            |
+| `2_vendas_A_{SUFIXO}.csv`                           | Receita e quantidades na posse de cada operador através de bilheteiras/canais próprios (Canais A).                                                                    |
+| `2_vendas_K_{SUFIXO}.csv`                           | Vendas e receitas dos canais de receita partilhada TML (Portal VIVA e rede Multibanco/SIBS).                                                                         |
+| `4a_receita_titulo_distribuir_{SUFIXO}.csv`         | Receita global do sistema a distribuir por título ($A + K$) e quantidades totais de títulos vendidos.                                                                 |
+| `4b_reparticao_B_{SUFIXO}.csv`                      | Detalhe da receita bilheteira devida ($B$) e congelamento TAT por título e operador.                                                                                  |
+| `4_receitaB_congelamento_{SUFIXO}.csv`              | Resumo por operador da receita devida (`receita_B`) e do congelamento tarifário (`congelamento_B`).                                                                   |
+| `5a_cosp_{SUFIXO}.csv`                              | Compensação por OSP (COSP tarifária $D$) detalhada por título e operador.                                                                                             |
+| `5_cosp_operador_{SUFIXO}.csv`                      | Compensação COSP total devida por operador (`cosp_D`).                                                                                                                |
 
 ---
 
@@ -103,14 +108,15 @@ Os resultados são gerados na pasta `{MES}_{mes_abrev}_{ANO}_replicate/output/` 
 Compensacoes/
 ├── code/
 │   ├── config.R                  # Configuração global de caminhos e parâmetros regulamentares
-│   ├── 00_setup.R                # Gestão de dependências R
+│   ├── 00_setup.R                # Gestão e instalação de dependências R
 │   ├── 01_recibos_b.R            # Agregação dos Recibos B e reconciliação Oracle
 │   ├── 02_distancias.R           # Distâncias médias (APEX dinâmicas e estáticas)
-│   ├── 03_quotas.R               # Cálculo de PKM e quotas
-│   ├── 04_vendas_AK.R            # Agregação de vendas A (operadores) e K (PV/ATM)
+│   ├── 03_quotas.R               # Cálculo de PKM e quotas de distribuição
+│   ├── 04_vendas_AK.R            # Agregação de vendas A (operadores) e K (PV e ATM/SIBS)
 │   ├── 05_reparticao_B.R         # Distribuição de receita B e congelamento TAT
 │   ├── 06_cosp_D.R               # Cálculo da compensação COSP (D)
-│   ├── 07_transferencias_F.R     # Cálculo das transferências finais (F)
+│   ├── 07_transferencias_F.R     # Apuramento das transferências finais (F)
+│   ├── 08_tables.R               # Exportação do relatório consolidado em Excel (xlsx)
 │   ├── 99_run_all.R              # Script mestre de execução sequencial
 │   ├── procedure.md              # Documentação técnica e metodológica detalhada
 │   ├── query_SL_TT.sql           # Query Oracle para separação TT / SL (Query 2b)
