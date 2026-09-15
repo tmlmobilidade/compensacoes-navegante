@@ -246,11 +246,11 @@ excedente_mts <- if (nrow(mts_row) > 0 && mts_row$total_transferir < 0) abs(mts_
 transf_g_calc <- transf_g |>
   mutate(
     transf_entre_ops = case_when(
-      nome_tab == "FT"  ~ -excedente_mts,
-      nome_tab == "MTS" ~  excedente_mts,
+      nome_tab == "FT"  ~  excedente_mts,
+      nome_tab == "MTS" ~ -excedente_mts,
       TRUE              ~ NA_real_
     ),
-    total_tml = total_transferir + coalesce(transf_entre_ops, 0)
+    total_tml = total_transferir + coalesce(-transf_entre_ops, 0)
   )
 
 # Total da coluna TOTAL a transferir pela TML
