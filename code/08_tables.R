@@ -256,20 +256,14 @@ transf_g_calc <- transf_g |>
 # Total da coluna TOTAL a transferir pela TML
 soma_total_tml <- sum(transf_g_calc$total_tml, na.rm = TRUE)
 
-# Percentagens e Parcelas
 # Percentagens e Parcelas (precisão total — arredondamentos feitos em transf_g_display)
 transf_g_calc <- transf_g_calc |>
   mutate(
-    pct = if (soma_total_tml > 0) total_tml / soma_total_tml else 0,
-    parcela_partilhada = if_else(nome_tab == "MTS", 0, pct * total_K_val),
-    parcela_incentiva  = if_else(nome_tab == "MTS", 0, total_tml - parcela_partilhada)
     pct                = if (soma_total_tml > 0) total_tml / soma_total_tml else 0,
     parcela_partilhada = if_else(nome_tab == "MTS", 0, pct * total_K_val)
     # parcela_incentiva calculada depois, sobre total_tml e parcela_partilhada já arredondados
   )
 
-# Arredondar as três colunas que a colega apresenta com 2 casas decimais,
-# ANTES de calcular o total — assim o TOTAL é a soma dos valores visíveis
 # Arredondar as colunas que a colega apresenta com 2 casas decimais,
 # ANTES de calcular o total — assim o TOTAL é a soma dos valores visíveis.
 # parcela_incentiva é recalculada aqui sobre valores já arredondados.
@@ -277,14 +271,11 @@ transf_g_display <- transf_g_calc |>
   select(
     nome_tab, receita_A, receita_B, C, cosp_D, SG, F_transferencia, congelamento,
     total_transferir, transf_entre_ops, total_tml, pct,
-    parcela_partilhada, parcela_incentiva
     parcela_partilhada
   ) |>
   mutate(
     total_transferir   = round(total_transferir,   2),
     total_tml          = round(total_tml,          2),
-    parcela_partilhada = round(parcela_partilhada, 2)
-  #  parcela_incentiva  = round(parcela_incentiva,  2)
     parcela_partilhada = round(parcela_partilhada, 2),
     # parcela_incentiva = total_tml - parcela_partilhada, ambos já arredondados
     parcela_incentiva  = if_else(nome_tab == "MTS", 0, total_tml - parcela_partilhada)
@@ -838,9 +829,19 @@ qty_total_mes <- sum(rtd_raw$qty_total, na.rm = TRUE)
 estimativa_passes_anuais <- qty_total_mes / saz_mes
 pct_compensar <- min(1, N_PASSES_COMPENSAR / estimativa_passes_anuais)
 
-# Passes a compensar e COSP total do mês
-passes_comp_mes <- round(pct_compensar * qty_total_mes, 0)
-cosp_total_mes  <- sum(cosp_raw$cosp_D, na.rm = TRUE)
+# Passes a compensar: somar os arredondamentos por título (igual à colega)
+# passes_compensar_i já foi arredondado à unidade em 06_cosp_D.R por título
+cosp_detail_raw <- read.csv2(F_COSP_D, stringsAsFactors = FALSE, dec = ",")
+for (col in c("qty_total_i", "passes_compensar_i", "COSP_i", "quota", "COSP_ij")) {
+  if (col %in% names(cosp_detail_raw))
+    cosp_detail_raw[[col]] <- as.numeric(gsub(",", ".", cosp_detail_raw[[col]]))
+}
+cosp_detail_raw$ticket_code <- as.integer(cosp_detail_raw$ticket_code)
+
+# Total de passes a compensar = soma dos arredondamentos por título (não arredondar o total)
+passes_comp_mes  <- sum(unique(cosp_detail_raw[, c("ticket_code", "passes_compensar_i")])$passes_compensar_i,
+                        na.rm = TRUE)
+cosp_total_mes   <- sum(cosp_raw$cosp_D, na.rm = TRUE)
 retencao_val_mes <- (cosp_total_mes / (1 - RETENCAO_TML)) * RETENCAO_TML
 
 # Tabela de Parâmetros
@@ -869,14 +870,13 @@ params_df <- tibble(
     scales::number(fator_tat_vmc, accuracy = 0.000001, decimal.mark = ","),
     scales::number(VMC_ano, accuracy = 0.01, big.mark = " ", decimal.mark = ",", suffix = " €"),
     scales::number(N_PASSES_COMPENSAR, accuracy = 1, big.mark = " ", decimal.mark = ","),
-    scales::number(valor_medio_passe, accuracy = 0.000001, decimal.mark = ",", suffix = " €"),
     scales::number(valor_medio_passe, accuracy = 0.0001, decimal.mark = ",", suffix = " €"),
     scales::percent(RETENCAO_TML, accuracy = 0.01, decimal.mark = ","),
     scales::percent(saz_mes, accuracy = 0.01, decimal.mark = ","),
     scales::number(round(qty_total_mes), accuracy = 1, big.mark = " ", decimal.mark = ","),
     scales::number(round(estimativa_passes_anuais), accuracy = 1, big.mark = " ", decimal.mark = ","),
     scales::percent(pct_compensar, accuracy = 0.0001, decimal.mark = ","),
-    scales::number(round(passes_comp_mes), accuracy = 1, big.mark = " ", decimal.mark = ","),
+    scales::number(passes_comp_mes, big.mark = " "),
     scales::number(cosp_total_mes, accuracy = 0.01, big.mark = " ", decimal.mark = ",", suffix = " €"),
     scales::number(retencao_val_mes, accuracy = 0.01, big.mark = " ", decimal.mark = ",", suffix = " €")
   )
@@ -989,6 +989,111 @@ setColWidths(wb, ws_cosp, cols = 2, widths = 14)
 setColWidths(wb, ws_cosp, cols = 3, widths = 32)
 setColWidths(wb, ws_cosp, cols = 4, widths = 22)
 setColWidths(wb, ws_cosp, cols = 5, widths = 15)
+
+# =============================================================================
+# Tabela detalhada COSP por título × operador (wide) — abaixo do resumo
+# =============================================================================
+
+# Construir wide: COSP_ij por título e operador
+cosp_wide <- cosp_detail_raw |>
+  select(ticket_code, titulo_nome, operador, COSP_ij) |>
+  mutate(nome_op = nome_op_sep[operador]) |>
+  filter(!is.na(nome_op)) |>
+  select(ticket_code, titulo_nome, nome_op, COSP_ij) |>
+  pivot_wider(names_from = nome_op, values_from = COSP_ij, values_fill = 0)
+
+for (op in ordem_ops_sep) {
+  if (!op %in% names(cosp_wide)) cosp_wide[[op]] <- 0
+}
+
+# Juntar qty_total_i, passes_compensar_i e COSP_i por título
+titulo_passes <- cosp_detail_raw |>
+  select(ticket_code, qty_total_i, passes_compensar_i, COSP_i) |>
+  distinct()
+
+cosp_wide <- titulos_df |>
+  select(ticket_code, titulo_nome, pvp) |>
+  left_join(titulo_passes, by = "ticket_code") |>
+  left_join(cosp_wide |> select(-titulo_nome), by = "ticket_code") |>
+  mutate(across(all_of(ordem_ops_sep), ~ replace_na(.x, 0))) |>
+  arrange(ticket_code)
+
+cosp_wide$total_cosp_titulo <- rowSums(cosp_wide[, ordem_ops_sep], na.rm = TRUE)
+
+# Linha de totais
+cosp_wide_totais <- tibble(
+  ticket_code        = NA_integer_,
+  titulo_nome        = "TOTAL",
+  pvp                = NA_real_,
+  qty_total_i        = sum(cosp_wide$qty_total_i,        na.rm = TRUE),
+  passes_compensar_i = sum(cosp_wide$passes_compensar_i, na.rm = TRUE),
+  COSP_i             = sum(cosp_wide$COSP_i,             na.rm = TRUE)
+)
+for (op in ordem_ops_sep) cosp_wide_totais[[op]] <- sum(cosp_wide[[op]], na.rm = TRUE)
+cosp_wide_totais$total_cosp_titulo <- sum(cosp_wide$total_cosp_titulo, na.rm = TRUE)
+
+cosp_wide_out <- bind_rows(cosp_wide, cosp_wide_totais)
+
+# Colunas: código, nome, pvp, qty, passes, COSP_i, [11 ops], total = 17 cols
+n_det_cols <- 6 + length(ordem_ops_sep) + 1
+
+rw_det_cosp <- rw_tab_cosp + n_cop + 3   # 2 linhas de espaço após tabela operador
+
+# Sub-cabeçalho da tabela detalhada
+mergeCells(wb, ws_cosp, rows = rw_det_cosp, cols = 1:n_det_cols)
+writeData(wb, ws_cosp, x = "Detalhe COSP por Título e Operador (COSP_ij em €)", startRow = rw_det_cosp, startCol = 1)
+addStyle(wb, ws_cosp, st_sub_header, rows = rw_det_cosp, cols = 1:n_det_cols, gridExpand = TRUE)
+
+names_det_cosp <- c("Código", "Designação do Título", "PVP (€)",
+                    "Qtd Vendida", "Passes a Compensar", "COSP Título (€)",
+                    ordem_ops_sep, "TOTAL COSP Título (€)")
+writeData(wb, ws_cosp, x = as.data.frame(t(names_det_cosp)),
+          startRow = rw_det_cosp + 1, startCol = 1, colNames = FALSE)
+addStyle(wb, ws_cosp, st_header_gold, rows = rw_det_cosp + 1, cols = 1:n_det_cols, gridExpand = TRUE)
+setRowHeights(wb, ws_cosp, rows = rw_det_cosp + 1, heights = 40)
+
+writeData(wb, ws_cosp, x = cosp_wide_out, startRow = rw_det_cosp + 2, startCol = 1, colNames = FALSE)
+
+n_det_rows <- nrow(cosp_wide_out)
+for (i in seq_len(n_det_rows)) {
+  rw     <- rw_det_cosp + 1 + i
+  is_tot <- (i == n_det_rows)
+  fg     <- if (is_tot) cor_gold_light else if (i %% 2 == 0) cor_alt_row else cor_white
+  col_ops_start <- 7
+  col_ops_end   <- 6 + length(ordem_ops_sep)
+
+  if (is_tot) {
+    addStyle(wb, ws_cosp, st_total_lbl, rows = rw, cols = 1:3, gridExpand = TRUE)
+    addStyle(wb, ws_cosp, st_total_int, rows = rw, cols = 4:5, gridExpand = TRUE)
+    addStyle(wb, ws_cosp, st_total_num, rows = rw, cols = c(6, col_ops_start:n_det_cols), gridExpand = TRUE)
+  } else {
+    addStyle(wb, ws_cosp, createStyle(fgFill = fg, halign = "center", border = "LeftRight",
+                                      borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 1)
+    addStyle(wb, ws_cosp, createStyle(fgFill = fg, halign = "left", border = "LeftRight",
+                                      borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 2)
+    addStyle(wb, ws_cosp, createStyle(fgFill = fg, numFmt = "#,##0.00", halign = "right",
+                                      border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 3)
+    addStyle(wb, ws_cosp, createStyle(fgFill = fg, numFmt = "#,##0", halign = "right",
+                                      border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 4:5, gridExpand = TRUE)
+    addStyle(wb, ws_cosp, createStyle(fgFill = fg, numFmt = "#,##0.00", halign = "right",
+                                      border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 6:n_det_cols, gridExpand = TRUE)
+  }
+}
+
+# Larguras das colunas da tabela detalhada
+setColWidths(wb, ws_cosp, cols = 1,                    widths = 8)
+setColWidths(wb, ws_cosp, cols = 2,                    widths = 32)
+setColWidths(wb, ws_cosp, cols = 3,                    widths = 10)
+setColWidths(wb, ws_cosp, cols = 4:5,                  widths = 14)
+setColWidths(wb, ws_cosp, cols = 6,                    widths = 18)
+setColWidths(wb, ws_cosp, cols = 7:(6 + length(ordem_ops_sep)), widths = 13)
+setColWidths(wb, ws_cosp, cols = n_det_cols,            widths = 20)
+# freezePane(wb, ws_cosp, firstActiveRow = rw_det_cosp + 2, firstActiveCol = 3)
 
 
 # =============================================================================
