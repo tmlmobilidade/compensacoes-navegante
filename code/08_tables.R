@@ -900,14 +900,12 @@ df_cosp_op <- df_cosp_op |>
 
 tab_cosp_full <- bind_rows(
   df_cosp_op |> select(
-    Código = operador_cod,
     Operador = operador,
     `Nome Completo` = nome_completo,
     `Pagamento COSP Devido [D] (€)` = cosp_D,
     `% do COSP Total` = pct_cosp
   ),
   tibble(
-    Código = "",
     Operador = "TOTAL",
     `Nome Completo` = "",
     `Pagamento COSP Devido [D] (€)` = tot_cosp,
@@ -944,12 +942,12 @@ for (p in seq_len(nrow(params_df))) {
 
 # Tabela por Operador (linha 22)
 rw_tab_cosp <- nrow(params_df) + 6
-mergeCells(wb, ws_cosp, rows = rw_tab_cosp, cols = 1:5)
+mergeCells(wb, ws_cosp, rows = rw_tab_cosp, cols = 1:4)
 writeData(wb, ws_cosp, x = "Repartição dos Pagamentos por Conta COSP [D] por Operador", startRow = rw_tab_cosp, startCol = 1)
-addStyle(wb, ws_cosp, st_sub_header, rows = rw_tab_cosp, cols = 1:5, gridExpand = TRUE)
+addStyle(wb, ws_cosp, st_sub_header, rows = rw_tab_cosp, cols = 1:4, gridExpand = TRUE)
 
 writeData(wb, ws_cosp, x = as.data.frame(t(names(tab_cosp_full))), startRow = rw_tab_cosp + 1, startCol = 1, colNames = FALSE)
-addStyle(wb, ws_cosp, st_header_gold, rows = rw_tab_cosp + 1, cols = 1:5, gridExpand = TRUE)
+addStyle(wb, ws_cosp, st_header_gold, rows = rw_tab_cosp + 1, cols = 1:4, gridExpand = TRUE)
 setRowHeights(wb, ws_cosp, rows = rw_tab_cosp + 1, heights = 32)
 
 writeData(wb, ws_cosp, x = tab_cosp_full, startRow = rw_tab_cosp + 2, startCol = 1, colNames = FALSE)
@@ -962,33 +960,29 @@ for (i in seq_len(n_cop)) {
   txt_dec <- if (is_tot) "bold" else NULL
 
   if (is_tot) {
-    addStyle(wb, ws_cosp, st_total_lbl, rows = rw, cols = 1:3, gridExpand = TRUE)
-    addStyle(wb, ws_cosp, st_total_num, rows = rw, cols = 4)
-    addStyle(wb, ws_cosp, st_total_pct, rows = rw, cols = 5)
+    addStyle(wb, ws_cosp, st_total_lbl, rows = rw, cols = 1:2, gridExpand = TRUE)
+    addStyle(wb, ws_cosp, st_total_num, rows = rw, cols = 3)
+    addStyle(wb, ws_cosp, st_total_pct, rows = rw, cols = 4)
   } else {
-    addStyle(wb, ws_cosp, createStyle(fgFill = fg, halign = "center", border = "LeftRight",
-                                      borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 1)
     addStyle(wb, ws_cosp, createStyle(fgFill = fg, textDecoration = "bold", halign = "left",
                                       border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 2)
+             rows = rw, cols = 1)
     addStyle(wb, ws_cosp, createStyle(fgFill = fg, halign = "left", border = "LeftRight",
                                       borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 3)
+             rows = rw, cols = 2)
     addStyle(wb, ws_cosp, createStyle(fgFill = fg, numFmt = "#,##0.00", halign = "right",
                                       border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 4)
+             rows = rw, cols = 3)
     addStyle(wb, ws_cosp, createStyle(fgFill = fg, numFmt = "0.0000%", halign = "right",
                                       border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 5)
+             rows = rw, cols = 4)
   }
 }
 
-setColWidths(wb, ws_cosp, cols = 1, widths = 8)
-setColWidths(wb, ws_cosp, cols = 2, widths = 14)
-setColWidths(wb, ws_cosp, cols = 3, widths = 32)
-setColWidths(wb, ws_cosp, cols = 4, widths = 22)
-setColWidths(wb, ws_cosp, cols = 5, widths = 15)
+setColWidths(wb, ws_cosp, cols = 1, widths = 14)
+setColWidths(wb, ws_cosp, cols = 2, widths = 32)
+setColWidths(wb, ws_cosp, cols = 3, widths = 22)
+setColWidths(wb, ws_cosp, cols = 4, widths = 15)
 
 # =============================================================================
 # Tabela detalhada COSP por título × operador (wide) — abaixo do resumo
