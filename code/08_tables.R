@@ -253,35 +253,31 @@ transf_g_calc <- transf_g |>
     total_tml = total_transferir + coalesce(-transf_entre_ops, 0)
   )
 
-# Total da coluna TOTAL a transferir pela TML
-soma_total_tml <- sum(transf_g_calc$total_tml, na.rm = TRUE)
-
-# Percentagens e Parcelas (precisão total — arredondamentos feitos em transf_g_display)
+# 1. Arredondar os montantes de transferências a 2 casas decimais (como no Excel)
 transf_g_calc <- transf_g_calc |>
   mutate(
-    pct                = if (soma_total_tml > 0) total_tml / soma_total_tml else 0,
-    parcela_partilhada = if_else(nome_tab == "MTS", 0, pct * total_K_val)
-    # parcela_incentiva calculada depois, sobre total_tml e parcela_partilhada já arredondados
+    total_transferir = round(total_transferir, 2),
+    total_tml        = round(total_tml,        2)
   )
 
-# Arredondar as colunas que a colega apresenta com 2 casas decimais,
-# ANTES de calcular o total — assim o TOTAL é a soma dos valores visíveis.
-# parcela_incentiva é recalculada aqui sobre valores já arredondados.
+# 2. Soma do total TML a partir dos valores já arredondados
+soma_total_tml <- sum(transf_g_calc$total_tml, na.rm = TRUE)
+
+# 3. Percentagens e Parcelas calculadas a partir dos valores arredondados
+#    (parcela_partilhada usa exatamente =ARRED(pct * total_K_val; 2))
 transf_g_display <- transf_g_calc |>
+  mutate(
+    pct                = if (soma_total_tml > 0) total_tml / soma_total_tml else 0,
+    parcela_partilhada = if_else(nome_tab == "MTS", 0, round(pct * total_K_val, 2)),
+    parcela_incentiva  = if_else(nome_tab == "MTS", 0, total_tml - parcela_partilhada)
+  ) |>
   select(
     nome_tab, receita_A, receita_B, C, cosp_D, SG, F_transferencia, congelamento,
     total_transferir, transf_entre_ops, total_tml, pct,
-    parcela_partilhada
-  ) |>
-  mutate(
-    total_transferir   = round(total_transferir,   2),
-    total_tml          = round(total_tml,          2),
-    parcela_partilhada = round(parcela_partilhada, 2),
-    # parcela_incentiva = total_tml - parcela_partilhada, ambos já arredondados
-    parcela_incentiva  = if_else(nome_tab == "MTS", 0, total_tml - parcela_partilhada)
+    parcela_partilhada, parcela_incentiva
   )
 
-# Linha TOTAL: soma dos valores já arredondados por operador
+# Linha TOTAL: soma dos valores da tabela
 total_row_g <- tibble(
   nome_tab           = "TOTAL",
   receita_A          = sum(transf_g_display$receita_A),

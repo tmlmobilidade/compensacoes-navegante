@@ -5,7 +5,7 @@
 # Alterar ANO e MES para correr para outro mês.
 
 ANO <- if (!is.na(Sys.getenv("ANO", unset = NA))) as.integer(Sys.getenv("ANO")) else 2026
-MES <- if (!is.na(Sys.getenv("MES", unset = NA))) as.integer(Sys.getenv("MES")) else 5      # 5 = maio, 6 = junho, etc.
+MES <- if (!is.na(Sys.getenv("MES", unset = NA))) as.integer(Sys.getenv("MES")) else 6      # 5 = maio, 6 = junho, etc.
 
 # ---- Caminhos base -----------------------------------------------------------
 BASE_DIR <- here::here()   # raiz do projecto (onde está o code/)
