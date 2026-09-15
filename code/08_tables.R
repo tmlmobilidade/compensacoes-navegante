@@ -129,16 +129,16 @@ cosp_raw$cosp_D <- as.numeric(gsub(",", ".", cosp_raw$cosp_D))
 total_K_val <- sum(rtd_raw$receita_K, na.rm = TRUE)
 
 # ---- 2. Paleta de Cores e Estilos --------------------------------------------
-cor_gold_dark   <- "#B8860B"  # DarkGoldenrod — cabeçalho principal
-cor_gold_sub    <- "#D4AF37"  # Metallic Gold — subcabeçalhos
+cor_gold_dark   <- "#FFC000"  # DarkGoldenrod — cabeçalho principal
+cor_gold_sub    <- "#FFE699"  # Metallic Gold — subcabeçalhos
 cor_gold_light  <- "#FFF2CC"  # Fundo para totais e destaques
 cor_op_col      <- "#FAF6EC"  # Fundo suave para colunas de identificação
 cor_alt_row     <- "#FCFBF7"  # Linhas alternadas muito subtis
 cor_white       <- "#FFFFFF"
-cor_border      <- "#C59B27"  # Dourado para bordas
+cor_border      <- "#e5b32b"  # Dourado para bordas
 cor_border_soft <- "#D9D9D9"  # Cinzento suave para grelha
 cor_neg         <- "#FFC7CE"  # Fundo para excedentes negativos
-cor_zero        <- "#C6EFCE"  # Fundo para linhas zeradas
+cor_zero        <- "#C6EFCE"  # Fundo para linhas a zero (MTS)
 
 wb <- createWorkbook()
 
@@ -375,7 +375,7 @@ freezePane(wb, ws_g, firstActiveRow = 3)
 # =============================================================================
 # FOLHA 1: "1 - Quotas" (Quotas em formato wide por operador)
 # =============================================================================
-addWorksheet(wb, "1 - Quotas", tabColour = cor_gold_sub)
+addWorksheet(wb, "1 - Quotas")
 ws_q <- "1 - Quotas"
 
 # Mapear operador nos dados de quota para nome alternativo (11 operadores separados)
@@ -448,7 +448,7 @@ freezePane(wb, ws_q, firstActiveRow = 3, firstActiveCol = 3)
 # =============================================================================
 # FOLHA 2: "2 - Vendas AK" (Vendas A e K consolidadas)
 # =============================================================================
-addWorksheet(wb, "2 - Vendas AK", tabColour = "#C59B27")
+addWorksheet(wb, "2 - Vendas AK")
 ws_ak <- "2 - Vendas AK"
 
 # Preparar dados de resumo por operador (Vendas A)
@@ -657,7 +657,7 @@ setColWidths(wb, ws_ak, cols = c(5, 7, 9), widths = 18)
 # =============================================================================
 # FOLHA 4: "4 - Receita B e CongNav B" (Receita devida e congelamento por operador)
 # =============================================================================
-addWorksheet(wb, "4 - Receita B e CongNav B", tabColour = "#E5B638")
+addWorksheet(wb, "4 - Receita B e CongNav B")
 ws_b <- "4 - Receita B e CongNav B"
 
 # Dados por operador (11 operadores separados)
@@ -763,7 +763,7 @@ setColWidths(wb, ws_b, cols = c(5, 7, 9), widths = 14)
 # =============================================================================
 # FOLHA 5: "5 - Pag Conta COSP D" (Parâmetros regulamentares e COSP por operador)
 # =============================================================================
-addWorksheet(wb, "5 - Pag Conta COSP D", tabColour = "#A67C1E")
+addWorksheet(wb, "5 - Pag Conta COSP D")
 ws_cosp <- "5 - Pag Conta COSP D"
 
 # Parâmetros de cálculo COSP
@@ -937,7 +937,7 @@ setColWidths(wb, ws_cosp, cols = 5, widths = 15)
 # =============================================================================
 # FOLHA 6: "6 - Transferencias F" (Formato longo com TT+SL fundidos)
 # =============================================================================
-addWorksheet(wb, "6 - Transferencias F", tabColour = "#806000")
+addWorksheet(wb, "6 - Transferencias F")
 ws_f <- "6 - Transferencias F"
 
 # Construir linhas em formato longo
