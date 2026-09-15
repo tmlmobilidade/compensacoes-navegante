@@ -66,7 +66,7 @@ As variáveis `F_*` em `config.R` centralizam todos os caminhos.
 | `F_COSP_D` | `5a_cosp_{SUFIXO}.csv` | `06_cosp_D.R` | COSP detalhe por título × operador |
 | `F_D_OPERADOR` | `5_cosp_operador_{SUFIXO}.csv` | `06_cosp_D.R` | COSP total (D) por operador |
 | `F_TRANSFERENCIAS` | `6_transferencias_{SUFIXO}.csv` | `07_transferencias_F.R` | **Tabela final**: A, B, D, Congelamento, F, Total |
-| `F_TABELA_XLSX` | `tabela_transferencias_{SUFIXO}.xlsx` | `08_tables.R` | **Workbook Excel**: Folha 1 (longo) e Folha 2 (cruzado) |
+| `F_TABELA_XLSX` | `Anexo_calculos_{SUFIXO}.xlsx` | `08_tables.R` | **Workbook Excel**: 6 folhas (0 - Global, 1 - Quotas, 2 - Vendas AK, 4 - Receita B e CongNav B, 5 - Pag Conta COSP D, 6 - Transferencias F) |
 
 ---
 

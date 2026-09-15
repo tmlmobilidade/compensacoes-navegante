@@ -718,8 +718,6 @@ tot_b_all  <- sum(df_b_op$total_b_cong)
 df_b_op <- df_b_op |>
   mutate(
     pct_b     = if (tot_rec_b > 0) receita_B / tot_rec_b else 0,
-    pct_cong  = if (tot_cong_b > 0) congelamento_B / tot_cong_b else 0,
-    pct_total = if (tot_b_all > 0) total_b_cong / tot_b_all else 0,
     nome_completo = nomes_completos[operador_cod]
   )
 
@@ -731,9 +729,7 @@ tab_b_full <- bind_rows(
     `Receita Devida [B] (€)` = receita_B,
     `% Receita B` = pct_b,
     `Congelamento [CongNav B] (€)` = congelamento_B,
-    `% Congelamento` = pct_cong,
-    `Total Devido [B + CongNav B] (€)` = total_b_cong,
-    `% Total Devido` = pct_total
+    `Total Devido [B + CongNav B] (€)` = total_b_cong
   ),
   tibble(
     Código = "",
@@ -742,22 +738,20 @@ tab_b_full <- bind_rows(
     `Receita Devida [B] (€)` = tot_rec_b,
     `% Receita B` = 1.0,
     `Congelamento [CongNav B] (€)` = tot_cong_b,
-    `% Congelamento` = 1.0,
-    `Total Devido [B + CongNav B] (€)` = tot_b_all,
-    `% Total Devido` = 1.0
+    `Total Devido [B + CongNav B] (€)` = tot_b_all
   )
 )
 
 # Título
-mergeCells(wb, ws_b, rows = 1, cols = 1:9)
+mergeCells(wb, ws_b, rows = 1, cols = 1:7)
 writeData(wb, ws_b, x = paste0("     Tabela 4 - Receita Bilheteira Devida [B] e Congelamento Navegante [CongNav B] — ", mes_nome, " ", ANO),
           startRow = 1, startCol = 1)
-addStyle(wb, ws_b, st_title, rows = 1, cols = 1:9, gridExpand = TRUE)
+addStyle(wb, ws_b, st_title, rows = 1, cols = 1:7, gridExpand = TRUE)
 setRowHeights(wb, ws_b, rows = 1, heights = 26)
 
 # Cabeçalhos
 writeData(wb, ws_b, x = as.data.frame(t(names(tab_b_full))), startRow = 2, startCol = 1, colNames = FALSE)
-addStyle(wb, ws_b, st_header_gold, rows = 2, cols = 1:9, gridExpand = TRUE)
+addStyle(wb, ws_b, st_header_gold, rows = 2, cols = 1:7, gridExpand = TRUE)
 setRowHeights(wb, ws_b, rows = 2, heights = 35)
 
 writeData(wb, ws_b, x = tab_b_full, startRow = 3, startCol = 1, colNames = FALSE)
@@ -771,8 +765,8 @@ for (i in seq_len(n_b_rows)) {
 
   if (is_tot) {
     addStyle(wb, ws_b, st_total_lbl, rows = rw, cols = 1:3, gridExpand = TRUE)
-    addStyle(wb, ws_b, st_total_num, rows = rw, cols = c(4, 6, 8), gridExpand = TRUE)
-    addStyle(wb, ws_b, st_total_pct, rows = rw, cols = c(5, 7, 9), gridExpand = TRUE)
+    addStyle(wb, ws_b, st_total_num, rows = rw, cols = c(4, 6, 7), gridExpand = TRUE)
+    addStyle(wb, ws_b, st_total_pct, rows = rw, cols = 5, gridExpand = TRUE)
   } else {
     addStyle(wb, ws_b, createStyle(fgFill = fg, halign = "center", border = "LeftRight",
                                    borderColour = cor_border_soft, fontSize = 9),
@@ -785,18 +779,20 @@ for (i in seq_len(n_b_rows)) {
              rows = rw, cols = 3)
     addStyle(wb, ws_b, createStyle(fgFill = fg, numFmt = "#,##0.00", halign = "right",
                                    border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = c(4, 6, 8), gridExpand = TRUE)
+             rows = rw, cols = c(4, 6, 7), gridExpand = TRUE)
     addStyle(wb, ws_b, createStyle(fgFill = fg, numFmt = "0.0000%", halign = "right",
                                    border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = c(5, 7, 9), gridExpand = TRUE)
+             rows = rw, cols = 5)
   }
 }
 
 setColWidths(wb, ws_b, cols = 1, widths = 8)
 setColWidths(wb, ws_b, cols = 2, widths = 14)
 setColWidths(wb, ws_b, cols = 3, widths = 32)
-setColWidths(wb, ws_b, cols = c(4, 6, 8), widths = 20)
-setColWidths(wb, ws_b, cols = c(5, 7, 9), widths = 14)
+setColWidths(wb, ws_b, cols = 4, widths = 22)
+setColWidths(wb, ws_b, cols = 5, widths = 14)
+setColWidths(wb, ws_b, cols = 6, widths = 25)
+setColWidths(wb, ws_b, cols = 7, widths = 26)
 
 
 # =============================================================================
@@ -815,8 +811,11 @@ fator_tat_vmc <- prod(1 + tat_ate_ano$tat)
 VMC_ano       <- round(VMC_2023 * fator_tat_vmc, 2)
 valor_medio_passe <- VMC_ano / N_PASSES_COMPENSAR
 
-saz_mes <- saz_df[saz_df$mes == MES, "sazonalidade"]
-if (length(saz_mes) == 0 || is.na(saz_mes)) saz_mes <- 0.086
+saz_df$sazonalidade <- as.numeric(saz_df$sazonalidade)
+saz_mes <- as.numeric(saz_df$sazonalidade[saz_df$mes == MES])
+if (length(saz_mes) == 0 || is.na(saz_mes)) {
+  stop("Sazonalidade não encontrada para o mês: ", MES)
+}
 
 qty_total_mes <- sum(rtd_raw$qty_total, na.rm = TRUE)
 estimativa_passes_anuais <- qty_total_mes / saz_mes
@@ -849,19 +848,19 @@ params_df <- tibble(
   Valor = c(
     as.character(ANO),
     paste0(mes_nome, " (mês ", sprintf("%02d", MES), ")"),
-    scales::number(VMC_2023, accuracy = 0.01, big.mark = ".", decimal.mark = ",", suffix = " €"),
+    scales::number(VMC_2023, accuracy = 0.01, big.mark = " ", decimal.mark = ",", suffix = " €"),
     scales::number(fator_tat_vmc, accuracy = 0.000001, decimal.mark = ","),
-    scales::number(VMC_ano, accuracy = 0.01, big.mark = ".", decimal.mark = ",", suffix = " €"),
-    scales::number(N_PASSES_COMPENSAR, accuracy = 1, big.mark = ".", decimal.mark = ","),
+    scales::number(VMC_ano, accuracy = 0.01, big.mark = " ", decimal.mark = ",", suffix = " €"),
+    scales::number(N_PASSES_COMPENSAR, accuracy = 1, big.mark = " ", decimal.mark = ","),
     scales::number(valor_medio_passe, accuracy = 0.000001, decimal.mark = ",", suffix = " €"),
     scales::percent(RETENCAO_TML, accuracy = 0.01, decimal.mark = ","),
-    scales::number(saz_mes, accuracy = 0.001, decimal.mark = ","),
-    scales::number(round(qty_total_mes), accuracy = 1, big.mark = ".", decimal.mark = ","),
-    scales::number(round(estimativa_passes_anuais), accuracy = 1, big.mark = ".", decimal.mark = ","),
+    scales::percent(saz_mes, accuracy = 0.01, decimal.mark = ","),
+    scales::number(round(qty_total_mes), accuracy = 1, big.mark = " ", decimal.mark = ","),
+    scales::number(round(estimativa_passes_anuais), accuracy = 1, big.mark = " ", decimal.mark = ","),
     scales::percent(pct_compensar, accuracy = 0.0001, decimal.mark = ","),
-    scales::number(round(passes_comp_mes), accuracy = 1, big.mark = ".", decimal.mark = ","),
-    scales::number(cosp_total_mes, accuracy = 0.01, big.mark = ".", decimal.mark = ",", suffix = " €"),
-    scales::number(retencao_val_mes, accuracy = 0.01, big.mark = ".", decimal.mark = ",", suffix = " €")
+    scales::number(round(passes_comp_mes), accuracy = 1, big.mark = " ", decimal.mark = ","),
+    scales::number(cosp_total_mes, accuracy = 0.01, big.mark = " ", decimal.mark = ",", suffix = " €"),
+    scales::number(retencao_val_mes, accuracy = 0.01, big.mark = " ", decimal.mark = ",", suffix = " €")
   )
 )
 
@@ -906,22 +905,23 @@ addStyle(wb, ws_cosp, st_title, rows = 1, cols = 1:5, gridExpand = TRUE)
 setRowHeights(wb, ws_cosp, rows = 1, heights = 26)
 
 # Painel de Parâmetros
-mergeCells(wb, ws_cosp, rows = 3, cols = 1:3)
+mergeCells(wb, ws_cosp, rows = 3, cols = 1:4)
 writeData(wb, ws_cosp, x = "Parâmetros Regulamentares e de Cálculo COSP (Regulamento 1362-C/2023)", startRow = 3, startCol = 1)
-addStyle(wb, ws_cosp, st_sub_header, rows = 3, cols = 1:3, gridExpand = TRUE)
+addStyle(wb, ws_cosp, st_sub_header, rows = 3, cols = 1:4, gridExpand = TRUE)
 
-writeData(wb, ws_cosp, x = as.data.frame(t(c("Parâmetro", "Valor Regulamentado / Calculado"))),
-          startRow = 4, startCol = 1, colNames = FALSE)
-addStyle(wb, ws_cosp, st_header_gold, rows = 4, cols = 1:3, gridExpand = TRUE)
+mergeCells(wb, ws_cosp, rows = 4, cols = 1:3)
+writeData(wb, ws_cosp, x = "Parâmetro", startRow = 4, startCol = 1)
+writeData(wb, ws_cosp, x = "Valor Regulamentado / Calculado", startRow = 4, startCol = 4)
+addStyle(wb, ws_cosp, st_header_gold, rows = 4, cols = 1:4, gridExpand = TRUE)
 
 # Escrever linhas de parâmetros
 for (p in seq_len(nrow(params_df))) {
   rw <- p + 4
-  mergeCells(wb, ws_cosp, rows = rw, cols = 1:2)
+  mergeCells(wb, ws_cosp, rows = rw, cols = 1:3)
   writeData(wb, ws_cosp, x = params_df$Parâmetro[p], startRow = rw, startCol = 1)
-  writeData(wb, ws_cosp, x = params_df$Valor[p],     startRow = rw, startCol = 3)
-  addStyle(wb, ws_cosp, st_param_lbl, rows = rw, cols = 1:2, gridExpand = TRUE)
-  addStyle(wb, ws_cosp, st_param_val, rows = rw, cols = 3)
+  writeData(wb, ws_cosp, x = params_df$Valor[p],     startRow = rw, startCol = 4)
+  addStyle(wb, ws_cosp, st_param_lbl, rows = rw, cols = 1:3, gridExpand = TRUE)
+  addStyle(wb, ws_cosp, st_param_val, rows = rw, cols = 4)
 }
 
 # Tabela por Operador (linha 22)

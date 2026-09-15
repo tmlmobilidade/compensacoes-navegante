@@ -52,7 +52,7 @@ F_COSP_D        <- file.path(OUT_DIR, paste0("5a_cosp_",                     SUF
 F_D_OPERADOR    <- file.path(OUT_DIR, paste0("5_cosp_operador_",             SUFIXO, ".csv"))
 F_VAT           <- file.path(OUT_DIR, paste0("1d_validacoes_",               SUFIXO, ".csv"))
 F_TRANSFERENCIAS <- file.path(OUT_DIR, paste0("6_transferencias_",           SUFIXO, ".csv"))
-F_TABELA_XLSX   <- file.path(OUT_DIR, paste0("tabela_transferencias_",       SUFIXO, ".xlsx"))
+F_TABELA_XLSX   <- file.path(OUT_DIR, paste0("Anexo_calculos_",              SUFIXO, ".xlsx"))
 
 # ---- Função auxiliar para selecção de ficheiros recentes ---------------------
 #' Seleciona o ficheiro mais recente que corresponda a um padrão,
