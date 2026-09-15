@@ -460,8 +460,32 @@ Há um valor máximo de compensação (VMC), atualizado à TAT todos os anos, qu
 ### Script: `06_cosp_D.R`
 
 **Outputs:**
-- `F_COSP_D` → `5a_cosp_{SUFIXO}.csv`: detalhe COSP por título × operador
+- `F_COSP_D` → `5a_cosp_{SUFIXO}.csv`: detalhe COSP por título × operador (mantém precisão decimal sem arredondamento prematuro)
 - `F_D_OPERADOR` → `5_cosp_operador_{SUFIXO}.csv`: COSP total (D) por operador, coluna `cosp_D`
+
+---
+
+# Regras de Arredondamento e Precisão Decimal
+
+> [!IMPORTANT]
+> **Convenções de Precisão e Arredondamento (para bater a 100% com as contas oficiais):**
+> 1. **Pipelines de Cálculo Intermédio (`05_reparticao_B.R` e `06_cosp_D.R`)**:
+>    - Os valores de `receita_B`, `congelamento_B` e `cosp_D` por operador são guardados em CSV com **precisão total** (sem `round(..., 2)` prematuro).
+>    - Isto evita que erros de truncatura se propaguem e acumulem discrepâncias de cêntimos nas somas finais.
+> 2. **Folha "5 - Pag Conta COSP D"**:
+>    - **Total de Passes a Compensar no Mês**: É calculado como a **soma dos passes arredondados à unidade por título** ($\sum_i \text{round}(\text{passes}_i)$), e não arredondando a soma global. Em Maio/2026 isto fixa exatamente os **737 085 passes** oficiais.
+>    - **Tabela Resumo por Operador**: Mostra `Operador`, `Nome Completo`, `Pagamento COSP Devido [D] (€)` e `% do COSP Total`.
+>    - **Tabela Detalhada (Abaixo do Resumo)**: Apresenta o detalhe em formato *wide* por título × operador (`COSP_ij`), com as colunas base do título e as colunas de cada operador, totalizando na linha de rodapé.
+> 3. **Folha "0 - Global" (Tabela Síntese de Transferências)**:
+>    - O arredondamento a 2 casas decimais só é introduzido no `08_tables.R` na fase de fecho da tabela de transferências.
+>    - **Ordem exata de cálculo das parcelas (reproduzindo as fórmulas Excel da colega)**:
+>      1. `total_transferir` e `total_tml` são arredondados a 2 casas decimais: `round(..., 2)`.
+>      2. `soma_total_tml` é a soma dos `total_tml` já arredondados.
+>      3. A percentagem de cada operador é calculada como $\text{pct} = \text{total\_tml} / \text{soma\_total\_tml}$.
+>      4. A `parcela_partilhada` usa a fórmula `=ARRED(pct * Total_Vendas_K; 2)`.
+>      5. A `parcela_incentiva` é obtida por subtração: $\text{total\_tml} - \text{parcela\_partilhada}$ (ambos já arredondados a 2 casas).
+>      6. A linha **TOTAL** soma as colunas resultantes, garantindo que o total bate certo com os valores visíveis e totaliza exatamente o montante das Vendas K.
+
 
 ---
 
