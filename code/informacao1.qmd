@@ -1,0 +1,319 @@
+---
+title: "Informacao1"
+format: pdf
+---
+
+De:
+Ana Isabel Capote Fernandes Rosado
+Técnica Superior
+Luísa Salomé Freixo Lopes de Castro Nogueira
+Técnica Superior
+Estudos e Planeamento - Sistemas de Transportes
+	Para:
+ Helena Catarina Mota Ferreira Tavares Marcelino
+Coordenadora
+Estudos e Planeamento - Sistemas de Transportes
+Informação n.º 
+TML-XXXX-XXXX-INF-XXXX-DEP
+
+
+**Assunto: Apuramento provisório do mês de maio de 2026 e cálculo dos montantes a transferir aos operadores de transporte público ou às autoridades de transporte, em agosto de 2026, no âmbito do Regulamento n.º 278-A/2019 da AML, na sua redação atual**
+
+PARECER/VISTO:
+
+
+DESPACHOS:
+
+
+# Enquadramento
+
+O Regulamento n.º 278-A/2019, de 19 de março, designado “Regulamento Metropolitano das Regras Gerais para a Implementação do Sistema Tarifário na Área Metropolitana de Lisboa”, alterado pelos Regulamentos n.ºs 717/2019, de 31 de julho de 2019, 131/2020, de 20 de dezembro de 2019, 320/2020, de 17 de fevereiro de 2020, 935/2021, de 23 de setembro de 2021, e 527/2022, de 31 de maio, e 1362-C/2023 de 27 de dezembro de 2023 e pelas Instruções Técnicas que procederam à atualização dos anexos ao Regulamento AML n.º 278-A/2019, de 19 de março, aprovadas pelas respetivas deliberações da Comissão Executiva Metropolitana de Lisboa (“CEML”), doravante abreviadamente designado “Regulamento”, procedeu à implementação, na área metropolitana de Lisboa (“amL”), a partir de 1 de abril de 2019, no quadro de um novo sistema tarifário metropolitano, de passes municipais e de um passe metropolitano com valor acessível, bem como de passes com as modalidades criança, família e terceira idade e reformado/pensionista, que beneficiam de tarifa reduzida, válidos nas redes dos operadores de serviço público de transporte regular de passageiros da amL.
+Na presente informação procede-se ao apuramento dos montantes a transferir, no atual mês de agosto de 2026, aos Operadores que disponibilizaram os Passes Navegante no mês de maio de 2026, na sequência do apuramento provisório desse mês, de acordo com as regras estabelecidas no Anexo V do Regulamento n.º 278-A/2019 da AML, na sua redação atual. 
+Os cálculos realizados tiveram por base dados de passageiros e vendas disponibilizados pelo DITS a 31 de julho de 2026 (ficheiros equivalentes a recibos B finais + Receitas PV e ATM e passageiros transportados agregados na tabela DW_PROC.F_VALIDATIONS em PDBDDWPROD) e as distâncias percorridas pelos passageiros transportados na Carris Metropolitana calculadas e disponibilizadas pelo ITS na tabela prp_case_a1_agg load_version = 27 (esquema delta.tmlprepared da nova base de dados trino) a 7 de agosto de 2026.
+Importa referir que a implementação de validações com cartão virtual nas linhas da Carris Metropolitana teve início a 19 de setembro de 2025. O procedimento implementado tem implicações, quer ao nível das transações de venda, quer ao nível das validações.
+Quanto às transações de venda, o carregamento de um cartão virtual pressupõe o carregamento prévio de um cartão físico, ficando ambas as transações registadas no sistema de bilhética como transações de tipologia 3 (venda e carregamento). Isto significa a existência de 2 registos de venda: 1 com o título efetivamente comprado e carregado no cartão físico; e outro, invariavelmente, com o título Navegante Metropolitano Normal (ticket_code 900) carregado no cartão virtual. A equipa de DITS utilizou o campo “CARD_PHYSICAL_TYPE_ID= 31” e o “PRICE=0” para excluir os carregamentos do cartão virtual no apuramento das receitas.
+No que concerne às validações, a validação com o cartão virtual é sempre registada como a validação de um título Metropolitano Normal (ticket_code 900) independentemente da modalidade carregada no cartão físico, o que significa que em situações de validação com cartão virtual de passes com modalidade distinta da “Normal” (Jovem, PAC ou Circula PT), a mesma fica registada no sistema de bilhética no ticket_code 900, contribuindo para o número de passageiros e a quota deste título, em detrimento do título “correto”.
+A partir deste mês, o algoritmo de cálculo contabiliza e associa as validações pelo número de cliente no caso dos clientes que utilizem o cartão virtual.
+Conforme o Regulamento supracitado, os valores das transferências a realizar pela TML devem ser comunicados até ao dia 8 (oito) de cada mês. Caso a verba a disponibilizar pelo Fundo Ambiental (“FA”), no âmbito do programa «Incentiva +TP» tenha sido transferida até essa data, poderá ser faturada de imediato a totalidade do valor da transferência indicada. Caso contrário, será realizada uma primeira transferência correspondente à receita obtida através das vendas pelos canais de receita partilhada e, uma segunda, referente ao montante financiado pelo FA, somente após o recebimento dessa verba. 
+
+# Metodologia de apuramento provisório de maio de 2026 e dos montantes a transferir em agosto de 2026 
+
+As vendas e passageiros transportados por título e operador foram apurados em conjunto com os Operadores, através do fluxo de informação previsto no Anexo III do Regulamento, que inclui a validação dos Recibos A e B.  
+A metodologia de apuramentos provisórios mensais encontra-se definida na secção III do Anexo V do Regulamento – Apuramentos provisórios mensais após o fecho da quota de repartição dinâmica.
+Os montantes mensais a transferir pela TML [F] aos Operadores que disponibilizam os passes Navegante visam minimizar as transferências entre Operadores e suprir os saldos de receita [C], por via das receitas obtidas através dos canais partilhados [K] que a TML tem em sua posse, e dos pagamentos por conta das COSP (Compensações pela Obrigação de Serviço Público) tarifárias pela disponibilização dos passes Navegante [D], conforme pontos 13.1 e 13.2 do Anexo V ao Regulamento.
+Caso o saldo resultante da repartição de receitas não seja possível de suprir na sua totalidade por via das receitas obtidas através dos canais partilhados e dos pagamentos por conta das COSP, a TML determinará as transferências a realizar entre os diferentes Operadores (ponto 13.3 do Anexo V).
+Em 2025, ao contrário dos últimos anos, o Estado não impôs a manutenção dos preços dos passes de transportes públicos vigentes em 2024. Contudo, a verba Incentiva +TP atribuída foi reforçada, para além da TAT de 2025, com mais 5% do valor do ano transato. Por este motivo, a AML deliberou o congelamento dos preços dos passes Navegante, assumindo o financiamento desta medida recorrendo ao Incentiva +TP. Compete, por isso, à TML determinar e transferir o valor a compensar a cada Operador em resultado dos congelamentos impostos, nos termos do ponto n.º 23.2 do Anexo V.
+Nos subcapítulos seguintes são apresentados os procedimentos para a definição do valor mensal a transferir a cada Operador, que inclui a transferência para reposição de saldos [F5] e a parcela relativa ao congelamento dos preços dos passes Navegante [CongNav[B5]]. De notar que o índice “5” utilizado daqui em diante, simboliza que os valores apurados se referem ao mês 5 (maio de 2026).
+
+## Quota de Repartição Dinâmica de maio de 2026
+
+A quota de repartição a aplicar às receitas e às compensações do sistema de maio de 2026 foi determinada por tipologia de passe Navegante e por Operador, recorrendo à expressão numérica prevista no ponto 6.1 ou, quando aplicável, à do ponto 6.4 da secção II do Anexo V. 
+Consideraram-se para o cálculo dos passageiros quilómetros, por aplicação do disposto no Regulamento:
+
+-	os passageiros transportados do mês de maio de 2026 obtidos após a limpeza dos dados de validação, como previsto no ponto 6.5.1.;
+-	as distâncias médi-as de outubro de 2021, constantes da Tabela 5 do Anexo V do Regulamento, para todos os Operadores com exceção da TML – Carris Metropolitana e dos operadores da AT Cascais;
+-   Por já terem adotado a API Apex, como previsto na alínea iii) do ponto 6.5.2. do Anexo V, no caso da TML – Carris Metropolitana e da AT Cascais, as distâncias médias são as determinadas com dados de maio de 2026. 
+-   Desde abril de 2026, o operador Carris tem todos os seus validadores com a API Apex instalada, contudo, a informação das validações não é ainda compatível com o GTFS apresentado pelo operador, pelo que é impossível determinar as distâncias médias reais no mês de maio. O Operador está a trabalhar para ultrapassar estas incompatibilidades.
+Em virtude do aparecimento de validações com passe Navegante nos serviços de autocarro de substituição à linha de Cascais da CP e de se manterem para este operador as distâncias médias históricas do serviço de comboio sem interrupções, para evitar a contabilização duplicada de passageiros, foi necessário implementar uma regra de verificação extra: A validação no serviço de substituição em autocarro não resulta na contabilização de um passageiro adicional para a CP, se a validação anterior ou seguinte tiver ocorrido no operador CP e num intervalo de tempo de 90 min (período de reentrada permitido no zapping na CP).
+Com a implementação do Passe gratuito Jovem Estudante, foram criados dois títulos – Navegante Metropolitano Sub 18 +TP e Navegante Metropolitano Sub 23 +TP -, que virão, no futuro, a substituir definitivamente os antigos passes Navegante Metropolitano 418/sub23, Navegante Municipal 418/sub23 e Navegante 12 e outros passes próprios de modalidade criança/jovem dos operadores da área Metropolitana de Lisboa. Enquanto persistirem em simultâneo, e enquanto forem utilizadas as distâncias médias de outubro e agosto de 2021, aplicam-se a estes novos títulos as mesmas distâncias médias do passe Navegante Metropolitano 418/sub23.
+Em janeiro de 2025, com a entrada em vigor do Circula.pt, foram criadas duas modalidades de Navegante +65 – Navegante +65 cPT A e Navegante +65 cPT B. Enquanto forem utilizadas as distâncias médias de outubro e agosto de 2021, aplicam-se a estes novos títulos as mesmas distâncias médias do passe Navegante +65.
+Na Tabela 1 do ficheiro “Anexo_Calculos_5_2026”, podem ser consultadas as quotas de repartição por título e por Operador, assim como os dados base que estiveram na origem do seu cálculo.
+
+## Receitas de passes Navegante de maio de 2026
+
+As receitas de passes Navegante, apuradas neste ponto, são obtidas a partir das vendas no mês de maio de 2026, nos canais de venda próprios e de receita partilhada.
+O número de passes vendidos foi determinado cumprindo as regras previstas no ponto 7 do anexo V.
+
+### Receitas de passes Navegante na posse de cada Operador [A5] e nos canais de receita partilhada [K5] em maio de 2026
+
+Na Tabela 2 do ficheiro “Anexo_Calculos_5_2026”, é apresentada a distribuição de vendas e receitas de passes Navegante no mês de maio de 2026, por título, pelos diferentes canais de venda. 
+As receitas nos canais próprios de cada Operador [A] ficam na posse de cada um e as vendas nos canais de receita partilhada [K] ficam na posse da TML, como autoridade gestora desses canais.
+Em maio de 2026, a receita na posse dos operadores totaliza um valor de 13.657.120,00 € (treze milhões seiscentos e cinquenta e sete mil cento e vinte euros) e a receita nos canais de receita partilhada soma um total de 7.210.982,50 € (sete milhões duzentos e dez mil novecentos e oitenta e dois euros e cinquenta cêntimos).
+
+### Receitas de passes Navegante devidas a cada Operador [B5] em maio de 2026
+
+A receita devida a cada Operador foi determinada aplicando a quota de repartição definida em 2.1. às receitas do sistema apresentadas no ponto 2.2.1.
+A Tabela 4 do ficheiro “Anexo_Calculos_5_2026” resume as receitas de passes Navegante devidas a cada Operador, relativas ao mês de maio de 2026.
+
+### Saldo de receita em cada Operador [C5] em maio de 2026
+
+O saldo de receita [C] em cada Operador é dado pela diferença entre receita de passes Navegante na sua posse [A] e receita de passes Navegante que lhe é devida [B]. A Tabela 1 resume o apuramento desses saldos. 
+
+Tabela 1 – Saldo de Receitas em cada Operador, referente a maio de 2026
+	Receita na posse [A5]
+	Receita devida [B5]
+	Saldo de Receitas
+[C5] = [A5] – [B5]
+
+			
+CP	4 738 390,00 €	3 818 155,17 €	920 234,83 €
+FT	1 284 550,00 €	1 716 351,30 €	-431 801,30 €
+TT + SL (1)	583 800,00 €	877 778,09 €	-293 978,09 €
+ML	4 176 102,50 €	3 156 738,68 €	1 019 363,82 €
+MTS	426 305,00 €	184 414,71 €	241 890,29 €
+Carris	1 571 147,50 €	3 700 251,70 €	-2 129 104,20 €
+TCB	142 540,00 €	301 832,29 €	-159 292,29 €
+AT Cascais	13 880,00 €	159 287,53 €	-145 407,53 €
+AT TML - CM	697 825,00 €	6 925 116,97 €	-6 227 291,97 €
+BT Oeste	22 580,00 €	28 176,04 €	-5 596,04 €
+TOTAL	13 657 120,00 €	20 868 102,50 €	-7 210 982,50 €
+(1) Fusão destes operadores desde janeiro de 2024.
+
+## Pagamentos por conta da COSP tarifária [D5] em maio de 2026
+
+Para determinar os pagamentos por conta da COSP tarifária foi necessário definir o número mensal de passes a compensar. Para tal, foi aplicada uma sazonalidade ao total de passes vendidos em maio de 2026 para calcular uma estimativa do número anual de passes vendidos. Conhecida essa estimativa de vendas anual, calculou-se a proporção do número máximo de passes anuais a compensar no número anual de passes estimado (a venda de passes do mês anualizado) e aplicou-se essa percentagem ao número de passes vendidos em maio de 2026. 
+Conforme previsto no Regulamento (ponto 5.1.3. do Anexo V), o Valor Máximo de Compensação anual (“VMC”) foi atualizado com a TAT de 2024, de 6,43%, com a TAT de 2025, de 2,02% e com a TAT de 2026 de 2,28%, pelo que em 2026, o VMC corresponde a 125.006.780,46€ e consequentemente a compensação por passe vendido é de 14,75€.
+A Tabela 2 resume o procedimento descrito e a Tabela 4 do ficheiro “Anexo_Calculos_5_2026” resume o valor de pagamentos por conta da COSP tarifária por título para cada Operador.
+Note-se que, conforme previsto no Regulamento (ponto 12.3 do Anexo V), procedeu-se à retenção de 2,5% do valor estimado de pagamento por conta da COSP tarifária.
+
+Tabela 2 – Procedimento de apuramento dos pagamentos por conta da COSP tarifária em maio de 2026
+
+N.º passes vendidos em maio de 2026
+[a]	 1 075 088 
+Sazonalidade venda de passes em maio de 2026
+[b]	8,7%
+Estimativa do n.º passes anuais vendidos (a partir da anualização de maio de 2026)
+[c] = [a] /[ b]	 12 357 333 
+N.º máximo de passes a compensar num ano	NumNavExc	 8 472 279 
+Percentagem do nº passes vendidos em maio de 2026 a compensar
+[d] = NumNavExc / [c]	68,6%
+Estimativa do n.º de passes a compensar no mês de maio de 2026*
+[e] = [a] x [d]	 737 085
+Valor máximo de compensação anual	[VMC]	125 006 780,46€
+Compensação por passe	CompNav = VMC/NumNavExc	                                 14,75 € 
+Retenção regulamento	[f]	2,5%
+Pagamento por conta mensal COSP tarifária em maio de 2026
+[g] = [e] x CompNav x (1-[f])	  10 603 653,07 € 
+* arredondado, por tipologia de passe, a 0 casas decimais.
+
+## Transferência para reposição de saldos [F5]
+
+A transferência de verbas pela TML aos Operadores visa cobrir a diferença entre o valor a que os Operadores têm direito – soma da receita de passes Navegante que lhes é devida [B] e do pagamento por conta da COSP tarifária [D] – e o valor que os mesmos têm já em sua posse [A].
+O montante a transferir [F] em agosto de 2026 (F5, determinado com dados relativos ao mês 5 – maio de 2026) visa suprir o saldo global de receitas [SG = C - D], isto é [F = -SG = D - C].
+A Tabela 3 resume o procedimento de cálculo dos valores dos montantes mensais a transferir em agosto de 2026, determinados com base no apuramento provisório de maio de 2026.
+
+Tabela 3 – Cálculo dos montantes a transferir a cada Operador no mês de agosto de 2026, referentes ao apuramento provisório de maio de 2026
+	Saldo de Receitas
+[C5]
+Pagamentos por conta COSP Tarifária [D5]
+	Saldo Global de Receitas [SG5]
+Transferências [F5 =-SG5]
+
+	[Tabela 1]
+		
+CP	920 234,83 €	1 810 983,44 €	-890 748,61 €	890 748,61 €
+FT	-431 801,30 €	821 213,53 €	-1 253 014,83 €	1 253 014,83 €
+TT + SL	-293 978,09 €	351 930,61 €	-645 908,69 €	645 908,69 €
+ML	1 019 363,82 €	1 435 034,79 €	-415 670,98 €	415 670,98 €
+MTS	241 890,29 €	108 931,52 €	132 958,76 €	-132 958,76 €
+Carris	-2 129 104,20 €	1 836 586,87 €	-3 965 691,07 €	3 965 691,07 €
+TCB	-159 292,29 €	184 263,69 €	-343 555,98 €	343 555,98 €
+AT Cascais	-145 407,53 €	114 743,65 €	-260 151,18 €	260 151,18 €
+AT TML - CM	-6 227 291,97 €	3 920 908,83 €	-10 148 200,80 €	10 148 200,80 €
+BT Oeste	-5 596,04 €	19 056,14 €	-24 652,18 €	24 652,18 €
+TOTAL	-7 210 982,50 €	10 603 653,07 €	-17 814 635,57 €	17 814 635,57 €
+
+## Pagamento por conta da compensação pelo Congelamento dos preços dos passes Navegante [CongNav[B5]] em maio de 2026 – Parcela referente à receita de passes Navegante
+
+Conforme previsto na secção VI do Anexo V ao Regulamento, sempre que uma Autoridade de Transportes decida pela atualização tarifária dos preços dos passes Navegante inferior à TAT e preveja o respetivo financiamento, os Operadores devem ser compensados no montante correspondente à perda de receita tarifária resultante dessa medida.
+Dada a imposição, por via da LOE 2024, da manutenção dos preços dos passes de transportes públicos vigentes em 2023, e da deliberação da AML de congelamento do preço dos passes Navegante nos anos de 2024 e 2025, compete à TML determinar e transferir o valor a compensar a cada Operador, nos termos do ponto n.º 23.2 do Anexo V.
+Esta compensação deve ser calculada sobre a receita devida a cada Operador, mas também sobre as compensações devidas pela disponibilização de títulos Navegante bonificados, nomeadamente os passes Sub18+TP e Sub23+TP, Circula PT, Antigo Combatente e bonificação de Setúbal. 
+Neste procedimento, apenas se apuram os valores de compensação pelo congelamento dos preços dos passes Navegante referentes à receita de passes devida [B], remetendo os restantes valores para os procedimentos de cálculo de cada uma das compensações dos respetivos títulos bonificados.
+A Tabela 4 resume o procedimento de cálculo da compensação por congelamento dos preços dos passes Navegante aplicada às respetivas receitas. Na Tabela 4 do ficheiro “Anexo_Calculos_5_2026” é apresentado o valor de compensação por conta do congelamento dos passes Navegante, por título e por operador.
+
+Tabela 4 – Cálculo da compensação financeira por congelamento do preço dos passes Navegante, na receita devida ao operador, em maio de 2026
+	Receita devida
+[B5]
+Compensação congelamento passes Navegante
+[CongNav[B5]]
+
+		CongNav[B5] = [B5] x 6,43% + {[B5] x (1+6,43%)} x 2,02%+{[B5] x(1+6,43%) x (1+2,02%)} x2,28%
+CP	3 818 155,17 €	422 116,43 €
+FT	1 716 351,30 €	189 751,35 €
+TT + SL	877 778,09 €	97 042,82 €
+ML	3 156 738,68 €	348 993,48 €
+MTS	184 414,71 €	20 387,98 €
+Carris	3 700 251,70 €	409 081,60 €
+TCB	301 832,29 €	33 369,09 €
+AT Cascais	159 287,53 €	17 610,04 €
+AT TML - CM	6 925 116,97 €	765 606,82 €
+BT Oeste	28 176,04 €	3 115,00 €
+TOTAL	20 868 102,50 €	2 307 074,62 €
+
+## Montante mensal total a transferir aos Operadores em agosto de 2026
+
+Ao abrigo do ponto 13 do ponto 23.2 do Anexo V, o valor a transferir pela TML em agosto de 2026 totaliza 20.121.710,17 € (vinte milhões cento e vinte e um mil setecentos e dez euros e dezassete cêntimos) e distribui-se pelos Operadores conforme Tabela 5.
+A metodologia utilizada visa minimizar as transferências entre Operadores, no entanto, nos casos em que não seja possível suprir o saldo de um Operador por via das transferências da TML, significa que esse Operador tem excedente de receitas em sua posse e por isso, deve transferir esse excedente a outro Operador. Essa transferência é determinada pela TML (ponto 13.3 do Anexo V).
+A TML determina, conforme procedimento já realizado em pagamentos por conta de meses anteriores, que o excedente de receitas na posse do MTS deve ser transferido ao operador Fertagus, sempre que esse montante seja inferior ao valor total apurado a transferir pela TML ao operador Fertagus.
+
+Tabela 5 – Montantes a transferir aos Operadores em agosto de 2026, referentes ao apuramento provisório de maio de 2026
+	Transferência [F5] (€]
+Congelamento Passes Navegante [CongNav[B5]] (€]
+[F5] + [CongNav[B5]]
+Transferência entre operadores (€)	TOTAL a transferir pela TML (€]	% do montante total a transferir a cada Operador(1)
+						
+CP	890 748,61 €	422 116,43 €	1 312 865,04 €	 	1 312 865,04 €	6,525%
+FT	1 253 014,83 €	189 751,35 €	1 442 766,18 €	112 570,78 €	1 330 195,40 €	6,611%
+TT + SL	645 908,69 €	97 042,82 €	742 951,51 €	 	742 951,51 €	3,692%
+ML	415 670,98 €	348 993,48 €	764 664,46 €	 	764 664,46 €	3,800%
+MTS	-132 958,76 €	20 387,98 €	-112 570,78 €	-112 570,78 €	0,00 €	0,000%
+Carris	3 965 691,07 €	409 081,60 €	4 374 772,67 €	 	4 374 772,67 €	21,742%
+TCB	343 555,98 €	33 369,09 €	376 925,07 €	 	376 925,07 €	1,873%
+AT Cascais	260 151,18 €	17 610,04 €	277 761,22 €	 	277 761,22 €	1,380%
+AT TML - CM	10 148 200,80 €	765 606,82 €	10 913 807,62 €	 	10 913 807,62 €	54,239%
+BT Oeste	24 652,18 €	3 115,00 €	27 767,18 €	 	27 767,18 €	0,138%
+TOTAL	17 814 635,57 €	2 307 074,62 €	20 121 710,17 €	0,00 €	20 121 710,17 €	100%
+(1)	Na tabela, as percentagens apresentam-se com três casas decimais, porém o cálculo é realizado sem o arredondamento prévio da proporção.
+
+A Tabela 6 apresenta a repartição, pela proveniência das verbas, do valor a transferir a cada operador. 
+
+Tabela 6 – Faturação repartida pela origem das verbas
+	Parcela proveniente das verbas dos canais de receita partilhada	Parcela proveniente das verbas do Incentiva +TP
+		
+CP	470 489,17 €	842 375,87 €
+FT	476 699,83 €	853 495,57 €
+TT + SL	266 250,25 €	476 701,26 €
+ML	274 031,48 €	490 632,98 €
+MTS	0,00 €	0,00 €
+Carris	1 567 779,72 €	2 806 992,95 €
+TCB	135 077,99 €	241 847,08 €
+AT Cascais	99 540,81 €	178 220,41 €
+AT TML - CM	3 911 162,37 €	7 002 645,25 €
+BT Oeste	9 950,88 €	17 816,30 €
+TOTAL	7 210 982,50 €	12 910 727,67 €
+
+
+# Evolução dos passageiros e da repartição das receitas de passes Navegante desde janeiro de 2024
+
+A Figura 1 e a Tabela 7 sintetizam a evolução dos passageiros transportados com passe Navegante e da repartição das receitas de passes Navegante.
+
+Figura 1 - Evolução dos passageiros e da repartição de receitas de passes Navegante desde janeiro de 2024
+<!-- gráfico de barras amarelas verticais com total passageiros transportados (milhões) no y-axis1, e com linha azul escura de total da receita (milhões de euros), no y-axis2, por mês (x-axis), desde janeiro de 2025 -->
+ 
+ 
+Tabela 7 – Evolução dos passageiros e da repartição de receitas de passes Navegante desde janeiro de 2025
+
+<!-- os valores desta tabela, com os meses anteriores, e o ano anterior, está em lists\receitas_anteriores.csv -->
+
+		TOTAL	CP	FT	TT	SL	ML	MTS	Carris	TCB	AT Cascais	AT TML - CM	BT Oeste
+Passageiros	jan/25	 48 003 639 	7 262 034 	2 367 981 	 599 022 	880 872 	10 614 186 	1 293 167 	8 707 376 	1 039 776 	422 984 	14 732 767 	 83 474 
+	fev/25	 47 642 306 	7 230 748 	2 333 279 	 600 773 	844 054 	10 592 402 	1 318 216 	8 536 952 	976 442 	444 361 	14 682 225 	 82 854 
+	mar/25	 50 150 402 	7 707 184 	2 497 112 	 614 620 	877 422 	11 340 245 	1 396 245 	8 726 166 	1 035 516 	471 177 	15 400 564 	 84 151 
+	abr/25	47 700 871 	7 280 774 	2 359 818 	 601 041 	856 175 	10 489 617 	1 310 754 	8 494 561 	942 456 	469 627 	14 814 805 	81 243 
+	mai/25	 52 216 899 	 6 703 197 	 2 629 240 	 662 453 	 915 484 	 11 780 294 	 1 495 527 	 9 501 192 	 1 073 230 	 517 107 	 16 861 507 	 77 668 
+	jun/25	 46 968 776 	 7 465 230 	 2 308 336 	 611 071 	 834 413 	 10 222 431 	 1 310 991 	 7 860 461 	 925 558 	 461 186 	 14 890 415 	 78 684 
+	jul/25	 49 350 290 	 7 997 551 	 2 477 277 	 652 254 	 907 200 	 10 528 968 	 1 286 021 	 8 523 621 	 963 810 	 480 959 	 15 445 902 	 86 727 
+	ago/25	41 678 798 	7 016 482 	2 123 175 	 560 545 	798 350 	8 534 493 	1 124 026 	6 913 636 	867 773 	409 579 	13 258 578 	72 161 
+	set/25	51 509 360 	8 024 678 	2 581 477 	 633 238 	896 411 	10 737 743 	1 442 441 	9 212 053 	994 444 	509 273 	16 392 555 	85 047 
+	out/25	 57 485 795 	 8 780 654 	 2 874 794 	 688 049 	 971 452 	 12 354 556 	 1 596 666 	 10 132 836 	 1 074 696 	 531 141 	 18 389 767 	 91 184 
+	nov/25	51 417 366 	7 854 755 	2 566 103 	 627 026 	884 719 	11 402 193 	1 396 944 	9 085 520 	973 773 	465 950 	16 080 212 	80 171 
+	dez/25	 43 280 850 	 6 648 307 	 2 144 635 	 530 764 	 795 236 	 9 694 123 	 1 153 068 	 7 470 869 	 815 478 	 381 519 	 13 577 882 	 68 969 
+	jan/26	47 598 707 	7 162 428 	2 326 872 	 567 389 	841 246 	10 260 153 	1 223 279 	8 465 690 	976 223 	414 131 	15 286 609 	74 687 
+	fev/26	45 145 151 	6 554 035 	2 195 943 	 512 741 	772 220 	9 774 638 	1 187 964 	8 047 257 	908 483 	402 043 	14 720 495 	69 332 
+	mar/26	55 086 605 	 8 270 033 	2 671 961 	678 226 	 933 966 	11 825 741 	1 496 428 	9 698 575 	 1 094 316 	496 933 	17 839 102 	81 324 
+	abr/26	 51 564 771 	 8 003 478 	 2 504 441 	 662 558 	 878 527 	 10 518 825 	 1 411 105 	 9 252 640 	 991 277 	 490 369 	 16 773 557 	 77 994 
+	mai/26	54 070 359 	 8 201 403 	2 571 133 	676 961 	 878 732 	11 240 990 	1 436 026 	9 623 386 	 1 096 311 	513 811 	17 766 274 	65 332 
+	mai/26 vs ma/25	3,5%	22,4%	-2,2%	2,2%	-4,0%	-4,6%	-4,0%	1,3%	2,2%	-0,6%	5,4%	-15,9%
+Receitas	jan/25	20 294 725,00 € 	18,2%	8,6%	4,5%	16,2%	0,9%	18,0%	1,5%	0,6%	31,3%	0,2%
+	fev/25	20 268 515,00 € 	18,3%	8,5%	4,4%	16,2%	0,9%	17,9%	1,5%	0,8%	31,4%	0,2%
+	mar/25	20 296 147,50 € 	18,4%	8,5%	4,4%	16,4%	0,9%	17,5%	1,5%	0,8%	31,4%	0,2%
+	abr/25	 20 458 422,50 € 	18,1%	8,4%	4,4%	15,9%	0,9%	18,0%	1,5%	0,8%	31,9%	0,2%
+	mai/25	 20 365 825,00 € 	15,3%	8,6%	4,4%	16,2%	0,9%	18,0%	1,5%	0,8%	34,1%	0,2%
+	jun/25	 20 357 612,50 € 	18,3%	8,1%	4,3%	16,1%	0,9%	17,0%	1,4%	0,8%	32,9%	0,2%
+	jul/25	 20 228 495,00 € 	18,1%	8,1%	4,2%	15,5%	0,9%	17,3%	1,4%	0,8%	33,5%	0,2%
+	ago/25	 18 867 545,00 € 	18,6%	8,0%	4,2%	14,8%	0,9%	16,5%	1,5%	0,9%	34,4%	0,2%
+	set/25	 20 424 912,50 € 	18,5%	8,4%	4,3%	14,7%	0,9%	17,8%	1,4%	0,8%	33,0%	0,2%
+	out/25	 20 982 845,00 € 	18,4%	8,5%	4,3%	15,4%	0,9%	17,6%	1,4%	0,7%	32,7%	0,2%
+	nov/25	 20 743 395,00 € 	18,3%	8,5%	4,3%	15,9%	0,9%	17,6%	1,4%	0,7%	32,2%	0,2%
+	dez/25	 20 091 267,50 € 	18,4%	8,5%	4,4%	16,0%	0,9%	17,5%	1,4%	0,8%	32,0%	0,2%
+	jan/26	 20 102 490,00 € 	18,0%	8,4%	4,3%	15,7%	0,9%	17,7%	1,5%	0,7%	32,6%	0,2%
+	fev/26	 19 823 880,00 € 	17,4%	8,4%	4,2%	15,8%	0,9%	17,9%	1,4%	0,7%	33,1%	0,2%
+	mar/26	 20 486 157,50 € 	18,0%	8,3%	4,3%	15,6%	0,9%	17,6%	1,4%	0,7%	33,0%	0,2%
+	abr/26	 20 657 272,50 € 	18,4%	8,2%	4,3%	14,7%	0,9%	17,8%	1,4%	0,8%	33,4%	0,2%
+	mai/26	 20 868 102,50 € 	18,3%	8,2%	4,2%	15,1%	0,9%	17,7%	1,4%	0,8%	33,2%	0,1%
+ 
+# Proposta
+
+Ao abrigo do contrato de delegação e subdelegação de competências da Área Metropolitana de Lisboa na TML – Transportes Metropolitanos de Lisboa, E.M.T., S.A. e do disposto no Regulamento n.º 278-A/2019, na sua versão atual, coloca-se à consideração do Conselho de Administração da TML:
+
+1)	Aprovar as quotas de repartição de receitas e de compensações determinadas com os dados de passageiros.km de maio de 2026, conforme Tabela 1 do ficheiro “Anexo_Calculos_5_2026”;
+2)	Aprovar os valores provisórios de receita e compensações pela obrigação de serviço público tarifária pela disponibilização dos passes Navegante, de cada operador, em maio de 2026, conforme Tabelas 4 e 5 do ficheiro “Anexo_Calculos_5_2026”;
+3)	Aprovar os valores das transferências [F5] e de pagamentos por conta de compensação pelo congelamento dos preços dos passes Navegante (CongNav[B5]), previstos no ponto 13 e 23.2 do Anexo V do Regulamento, respetivamente, a transferir pela TML para os Operadores no mês de agosto de 2026, calculados com base nos dados provisórios de maio de 2026, de acordo com a metodologia descrita na presente informação, num valor total de 20.121.710,17 € (vinte milhões cento e vinte e um mil setecentos e dez euros e dezassete cêntimos), distribuído pelos Operadores conforme Tabela 5 da presente informação;
+4)	Aprovar a transferência de receitas excedentes do Metro Transportes do Sul (MTS) ao operador Fertagus, num valor total de 112.570,78€ (cento e doze mil quinhentos e setenta euros e setenta e oito cêntimos).
+5)	Aprovar, de acordo com o ponto 13.6 do Anexo V:
+
+    a.	Comunicar aos Operadores os valores das transferências aprovadas nas alíneas 3), 4) e 5) da proposta;
+    b.	Dado que a verba do Fundo Ambiental (“FA”) relativa ao Incentiva +TP de agosto de 2026 não foi ainda disponibilizada, autorizar a faturação dos valores aprovados na alínea 3) de forma parcelar: 
+        i.	uma primeira parcela desse total, de valor correspondente à receita obtida através dos canais de receita partilhada [K5], num total de 7.210.982,50 € (sete milhões duzentos e dez mil novecentos e oitenta e dois euros e cinquenta cêntimos);
+        ii.	uma segunda parcela, com o restante valor, somente após o recebimento da verba financiada pelo Fundo Ambiental;
+        iii.	As transferências parcelares identificadas nos pontos anteriores devem seguir a mesma proporção da totalidade dos valores de transferência aprovados, conforme Tabela 8.
+
+
+Tabela 8 – Faturação parcelar
+
+Operador	Parcela a faturar de imediato	Parcela a faturar após recebimento do Incentiva + TP
+CP	470 489,17 €	842 375,87 €
+FT	476 699,83 €	853 495,57 €
+TT + SL	266 250,25 €	476 701,26 €
+ML	274 031,48 €	490 632,98 €
+MTS	0,00 €	0,00 €
+Carris	1 567 779,72 €	2 806 992,95 €
+TCB	135 077,99 €	241 847,08 €
+AT Cascais	99 540,81 €	178 220,41 €
+AT TML - CM	3 911 162,37 €	7 002 645,25 €
+BT Oeste	9 950,88 €	17 816,30 €
+TOTAL	7 210 982,50 €	12 910 727,67 €
+
+6)	Ao abrigo do n.º 26 do Anexo V do Regulamento, reter a transferência determinada para a AT Cascais;
+7)	Ao abrigo do n.º 3 da Cláusula 4.ª do Aditamento ao Contrato Interadministrativo de Delegação e Subdelegação de Competências, comunicar as estimativas de pagamento apuradas na presente informação à Área Metropolitana de Lisboa, em data a determinar.
+Quando aprovado o seu pagamento, os operadores e respetivas autoridades deverão ser notificados dos respetivos valores.
+
+
+XX/XX/2026
+
+
+Ana Isabel Capote Fernandes Rosado
+Técnica Superior
+
+Luísa Salomé Freixo Lopes de Castro Nogueira
+Técnica Superior
