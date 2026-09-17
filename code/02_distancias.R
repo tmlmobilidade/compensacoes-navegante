@@ -3,13 +3,13 @@
 # Distribuição de Receitas Navegante — TML
 #
 # Hierarquia de distâncias (Regulamento 1362-C/2023, Secção VIII):
-#  1. Distância dinâmica APEX (para CM e CAP) → V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv
+#  1. Distância dinâmica APEX (para CM e CAP) → *V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv
 #  2. Para os restantes: tabelas de referência (out21 / ago21)
 #     A tabela é estática por operador × título. Se valor = 0, aplica fallback.
 #
 # Inputs:
 #   OUT_DIR/PT_{SUFIXO}.csv
-#   INPUT_DIR/V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv (distâncias APEX)
+#   INPUT_DIR/V_REG_\*AVERAGE_DISTANCE_FINAL_ALL_*.csv (distâncias APEX)
 #   lists/distanciasref_{out21|ago21}_incompleto.csv (referência estática)
 #   lists/operadores.csv
 #   lists/titulos.csv
@@ -32,7 +32,7 @@ PT_mesano  <- read.csv2(F_PT,
 # Ficheiro exportado do Oracle PDBDWPROD (procurar em INPUT_DIR ou REPLICATE_DIR)
 apex_files <- list.files(
   c(INPUT_DIR, REPLICATE_DIR),
-  pattern = "V_REG_AVERAGE_DISTANCE_FINAL_ALL.*\\.csv$",
+  pattern = "*V_REG_AVERAGE_DISTANCE_FINAL_ALL.*\\.csv$",
   full.names = TRUE
 )
 apex_files <- unique(apex_files)
