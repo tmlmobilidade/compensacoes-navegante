@@ -907,13 +907,13 @@ Ao abrigo do contrato de delegação e subdelegação de competências da Área 
 
 1)  Aprovar as quotas de repartição de receitas e de compensações determinadas com os dados de passageiros.km de `r mes_nome` de `r ANO`, conforme Tabela 1 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`”;
 
-2)  Aprovar os valores provisórios de receita e compensações pela obrigação de serviço público tarifária pela disponibilização dos passes Navegante, de cada operador, em `r mes_nome` de `r ANO`, conforme Tabelas 4 e 5 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`”;
+1)  Aprovar os valores provisórios de receita e compensações pela obrigação de serviço público tarifária pela disponibilização dos passes Navegante, de cada operador, em `r mes_nome` de `r ANO`, conforme Tabelas 4 e 5 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`”;
 
-3)  Aprovar os valores das transferências \[F`r MES`\] e de pagamentos por conta de compensação pelo congelamento dos preços dos passes Navegante (CongNav\[B`r MES`\]), previstos no ponto 13 e 23.2 do Anexo V do Regulamento, respetivamente, a transferir pela TML para os Operadores no mês de `r mes_transf_nome` de `r ano_transf`, calculados com base nos dados provisórios de `r mes_nome` de `r ANO`, de acordo com a metodologia descrita na presente informação, num valor total de **`r fmt_eur(total_transferir)`** (`r numero_por_extenso(total_transferir)`), distribuído pelos Operadores conforme Tabela 5 da presente informação;
+1)  Aprovar os valores das transferências \[F`r MES`\] e de pagamentos por conta de compensação pelo congelamento dos preços dos passes Navegante (CongNav\[B`r MES`\]), previstos no ponto 13 e 23.2 do Anexo V do Regulamento, respetivamente, a transferir pela TML para os Operadores no mês de `r mes_transf_nome` de `r ano_transf`, calculados com base nos dados provisórios de `r mes_nome` de `r ANO`, de acordo com a metodologia descrita na presente informação, num valor total de **`r fmt_eur(total_transferir)`** (`r numero_por_extenso(total_transferir)`), distribuído pelos Operadores conforme Tabela 5 da presente informação;
 
- `r if (excedente_mts > 0) paste0("4) Aprovar a transferência de receitas excedentes do Metro Transportes do Sul (MTS) ao operador Fertagus, num valor total de ", fmt_eur(excedente_mts), " (", numero_por_extenso(excedente_mts), ");") else ""`
+ `r if (excedente_mts > 0) paste0("1) Aprovar a transferência de receitas excedentes do Metro Transportes do Sul (MTS) ao operador Fertagus (FT), num valor total de ", fmt_eur(excedente_mts), " (", numero_por_extenso(excedente_mts), ");") else ""`
 
-5)  Aprovar, de acordo com o ponto 13.6 do Anexo V:
+1)  Aprovar, de acordo com o ponto 13.6 do Anexo V:
 
 ```{r}
 #| results: asis
@@ -921,6 +921,7 @@ Ao abrigo do contrato de delegação e subdelegação de competências da Área 
 if (incentiva_tp_pendente) {
   cat(paste0(
     "    a.  Comunicar aos Operadores os valores das transferências aprovadas nas alíneas 3), 4) e 5) da proposta;\n",
+
     "    b.  Dado que a verba do Fundo Ambiental (\"FA\") relativa ao Incentiva +TP de ", mes_transf_nome, " de ", ano_transf, " não foi ainda disponibilizada, autorizar a faturação dos valores aprovados na alínea 3) de forma parcelar:\n",
     "        i.  uma primeira parcela desse total, de valor correspondente à receita obtida através dos canais de receita partilhada [K", MES, "], num total de ", fmt_eur(receita_K_total), " (", numero_por_extenso(receita_K_total), ");\n",
     "        ii. uma segunda parcela, com o restante valor, somente após o recebimento da verba financiada pelo Fundo Ambiental;\n",
@@ -933,6 +934,10 @@ if (incentiva_tp_pendente) {
   ))
 }
 ```
+
+1)  Ao abrigo do n.º 26 do Anexo V do Regulamento, reter a transferência determinada para a AT Cascais;
+
+1)  Ao abrigo do n.º 3 da Cláusula 4.ª do Aditamento ao Contrato Interadministrativo de Delegação e Subdelegação de Competências, comunicar as estimativas de pagamento apuradas na presente informação à Área Metropolitana de Lisboa, em data a determinar.
 
 ```{r}
 #| label: tbl-8
@@ -952,9 +957,6 @@ tab8 <- tabela_global %>%
 kable(tab8, align = c("l", "r", "r"), caption = "Faturação parcelar")
 ```
 
-6)  Ao abrigo do n.º 26 do Anexo V do Regulamento, reter a transferência determinada para a AT Cascais;
-
-7)  Ao abrigo do n.º 3 da Cláusula 4.ª do Aditamento ao Contrato Interadministrativo de Delegação e Subdelegação de Competências, comunicar as estimativas de pagamento apuradas na presente informação à Área Metropolitana de Lisboa, em data a determinar.
 
 Quando aprovado o seu pagamento, os operadores e respetivas autoridades deverão ser notificados dos respetivos valores.
 
