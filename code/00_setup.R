@@ -32,6 +32,7 @@ suppressPackageStartupMessages({
   library(lubridate)
   library(scales)
   library(openxlsx)
+  library(tinytable) # para formatação de tabelas (Typst e Word)
 })
 
 message("Pacotes carregados com sucesso.")

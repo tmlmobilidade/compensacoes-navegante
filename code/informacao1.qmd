@@ -442,7 +442,7 @@ O saldo de receita \[C\] em cada Operador é dado pela diferença entre receita 
 
 tab1 <- tabela_global %>%
   mutate(
-    op_label = if_else(nome_tab == "TT + SL", "TT + SL (1)", nome_tab),
+    op_label = nome_tab,
     rec_A_fmt = fmt_eur(receita_A),
     rec_B_fmt = fmt_eur(receita_B),
     sal_C_fmt = fmt_eur(C)
@@ -459,11 +459,11 @@ names(tab1)[3] <- paste0("Receita devida\n[B", MES, "]")
 names(tab1)[4] <- paste0("Saldo de Receitas\n[C", MES, "] = [A", MES, "] – [B", MES, "]")
 
 tml_table(tab1, 
-          align = c("l", "r", "r", "r")
+          align = c("l", "r", "r", "r"),
+          notes = list(a = list(i = 3, j = 1, 
+          text = "Fusão destes operadores desde janeiro de 2024."))
           )
 ```
-
-*(1) Fusão destes operadores desde janeiro de 2024.*
 
 ## Pagamentos por conta da COSP tarifária \[D`r MES`\] em `r mes_nome` de `r ANO`
 
@@ -481,16 +481,28 @@ Note-se que, conforme previsto no Regulamento (ponto 12.3 do Anexo V), procedeu-
 
 tab2 <- tibble(
   `Designação` = c(
-    paste0("N.º passes vendidos em ", mes_nome, " de ", ANO, "\n[a]"),
-    paste0("Sazonalidade venda de passes em ", mes_nome, " de ", ANO, "\n[b]"),
-    paste0("Estimativa do n.º passes anuais vendidos (a partir da anualização de ", mes_nome, " de ", ANO, ")\n[c] = [a] / [b]"),
-    "N.º máximo de passes a compensar num ano\nNumNavExc",
-    paste0("Percentagem do nº passes vendidos em ", mes_nome, " de ", ANO, " a compensar\n[d] = NumNavExc / [c]"),
-    paste0("Estimativa do n.º de passes a compensar no mês de ", mes_nome, " de ", ANO, "*\n[e] = [a] x [d]"),
-    "Valor máximo de compensação anual\n[VMC]",
-    "Compensação por passe\nCompNav = VMC / NumNavExc",
-    "Retenção regulamento\n[f]",
-    paste0("Pagamento por conta mensal COSP tarifária em ", mes_nome, " de ", ANO, "\n[g] = [e] x CompNav x (1-[f])")
+    paste0("N.º passes vendidos em ", mes_nome, " de ", ANO),
+    paste0("Sazonalidade venda de passes em ", mes_nome, " de ", ANO),
+    paste0("Estimativa do n.º passes anuais vendidos\n(a partir da anualização de ", mes_nome, " de ", ANO, ")"),
+    "N.º máximo de passes a compensar num ano",
+    paste0("Percentagem do nº passes vendidos em\n", mes_nome, " de ", ANO, " a compensar"),
+    paste0("Estimativa do n.º de passes a compensar\nno mês de ", mes_nome, " de ", ANO),
+    "Valor máximo de compensação anual",
+    "Compensação por passe",
+    "Retenção regulamento",
+    paste0("Pagamento por conta mensal\nCOSP tarifária em ", mes_nome, " de ", ANO)
+  ),
+  `Fórmula` = c(
+    "[a]",
+    "[b]",
+    "[c] = [a] / [b]",
+    "NumNavExc",
+    "[d] = NumNavExc / [c]",
+    "[e] = [a] x [d]",
+    "[VMC]",
+    "CompNav =\nVMC / NumNavExc",
+    "[f]",
+    "[g] = [e] x\nCompNav x (1-[f])"
   ),
   `Valor` = c(
     fmt_int(qty_total_mes),
@@ -506,10 +518,11 @@ tab2 <- tibble(
   )
 )
 
-tml_table(tab2, align = c("l", "r"))
+tml_table(tab2, align = c("l", "c", "r"),
+ notes = list(a = list(i = 6, j = 1, 
+          text = "Arredondado, por tipologia de passe, a 0 casas decimais.")))
 ```
 
-*\* Arredondado, por tipologia de passe, a 0 casas decimais.*
 
 ## Transferência para reposição de saldos \[F`r MES`\]
 
@@ -539,7 +552,7 @@ tab3 <- tabela_global %>%
   )
 
 names(tab3)[2] <- paste0("Saldo de Receitas \n[C", MES, "]")
-names(tab3)[3] <- paste0("Pagamentos por conta COSP Tarifária \n[D", MES, "]")
+names(tab3)[3] <- paste0("Pagamentos por conta\nCOSP Tarifária \n[D", MES, "]")
 names(tab3)[4] <- paste0("Saldo Global de Receitas \n[SG", MES, "]")
 names(tab3)[5] <- paste0("Transferências \n[F", MES, " = -SG", MES, "]")
 
@@ -616,12 +629,13 @@ names(tab5)[3] <- paste0("Congelamento\nPasses\nNavegante\n[CongNav[B", MES, "]]
 names(tab5)[4] <- paste0("[F", MES, "] +\n[CongNav[B", MES, "]]")
 names(tab5)[5] <- "Transferência\nentre\noperadores"
 names(tab5)[6] <- "TOTAL a\ntransferir\npela TML"
-names(tab5)[7] <- "% total a\ntransferir\na cada\nOperador"
+names(tab5)[7] <- "% do montante\ntotal a\ntransferir\na cada\nOperador"
 
 tab5$Operador <- gsub("AT TML - CM", "AT\u00a0TML\u00a0\u2011\u00a0CM", tab5$Operador) # não permite a quebra depois do hifen
 
 tml_table(tab5, fontsize = 0.72, align = c("l", "r", "r", "r", "r", "r", "r"),
-  notes = "Na tabela, as percentagens apresentam-se com três casas decimais, porém o cálculo é realizado sem o arredondamento prévio da proporção.")
+ notes = list(a = list(i = 0, j = 7,
+text = "As percentagens apresentam-se com três casas decimais, porém o cálculo é realizado sem o arredondamento prévio da proporção.")))
 ```
 
 <!-- *(1) Na tabela, as percentagens apresentam-se com três casas decimais, porém o cálculo é realizado sem o arredondamento prévio da proporção.* -->
@@ -651,7 +665,7 @@ tml_table(tab6, align = c("l", "r", "r"))
 
 # Evolução dos passageiros e da repartição das receitas de passes Navegante desde janeiro de `r min(as.integer(rac$ano[rac$Tipo == "Passageiros" & !is.na(rac$ano)]))`
 
-A Figura 1 e a @tbl-7 sintetizam a evolução dos passageiros transportados com passe Navegante e da repartição das receitas de passes Navegante.
+A @fig-1 e a @tbl-7 sintetizam a evolução dos passageiros transportados com passe Navegante e da repartição das receitas de passes Navegante.
 
 ```{r}
 #| label: fig-1
