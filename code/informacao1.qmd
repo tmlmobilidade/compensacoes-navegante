@@ -520,7 +520,7 @@ tab2 <- tibble(
 
 tml_table(tab2, align = c("l", "c", "r"),
  notes = list(a = list(i = 6, j = 1, 
-          text = "Arredondado, por tipologia de passe, a 0 casas decimais.")))
+          text = "Arredondado, por tipologia de passe, a 0 casas decimais."))) |> style_tt(alignv = "m")
 ```
 
 
@@ -739,13 +739,13 @@ ggplot(merged_plot, aes(x = data)) +
 ```{=typst}
 #pagebreak()
 #set page(paper: "a4", flipped: true, margin: (x: 1.5cm, top: 2.2cm, bottom: 1.5cm))
-#set text(size: 9pt)
+#set text(size: 8.5pt)
+#set table(inset: (x: 4pt, y: 3pt))
 ```
 
 ```{r}
 #| label: tbl-7
 #| tbl-cap: "Evolução dos passageiros e da repartição de receitas de passes Navegante desde janeiro de 2025"
-#| results: asis
 
 # Preparar dados da Tabela 7 a partir de rac
 meses_curtos <- c("jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez")
@@ -762,10 +762,16 @@ rac_pax_filtro$Métrica <- ifelse(seq_len(nrow(rac_pax_filtro)) == 1, "Passageir
 
 tab7_pax <- rac_pax_filtro %>% select(Métrica, Mes, all_of(ops_cols))
 
+# Espaços não quebráveis nos números de passageiros
+for (op in ops_cols) {
+  tab7_pax[[op]] <- gsub(" ", "\u00a0", tab7_pax[[op]])
+}
+
 # Calcular linha de variação homóloga (ano corrente vs ano anterior)
 mes_atual_pax <- rac %>% filter(Tipo == "Passageiros", ano == ANO, mes == MES)
 mes_ant_pax   <- rac %>% filter(Tipo == "Passageiros", ano == (ANO - 1), mes == MES)
 
+has_var <- FALSE
 if (nrow(mes_atual_pax) > 0 && nrow(mes_ant_pax) > 0) {
   var_row <- data.frame(
     Métrica = "",
@@ -779,6 +785,7 @@ if (nrow(mes_atual_pax) > 0 && nrow(mes_ant_pax) > 0) {
     var_row[[op]] <- fmt_pct(tx)
   }
   tab7_pax <- bind_rows(tab7_pax, var_row)
+  has_var <- TRUE
 }
 
 # Filtrar Receitas perct desde 2025 até ao mês corrente
@@ -807,114 +814,54 @@ for (i in seq_len(nrow(tab7_rec))) {
   }
 }
 
-
-# === Gerar tabela Typst com rowspan, colspan e labels rodados ===
-
-# Escapa chars especiais Typst no modo de conteúdo
-esc_t <- function(x) {
-  x <- as.character(x); x[is.na(x)] <- ""
-  gsub("#", "\\#", x, fixed = TRUE)
-}
-
-# Constrói table.cell(...)[content]
-tc <- function(content, ...) {
-  opts <- list(...)
-  if (length(opts) == 0) return(paste0("[", content, "]"))
-  opt_str <- paste(mapply(function(k, v) paste0(k, ": ", v),
-                          names(opts), as.character(opts)), collapse = ", ")
-  paste0("table.cell(", opt_str, ")[", content, "]")
-}
-
 n_pax <- nrow(tab7_pax)
 n_rec <- nrow(tab7_rec)
-cells <- character(0)
 
-# Cabeçalho
-cells <- c(cells,
-  "[#h(0pt)]",
-  "[*Mês/Ano*]",
-  "[*TOTAL*]",
-  "[*CP*]",
-  "[*FT*]",
-  "[*TT*]",
-  "[*SL*]",
-  "[*ML*]",
-  "[*MTS*]",
-  "[*Carris*]",
-  "[*TCB*]",
-  "[*AT Cascais*]",
-  "[*AT TML-CM*]",
-  "[*BT Oeste*]",
-  "table.hline(stroke: 0.6pt + black)"
-)
+tab7_df <- bind_rows(tab7_pax, tab7_rec)
+names(tab7_df)[names(tab7_df) == "Métrica"] <- " "
+names(tab7_df)[names(tab7_df) == "Mes"] <- "Mês/Ano"
+names(tab7_df)[names(tab7_df) == "AT TML - CM"] <- "AT TML-CM"
 
-# Bloco Passageiros
-cells <- c(cells,
-  tc("#rotate(-90deg, reflow: true)[*Passageiros*]",
-     rowspan = n_pax, align = "horizon + center")
-)
-for (i in seq_len(n_pax)) {
-  row <- tab7_pax[i, ]
-  is_var <- grepl("vs", row$Mes)
-  if (is_var) {
-    mk <- function(v) tc(paste0("*", esc_t(v), "*"), fill = "luma(240)")
-    mk_tot <- mk
-  } else {
-    mk <- function(v) paste0("[", esc_t(v), "]")
-    mk_tot <- function(v) paste0("[*", esc_t(v), "*]")
-  }
-  cells <- c(cells,
-    mk(row$Mes), mk_tot(row[["TOTAL"]]), mk(row[["CP"]]), mk(row[["FT"]]),
-    mk(row[["TT"]]), mk(row[["SL"]]), mk(row[["ML"]]), mk(row[["MTS"]]),
-    mk(row[["Carris"]]), mk(row[["TCB"]]),
-    mk(row[["AT Cascais"]]), mk(row[["AT TML - CM"]]), mk(row[["BT Oeste"]])
-  )
-}
+is_typst <- knitr::pandoc_to("typst")
 
-# Bloco Receitas (TT + SL fundidos em colspan=2)
-cells <- c(cells,
-  "table.hline(stroke: 0.5pt + black)",
-  tc("#rotate(-90deg, reflow: true)[*Receitas*]",
-     rowspan = n_rec, align = "horizon + center")
-)
-for (i in seq_len(n_rec)) {
-  row <- tab7_rec[i, ]
-  mk <- function(v) paste0("[", esc_t(v), "]")
-  mk_tot <- function(v) paste0("[*", esc_t(v), "*]")
-  cells <- c(cells,
-    mk(row$Mes), mk_tot(row[["TOTAL"]]), mk(row[["CP"]]), mk(row[["FT"]]),
-    tc(esc_t(row[["TT"]]), colspan = 2, align = "center"),
-    mk(row[["ML"]]), mk(row[["MTS"]]), mk(row[["Carris"]]), mk(row[["TCB"]]),
-    mk(row[["AT Cascais"]]), mk(row[["AT TML - CM"]]), mk(row[["BT Oeste"]])
-  )
-}
-cells <- c(cells, "table.hline(stroke: 0.6pt + black)")
-
-if (knitr::pandoc_to("typst")) {
-  cat(paste0(
-    "```{=typst}\n",
-    "#table(\n",
-    "  columns: (auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto),\n",
-    "  inset: (x: 4pt, y: 3pt),\n",
-    "  stroke: none,\n",
-    "  align: (center + horizon, left + horizon, right + horizon, right + horizon,\n",
-    "          right + horizon, right + horizon, right + horizon, right + horizon,\n",
-    "          right + horizon, right + horizon, right + horizon, right + horizon,\n",
-    "          right + horizon, right + horizon),\n",
-    "  ", paste(cells, collapse = ",\n  "), "\n",
-    ")\n",
-    "```\n"
-  ))
+if (is_typst) {
+  tab7_df[[1]][1] <- "#rotate(-90deg, reflow: true)[#strong[Passageiros]]"
+  tab7_df[[1]][n_pax + 1] <- "#rotate(-90deg, reflow: true)[#strong[Receitas]]"
 } else {
-  tab7_final <- bind_rows(tab7_pax, tab7_rec)
-  cat(knitr::kable(tab7_final, align = c("l", "l", rep("r", length(ops_cols))), format = "pipe"))
+  tab7_df[[1]][1] <- "**Passageiros**"
+  tab7_df[[1]][n_pax + 1] <- "**Receitas**"
 }
+
+# Criar tabela com tml_table e tinytable
+tab7 <- tml_table(
+  tab7_df,
+  align = c("c", "l", rep("r", 12)),
+  bold_total = FALSE,
+  fontsize = NULL,
+  theme = "empty"
+) |>
+  style_tt(i = 0, bold = TRUE) |>
+  style_tt(i = 1, line = "t", line_width = 0.05) |>
+  style_tt(j = 3, bold = TRUE) |>
+  style_tt(i = n_pax + 1, line = "t", line_width = 0.05) |>
+  style_tt(i = nrow(tab7_df), line = "b", line_width = 0.05) |>
+  style_tt(i = 1, j = 1, rowspan = n_pax, align = "c", alignv = "m") |>
+  style_tt(i = n_pax + 1, j = 1, rowspan = n_rec, align = "c", alignv = "m") |>
+  style_tt(i = (n_pax + 1):nrow(tab7_df), j = 6, colspan = 2, align = "c")
+
+if (has_var) {
+  tab7 <- tab7 |>
+    style_tt(i = n_pax, j = 2:ncol(tab7_df), background = "#f0f0f0", bold = TRUE)
+}
+
+tab7
 ```
 
 ```{=typst}
 #pagebreak()
 #set page(paper: "a4", flipped: false, margin: (x: 3.0cm, top: 4.0cm, bottom: 3.0cm))
 #set text(size: 11pt)
+#set table(inset: (x: 2.5pt, y: 3.5pt))
 ```
 
 # Proposta
