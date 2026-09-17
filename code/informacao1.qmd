@@ -333,22 +333,29 @@ if (!ja_existe_mes) {
 
 # Informação n.º `r numero_informacao` {.unnumbered}
 
-::: header-block
+::::: {style="font-size: 0.8em;"}
+
+:::: {layout-ncol=2}
+
+::: {}
 **De:**\
 `r de_pessoa1_nome`\
 `r de_pessoa1_cargo`\
 `r de_pessoa2_nome`\
 `r de_pessoa2_cargo`\
 `r de_divisao`
+:::
 
+::: {}
 **Para:**\
 `r para_pessoa_nome`\
 `r para_cargo`\
 `r para_divisao`
-
-**Informação n.º**\
-`r numero_informacao`
 :::
+
+::::
+
+:::::
 
 \vspace{0.5cm}
 
@@ -361,6 +368,8 @@ if (!ja_existe_mes) {
 **DESPACHOS:**
 
 \vspace{1cm}
+
+\hline
 
 # Enquadramento
 

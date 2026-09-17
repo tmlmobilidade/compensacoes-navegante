@@ -53,3 +53,6 @@ rsconnect/
 06_jun_2026*/
 code/informacao1.pdf
 code/informacao1.docx
+
+/.quarto/
+**/*.quarto_ipynb
