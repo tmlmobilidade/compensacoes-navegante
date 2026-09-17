@@ -1,13 +1,24 @@
 ---
-title: "Informação n.º TML"
+lang: pt
 format:
   typst:
     papersize: a4
     margin:
-      x: 2.2cm
-      y: 2.5cm
+      x: 3.0cm
+      y: 3.0cm
+      top: 4.0cm
+      bottom: 3.0cm
+    include-in-header:
+      text: |
+        #set page(
+          header: align(left)[
+            #image("logo_tml.svg", width: 4cm)
+          ]
+        )
 #   docx:
 #     reference-doc: "../docs/TML_template.docx"
+filters:
+  - linebreaks.lua
 number-sections: true
 section-numbering: 1.1.1.
 execute:
@@ -44,6 +55,9 @@ data_documento    <- format(Sys.Date(), "%d/%m/%Y")
 # Datas de disponibilização dos dados de bilhética (DITS e ITS)
 data_dados_dits   <- "31 de julho de 2026"
 data_dados_its    <- "7 de agosto de 2026"
+
+# Versão do processamento de distâncias Carris Metropolitana (Trino)
+load_version      <- 27
 
 # ---- Financiamento / Faturação ----------------------------------------------
 # TRUE  = Verba do Fundo Ambiental (Incentiva +TP) ainda NÃO transferida à data -> faturação parcelar
@@ -83,6 +97,18 @@ fmt_pct <- function(x, acc = 0.1) {
 
 fmt_pct3 <- function(x) {
   ifelse(is.na(x), "", scales::percent(x, accuracy = 0.001, decimal.mark = ","))
+}
+
+# Wrapper kable para suportar quebras de linha (\n) em cabeçalhos e células
+kable <- function(x, ...) {
+  if (is.data.frame(x)) {
+    colnames(x) <- gsub("\n", "<br>", colnames(x))
+    x[] <- lapply(x, function(col) if (is.character(col)) gsub("\n", "<br>", col) else col)
+  } else if (is.matrix(x)) {
+    colnames(x) <- gsub("\n", "<br>", colnames(x))
+    if (is.character(x)) x <- gsub("\n", "<br>", x)
+  }
+  knitr::kable(x, ...)
 }
 
 # Conversão de montantes em euros por extenso (em português)
@@ -314,20 +340,22 @@ if (!ja_existe_mes) {
 }
 ```
 
-::: {.header-block}
-**De:**  
-`r de_pessoa1_nome`  
-`r de_pessoa1_cargo`  
-`r de_pessoa2_nome`  
-`r de_pessoa2_cargo`  
+# Informação n.º `r numero_informacao` {.unnumbered}
+
+::: header-block
+**De:**\
+`r de_pessoa1_nome`\
+`r de_pessoa1_cargo`\
+`r de_pessoa2_nome`\
+`r de_pessoa2_cargo`\
 `r de_divisao`
 
-**Para:**  
-`r para_pessoa_nome`  
-`r para_cargo`  
+**Para:**\
+`r para_pessoa_nome`\
+`r para_cargo`\
 `r para_divisao`
 
-**Informação n.º**  
+**Informação n.º**\
 `r numero_informacao`
 :::
 
@@ -349,15 +377,15 @@ O Regulamento n.º 278-A/2019, de 19 de março, designado “Regulamento Metropo
 
 Na presente informação procede-se ao apuramento dos montantes a transferir, no atual mês de `r mes_transf_nome` de `r ano_transf`, aos Operadores que disponibilizaram os Passes Navegante no mês de `r mes_nome` de `r ANO`, na sequência do apuramento provisório desse mês, de acordo com as regras estabelecidas no Anexo V do Regulamento n.º 278-A/2019 da AML, na sua redação atual.
 
-Os cálculos realizados tiveram por base dados de passageiros e vendas disponibilizados pelo DITS a `r data_dados_dits` (ficheiros equivalentes a recibos B finais + Receitas PV e ATM e passageiros transportados agregados na tabela DW_PROC.F_VALIDATIONS em PDBDDWPROD) e as distâncias percorridas pelos passageiros transportados na Carris Metropolitana calculadas e disponibilizadas pelo ITS na tabela `prp_case_a1_agg load_version = 27` (esquema delta.tmlprepared da nova base de dados trino) a `r data_dados_its`.
+Os cálculos realizados tiveram por base dados de passageiros e vendas disponibilizados pelo DITS a `r data_dados_dits` (ficheiros equivalentes a recibos B finais + Receitas PV e ATM e passageiros transportados agregados na tabela `DW_PROC.F_VALIDATIONS` em `PDBDDWPROD`) e as distâncias percorridas pelos passageiros transportados na Carris Metropolitana calculadas e disponibilizadas pelo ITS na tabela `r sprintf("\x60prp_case_a1_agg load_version = %s\x60", load_version)` (esquema delta.tmlprepared da nova base de dados trino) a `r data_dados_its`.
 
 Importa referir que a implementação de validações com cartão virtual nas linhas da Carris Metropolitana teve início a 19 de setembro de 2025. O procedimento implementado tem implicações, quer ao nível das transações de venda, quer ao nível das validações.
 
-Quanto às transações de venda, o carregamento de um cartão virtual pressupõe o carregamento prévio de um cartão físico, ficando ambas as transações registadas no sistema de bilhética como transações de tipologia 3 (venda e carregamento). Isto significa a existência de 2 registos de venda: 1 com o título efetivamente comprado e carregado no cartão físico; e outro, invariavelmente, com o título Navegante Metropolitano Normal (ticket_code 900) carregado no cartão virtual. A equipa de DITS utilizou o campo “CARD_PHYSICAL_TYPE_ID= 31” e o “PRICE=0” para excluir os carregamentos do cartão virtual no apuramento das receitas.
+Quanto às transações de venda, o carregamento de um cartão virtual pressupõe o carregamento prévio de um cartão físico, ficando ambas as transações registadas no sistema de bilhética como transações de tipologia 3 (venda e carregamento). Isto significa a existência de 2 registos de venda: 1 com o título efetivamente comprado e carregado no cartão físico; e outro, invariavelmente, com o título Navegante Metropolitano Normal (ticket_code 900) carregado no cartão virtual. A equipa de DITS utilizou o campo "`CARD_PHYSICAL_TYPE_ID= 31`" e o “`PRICE=0`” para excluir os carregamentos do cartão virtual no apuramento das receitas.
 
-No que concerne às validações, a validação com o cartão virtual é sempre registada como a validação de um título Metropolitano Normal (ticket_code 900) independentemente da modalidade carregada no cartão físico, o que significa que em situações de validação com cartão virtual de passes com modalidade distinta da “Normal” (Jovem, PAC ou Circula PT), a mesma fica registada no sistema de bilhética no ticket_code 900, contribuindo para o número de passageiros e a quota deste título, em detrimento do título “correto”.
+No que concerne às validações, a validação com o cartão virtual é sempre registada como a validação de um título Metropolitano Normal (`ticket_code 900`) independentemente da modalidade carregada no cartão físico, o que significa que em situações de validação com cartão virtual de passes com modalidade distinta da “Normal” (Jovem, PAC ou Circula PT), a mesma fica registada no sistema de bilhética no `ticket_code 900`, contribuindo para o número de passageiros e a quota deste título, em detrimento do título “correto”.
 
-A partir deste mês, o algoritmo de cálculo contabiliza e associa as validações pelo número de cliente no caso dos clientes que utilizem o cartão virtual.
+Desde o mês de abril de 2026 , o algoritmo de cálculo contabiliza e associa as validações pelo número de cliente no caso dos clientes que utilizem o cartão virtual.
 
 Conforme o Regulamento supracitado, os valores das transferências a realizar pela TML devem ser comunicados até ao dia 8 (oito) de cada mês. Caso a verba a disponibilizar pelo Fundo Ambiental (“FA”), no âmbito do programa «Incentiva +TP» tenha sido transferida até essa data, poderá ser faturada de imediato a totalidade do valor da transferência indicada. Caso contrário, será realizada uma primeira transferência correspondente à receita obtida através das vendas pelos canais de receita partilhada e, uma segunda, referente ao montante financiado pelo FA, somente após o recebimento dessa verba.
 
@@ -367,13 +395,13 @@ As vendas e passageiros transportados por título e operador foram apurados em c
 
 A metodologia de apuramentos provisórios mensais encontra-se definida na secção III do Anexo V do Regulamento – Apuramentos provisórios mensais após o fecho da quota de repartição dinâmica.
 
-Os montantes mensais a transferir pela TML [F] aos Operadores que disponibilizam os passes Navegante visam minimizar as transferências entre Operadores e suprir os saldos de receita [C], por via das receitas obtidas através dos canais partilhados [K] que a TML tem em sua posse, e dos pagamentos por conta das COSP (Compensações pela Obrigação de Serviço Público) tarifárias pela disponibilização dos passes Navegante [D], conforme pontos 13.1 e 13.2 do Anexo V ao Regulamento.
+Os montantes mensais a transferir pela TML \[F\] aos Operadores que disponibilizam os passes Navegante visam minimizar as transferências entre Operadores e suprir os saldos de receita \[C\], por via das receitas obtidas através dos canais partilhados \[K\] que a TML tem em sua posse, e dos pagamentos por conta das COSP (Compensações pela Obrigação de Serviço Público) tarifárias pela disponibilização dos passes Navegante \[D\], conforme pontos 13.1 e 13.2 do Anexo V ao Regulamento.
 
 Caso o saldo resultante da repartição de receitas não seja possível de suprir na sua totalidade por via das receitas obtidas através dos canais partilhados e dos pagamentos por conta das COSP, a TML determinará as transferências a realizar entre os diferentes Operadores (ponto 13.3 do Anexo V).
 
 Em 2025, ao contrário dos últimos anos, o Estado não impôs a manutenção dos preços dos passes de transportes públicos vigentes em 2024. Contudo, a verba Incentiva +TP atribuída foi reforçada, para além da TAT de 2025, com mais 5% do valor do ano transato. Por este motivo, a AML deliberou o congelamento dos preços dos passes Navegante, assumindo o financiamento desta medida recorrendo ao Incentiva +TP. Compete, por isso, à TML determinar e transferir o valor a compensar a cada Operador em resultado dos congelamentos impostos, nos termos do ponto n.º 23.2 do Anexo V.
 
-Nos subcapítulos seguintes são apresentados os procedimentos para a definição do valor mensal a transferir a cada Operador, que inclui a transferência para reposição de saldos [F`r MES`] e a parcela relativa ao congelamento dos preços dos passes Navegante [CongNav[B`r MES`]]. De notar que o índice “`r MES`” utilizado daqui em diante, simboliza que os valores apurados se referem ao mês `r MES` (`r mes_nome` de `r ANO`).
+Nos subcapítulos seguintes são apresentados os procedimentos para a definição do valor mensal a transferir a cada Operador, que inclui a transferência para reposição de saldos \[F`r MES`\] e a parcela relativa ao congelamento dos preços dos passes Navegante \[CongNav\[B`r MES`\]\]. De notar que o índice “`r MES`” utilizado daqui em diante, simboliza que os valores apurados se referem ao mês `r MES` (`r mes_nome` de `r ANO`).
 
 ## Quota de Repartição Dinâmica de `r mes_nome` de `r ANO`
 
@@ -381,9 +409,12 @@ A quota de repartição a aplicar às receitas e às compensações do sistema d
 
 Consideraram-se para o cálculo dos passageiros quilómetros, por aplicação do disposto no Regulamento:
 
-- os passageiros transportados do mês de `r mes_nome` de `r ANO` obtidos após a limpeza dos dados de validação, como previsto no ponto 6.5.1.;
-- as distâncias médias de `r ifelse(eh_verao, "agosto", "outubro")` de 2021, constantes da Tabela 5 do Anexo V do Regulamento, para todos os Operadores com exceção da TML – Carris Metropolitana e dos operadores da AT Cascais;
+- Os passageiros transportados do mês de `r mes_nome` de `r ANO` obtidos após a limpeza dos dados de validação, como previsto no ponto 6.5.1.;
+
+- As distâncias médias de `r ifelse(eh_verao, "agosto", "outubro")` de 2021, constantes da Tabela 5 do Anexo V do Regulamento, para todos os Operadores com exceção da TML – Carris Metropolitana e dos operadores da AT Cascais;
+
 - Por já terem adotado a API Apex, como previsto na alínea iii) do ponto 6.5.2. do Anexo V, no caso da TML – Carris Metropolitana e da AT Cascais, as distâncias médias são as determinadas com dados de `r mes_nome` de `r ANO`.
+
 - Desde abril de 2026, o operador Carris tem todos os seus validadores com a API Apex instalada, contudo, a informação das validações não é ainda compatível com o GTFS apresentado pelo operador, pelo que é impossível determinar as distâncias médias reais no mês de `r mes_nome`. O Operador está a trabalhar para ultrapassar estas incompatibilidades.
 
 Em virtude do aparecimento de validações com passe Navegante nos serviços de autocarro de substituição à linha de Cascais da CP e de se manterem para este operador as distâncias médias históricas do serviço de comboio sem interrupções, para evitar a contabilização duplicada de passageiros, foi necessário implementar uma regra de verificação extra: A validação no serviço de substituição em autocarro não resulta na contabilização de um passageiro adicional para a CP, se a validação anterior ou seguinte tiver ocorrido no operador CP e num intervalo de tempo de 90 min (período de reentrada permitido no zapping na CP).
@@ -396,28 +427,26 @@ Na Tabela 1 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`”, po
 
 ## Receitas de passes Navegante de `r mes_nome` de `r ANO`
 
-As receitas de passes Navegante, apuradas neste ponto, são obtidas a partir das vendas no mês de `r mes_nome` de `r ANO`, nos canais de venda próprios e de receita partilhada.
-O número de passes vendidos foi determinado cumprindo as regras previstas no ponto 7 do anexo V.
+As receitas de passes Navegante, apuradas neste ponto, são obtidas a partir das vendas no mês de `r mes_nome` de `r ANO`, nos canais de venda próprios e de receita partilhada. O número de passes vendidos foi determinado cumprindo as regras previstas no ponto 7 do anexo V.
 
-### Receitas de passes Navegante na posse de cada Operador [A`r MES`] e nos canais de receita partilhada [K`r MES`] em `r mes_nome` de `r ANO`
+### Receitas de passes Navegante na posse de cada Operador \[A`r MES`\] e nos canais de receita partilhada \[K`r MES`\] em `r mes_nome` de `r ANO`
 
 Na Tabela 2 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`”, é apresentada a distribuição de vendas e receitas de passes Navegante no mês de `r mes_nome` de `r ANO`, por título, pelos diferentes canais de venda.
 
-As receitas nos canais próprios de cada Operador [A] ficam na posse de cada um e as vendas nos canais de receita partilhada [K] ficam na posse da TML, como autoridade gestora desses canais.
+As receitas nos canais próprios de cada Operador \[A\] ficam na posse de cada um e as vendas nos canais de receita partilhada \[K\] ficam na posse da TML, como autoridade gestora desses canais.
 
 Em `r mes_nome` de `r ANO`, a receita na posse dos operadores totaliza um valor de **`r fmt_eur(receita_A_total)`** (`r numero_por_extenso(receita_A_total)`) e a receita nos canais de receita partilhada soma um total de **`r fmt_eur(receita_K_total)`** (`r numero_por_extenso(receita_K_total)`).
 
-### Receitas de passes Navegante devidas a cada Operador [B`r MES`] em `r mes_nome` de `r ANO`
+### Receitas de passes Navegante devidas a cada Operador \[B`r MES`\] em `r mes_nome` de `r ANO`
 
-A receita devida a cada Operador foi determinada aplicando a quota de repartição definida em 2.1. às receitas do sistema apresentadas no ponto 2.2.1.
-A Tabela 4 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`” resume as receitas de passes Navegante devidas a cada Operador, relativas ao mês de `r mes_nome` de `r ANO`.
+A receita devida a cada Operador foi determinada aplicando a quota de repartição definida em 2.1. às receitas do sistema apresentadas no ponto 2.2.1. A Tabela 4 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`” resume as receitas de passes Navegante devidas a cada Operador, relativas ao mês de `r mes_nome` de `r ANO`.
 
-### Saldo de receita em cada Operador [C`r MES`] em `r mes_nome` de `r ANO`
+### Saldo de receita em cada Operador \[C`r MES`\] em `r mes_nome` de `r ANO`
 
-O saldo de receita [C] em cada Operador é dado pela diferença entre receita de passes Navegante na sua posse [A] e receita de passes Navegante que lhe é devida [B]. A Tabela 1 resume o apuramento desses saldos.
+O saldo de receita \[C\] em cada Operador é dado pela diferença entre receita de passes Navegante na sua posse \[A\] e receita de passes Navegante que lhe é devida \[B\]. A @tbl-1 resume o apuramento desses saldos.
 
 ```{r}
-#| label: tabela1
+#| label: tbl-1
 
 tab1 <- tabela_global %>%
   mutate(
@@ -433,27 +462,29 @@ tab1 <- tabela_global %>%
     `Saldo de Receitas [C = A - B]` = sal_C_fmt
   )
 
-names(tab1)[2] <- paste0("Receita na posse [A", MES, "]")
-names(tab1)[3] <- paste0("Receita devida [B", MES, "]")
-names(tab1)[4] <- paste0("Saldo de Receitas [C", MES, "] = [A", MES, "] – [B", MES, "]")
+names(tab1)[2] <- paste0("Receita na posse\n[A", MES, "]")
+names(tab1)[3] <- paste0("Receita devida\n[B", MES, "]")
+names(tab1)[4] <- paste0("Saldo de Receitas\n[C", MES, "] = [A", MES, "] – [B", MES, "]")
 
-kable(tab1, align = c("l", "r", "r", "r"), caption = paste0("Tabela 1 – Saldo de Receitas em cada Operador, referente a ", mes_nome, " de ", ANO))
+kable(tab1, 
+      align = c("l", "r", "r", "r"), 
+      caption = paste0("Saldo de Receitas em cada Operador, referente a ", mes_nome, " de ", ANO))
 ```
 
 *(1) Fusão destes operadores desde janeiro de 2024.*
 
-## Pagamentos por conta da COSP tarifária [D`r MES`] em `r mes_nome` de `r ANO`
+## Pagamentos por conta da COSP tarifária \[D`r MES`\] em `r mes_nome` de `r ANO`
 
 Para determinar os pagamentos por conta da COSP tarifária foi necessário definir o número mensal de passes a compensar. Para tal, foi aplicada uma sazonalidade ao total de passes vendidos em `r mes_nome` de `r ANO` para calcular uma estimativa do número anual de passes vendidos. Conhecida essa estimativa de vendas anual, calculou-se a proporção do número máximo de passes anuais a compensar no número anual de passes estimado (a venda de passes do mês anualizado) e aplicou-se essa percentagem ao número de passes vendidos em `r mes_nome` de `r ANO`.
 
 Conforme previsto no Regulamento (ponto 5.1.3. do Anexo V), o Valor Máximo de Compensação anual (“VMC”) foi atualizado com a TAT de 2024, de 6,43%, com a TAT de 2025, de 2,02% e com a TAT de 2026 de 2,28%, pelo que em `r ANO`, o VMC corresponde a `r fmt_eur(VMC_ano)` e consequentemente a compensação por passe vendido é de `r fmt_eur(valor_medio_passe)`.
 
-A Tabela 2 resume o procedimento descrito e a Tabela 5 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`” resume o valor de pagamentos por conta da COSP tarifária por título para cada Operador.
+A @tbl-2 resume o procedimento descrito e a @tbl-5 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`” resume o valor de pagamentos por conta da COSP tarifária por título para cada Operador.
 
 Note-se que, conforme previsto no Regulamento (ponto 12.3 do Anexo V), procedeu-se à retenção de 2,5% do valor estimado de pagamento por conta da COSP tarifária.
 
 ```{r}
-#| label: tabela2
+#| label: tbl-2
 
 tab2 <- tibble(
   `Designação` = c(
@@ -482,21 +513,21 @@ tab2 <- tibble(
   )
 )
 
-kable(tab2, align = c("l", "r"), caption = paste0("Tabela 2 – Procedimento de apuramento dos pagamentos por conta da COSP tarifária em ", mes_nome, " de ", ANO))
+kable(tab2, align = c("l", "r"), caption = paste0("Procedimento de apuramento dos pagamentos por conta da COSP tarifária em ", mes_nome, " de ", ANO))
 ```
 
 *\* Arredondado, por tipologia de passe, a 0 casas decimais.*
 
-## Transferência para reposição de saldos [F`r MES`]
+## Transferência para reposição de saldos \[F`r MES`\]
 
-A transferência de verbas pela TML aos Operadores visa cobrir a diferença entre o valor a que os Operadores têm direito – soma da receita de passes Navegante que lhes é devida [B] e do pagamento por conta da COSP tarifária [D] – e o valor que os mesmos têm já em sua posse [A].
+A transferência de verbas pela TML aos Operadores visa cobrir a diferença entre o valor a que os Operadores têm direito – soma da receita de passes Navegante que lhes é devida \[B\] e do pagamento por conta da COSP tarifária \[D\] – e o valor que os mesmos têm já em sua posse \[A\].
 
-O montante a transferir [F] em `r mes_transf_nome` de `r ano_transf` (F`r MES`, determinado com dados relativos ao mês `r MES` – `r mes_nome` de `r ANO`) visa suprir o saldo global de receitas [SG = C - D], isto é [F = -SG = D - C].
+O montante a transferir \[F\] em `r mes_transf_nome` de `r ano_transf` (F`r MES`, determinado com dados relativos ao mês `r MES` – `r mes_nome` de `r ANO`) visa suprir o saldo global de receitas \[SG = C - D\], isto é \[F = -SG = D - C\].
 
-A Tabela 3 resume o procedimento de cálculo dos valores dos montantes mensais a transferir em `r mes_transf_nome` de `r ano_transf`, determinados com base no apuramento provisório de `r mes_nome` de `r ANO`.
+A @tbl-3 resume o procedimento de cálculo dos valores dos montantes mensais a transferir em `r mes_transf_nome` de `r ano_transf`, determinados com base no apuramento provisório de `r mes_nome` de `r ANO`.
 
 ```{r}
-#| label: tabela3
+#| label: tbl-3
 
 tab3 <- tabela_global %>%
   mutate(
@@ -518,10 +549,10 @@ names(tab3)[3] <- paste0("Pagamentos por conta COSP Tarifária [D", MES, "]")
 names(tab3)[4] <- paste0("Saldo Global de Receitas [SG", MES, "]")
 names(tab3)[5] <- paste0("Transferências [F", MES, " = -SG", MES, "]")
 
-kable(tab3, align = c("l", "r", "r", "r", "r"), caption = paste0("Tabela 3 – Cálculo dos montantes a transferir a cada Operador no mês de ", mes_transf_nome, " de ", ano_transf, ", referentes ao apuramento provisório de ", mes_nome, " de ", ANO))
+kable(tab3, align = c("l", "r", "r", "r", "r"), caption = paste0("Cálculo dos montantes a transferir a cada Operador no mês de ", mes_transf_nome, " de ", ano_transf, ", referentes ao apuramento provisório de ", mes_nome, " de ", ANO))
 ```
 
-## Pagamento por conta da compensação pelo Congelamento dos preços dos passes Navegante [CongNav[B`r MES`]] em `r mes_nome` de `r ANO` – Parcela referente à receita de passes Navegante
+## Pagamento por conta da compensação pelo Congelamento dos preços dos passes Navegante \[CongNav\[B`r MES`\]\] em `r mes_nome` de `r ANO` – Parcela referente à receita de passes Navegante
 
 Conforme previsto na secção VI do Anexo V ao Regulamento, sempre que uma Autoridade de Transportes decida pela atualização tarifária dos preços dos passes Navegante inferior à TAT e preveja o respetivo financiamento, os Operadores devem ser compensados no montante correspondente à perda de receita tarifária resultante dessa medida.
 
@@ -529,12 +560,12 @@ Dada a imposição, por via da LOE 2024, da manutenção dos preços dos passes 
 
 Esta compensação deve ser calculada sobre a receita devida a cada Operador, mas também sobre as compensações devidas pela disponibilização de títulos Navegante bonificados, nomeadamente os passes Sub18+TP e Sub23+TP, Circula PT, Antigo Combatente e bonificação de Setúbal.
 
-Neste procedimento, apenas se apuram os valores de compensação pelo congelamento dos preços dos passes Navegante referentes à receita de passes devida [B], remetendo os restantes valores para os procedimentos de cálculo de cada uma das compensações dos respetivos títulos bonificados.
+Neste procedimento, apenas se apuram os valores de compensação pelo congelamento dos preços dos passes Navegante referentes à receita de passes devida \[B\], remetendo os restantes valores para os procedimentos de cálculo de cada uma das compensações dos respetivos títulos bonificados.
 
-A Tabela 4 resume o procedimento de cálculo da compensação por congelamento dos preços dos passes Navegante aplicada às respetivas receitas. Na Tabela 4 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`” é apresentado o valor de compensação por conta do congelamento dos passes Navegante, por título e por operador.
+A @tbl-4 resume o procedimento de cálculo da compensação por congelamento dos preços dos passes Navegante aplicada às respetivas receitas. Na Folha "4 - Receita B e CongNav B" do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`” é apresentado o valor de compensação por conta do congelamento dos passes Navegante, por título e por operador.
 
 ```{r}
-#| label: tabela4
+#| label: tbl-4
 
 tab4 <- tabela_global %>%
   mutate(
@@ -547,22 +578,24 @@ tab4 <- tabela_global %>%
     `Compensação congelamento passes Navegante` = cong_fmt
   )
 
-names(tab4)[2] <- paste0("Receita devida [B", MES, "]")
-names(tab4)[3] <- paste0("Compensação congelamento passes Navegante [CongNav[B", MES, "]]")
+names(tab4)[2] <- paste0("Receita devida\n[B", MES, "]")
+names(tab4)[3] <- paste0("Compensação congelamento passes Navegante\n[CongNav[B", MES, "]]")
 
-kable(tab4, align = c("l", "r", "r"), caption = paste0("Tabela 4 – Cálculo da compensação financeira por congelamento do preço dos passes Navegante, na receita devida ao operador, em ", mes_nome, " de ", ANO))
+kable(tab4,
+     align = c("l", "r", "r"),
+    caption = paste0("Cálculo da compensação financeira por congelamento do preço dos passes Navegante, na receita devida ao operador, em ", mes_nome, " de ", ANO))
 ```
 
 ## Montante mensal total a transferir aos Operadores em `r mes_transf_nome` de `r ano_transf`
 
-Ao abrigo do ponto 13 do ponto 23.2 do Anexo V, o valor a transferir pela TML em `r mes_transf_nome` de `r ano_transf` totaliza **`r fmt_eur(total_transferir)`** (`r numero_por_extenso(total_transferir)`) e distribui-se pelos Operadores conforme Tabela 5.
+Ao abrigo do ponto 13 do ponto 23.2 do Anexo V, o valor a transferir pela TML em `r mes_transf_nome` de `r ano_transf` totaliza **`r fmt_eur(total_transferir)`** (`r numero_por_extenso(total_transferir)`) e distribui-se pelos Operadores conforme @tbl-5.
 
 A metodologia utilizada visa minimizar as transferências entre Operadores, no entanto, nos casos em que não seja possível suprir o saldo de um Operador por via das transferências da TML, significa que esse Operador tem excedente de receitas em sua posse e por isso, deve transferir esse excedente a outro Operador. Essa transferência é determinada pela TML (ponto 13.3 do Anexo V).
 
 `r if (excedente_mts > 0) paste0("A TML determina, conforme procedimento já realizado em pagamentos por conta de meses anteriores, que o excedente de receitas na posse do MTS (", fmt_eur(excedente_mts), ") deve ser transferido ao operador Fertagus, sempre que esse montante seja inferior ao valor total apurado a transferir pela TML ao operador Fertagus.") else ""`
 
 ```{r}
-#| label: tabela5
+#| label: tbl-5
 
 tab5 <- tabela_global %>%
   mutate(
@@ -583,19 +616,22 @@ tab5 <- tabela_global %>%
     `% do montante total a transferir a cada Operador(1)` = pct_fmt
   )
 
-names(tab5)[2] <- paste0("Transferência [F", MES, "] (€)")
-names(tab5)[3] <- paste0("Congelamento Passes Navegante [CongNav[B", MES, "]] (€)")
-names(tab5)[4] <- paste0("[F", MES, "] + [CongNav[B", MES, "]]")
+names(tab5)[2] <- paste0("Transferência\n[F", MES, "] (€)")
+names(tab5)[3] <- paste0("Congelamento Passes Navegante\n[CongNav[B", MES, "]] (€)")
+names(tab5)[4] <- paste0("[F", MES, "] +\n[CongNav[B", MES, "]]")
+names(tab5)[5] <- "Transferência entre\noperadores (€)"
+names(tab5)[6] <- "TOTAL a transferir\npela TML (€)"
+names(tab5)[7] <- "% do montante total a\ntransferir a cada Operador(1)"
 
-kable(tab5, align = c("l", "r", "r", "r", "r", "r", "r"), caption = paste0("Tabela 5 – Montantes a transferir aos Operadores em ", mes_transf_nome, " de ", ano_transf, ", referentes ao apuramento provisório de ", mes_nome, " de ", ANO))
+kable(tab5, align = c("l", "r", "r", "r", "r", "r", "r"), caption = paste0("Montantes a transferir aos Operadores em ", mes_transf_nome, " de ", ano_transf, ", referentes ao apuramento provisório de ", mes_nome, " de ", ANO))
 ```
 
 *(1) Na tabela, as percentagens apresentam-se com três casas decimais, porém o cálculo é realizado sem o arredondamento prévio da proporção.*
 
-A Tabela 6 apresenta a repartição, pela proveniência das verbas, do valor a transferir a cada operador.
+A @tbl-6 apresenta a repartição, pela proveniência das verbas, do valor a transferir a cada operador.
 
 ```{r}
-#| label: tabela6
+#| label: tbl-6
 
 tab6 <- tabela_global %>%
   mutate(
@@ -608,16 +644,16 @@ tab6 <- tabela_global %>%
     `Parcela proveniente das verbas do Incentiva +TP` = inc_fmt
   )
 
-kable(tab6, align = c("l", "r", "r"), caption = "Tabela 6 – Faturação repartida pela origem das verbas")
+kable(tab6, align = c("l", "r", "r"), caption = "Faturação repartida pela origem das verbas")
 ```
 
-# Evolução dos passageiros e da repartição das receitas de passes Navegante desde janeiro de 2025
+# Evolução dos passageiros e da repartição das receitas de passes Navegante desde janeiro de `r min(as.integer(rac$ano[rac$Tipo == "Passageiros" & !is.na(rac$ano)]))`
 
-A Figura 1 e a Tabela 7 sintetizam a evolução dos passageiros transportados com passe Navegante e da repartição das receitas de passes Navegante.
+A Figura 1 e a @tbl-7 sintetizam a evolução dos passageiros transportados com passe Navegante e da repartição das receitas de passes Navegante.
 
 ```{r}
-#| label: fig1
-#| fig-cap: "Figura 1 – Evolução dos passageiros e da repartição de receitas de passes Navegante desde janeiro de 2025"
+#| label: fig-1
+#| fig-cap: !expr paste0("Evolução dos passageiros e da repartição de receitas de passes Navegante desde janeiro de ", min(as.integer(rac$ano[rac$Tipo == "Passageiros" & !is.na(rac$ano)])))
 #| fig-width: 8
 #| fig-height: 4.2
 #| dpi: 300
@@ -638,12 +674,14 @@ rec_df <- rac %>% filter(Tipo == "Receitas") %>%
     data = as.Date(sprintf("%d-%02d-01", ano, mes))
   )
 
+data_max <- as.Date(sprintf("%d-%02d-01", ANO, MES))
+
 merged_plot <- inner_join(
   pax_df %>% select(data, ano, mes, pax_val),
   rec_df %>% select(data, rec_val),
   by = "data"
 ) %>%
-  filter(data >= as.Date("2025-01-01")) %>%
+  filter(data >= as.Date("2024-01-01"), data <= data_max) %>%
   arrange(data) %>%
   mutate(
     pax_m = pax_val / 1e6,
@@ -653,29 +691,45 @@ merged_plot <- inner_join(
 scale_factor <- max(merged_plot$pax_m, na.rm=TRUE) / max(merged_plot$rec_m, na.rm=TRUE)
 
 ggplot(merged_plot, aes(x = data)) +
-  geom_col(aes(y = pax_m), fill = "#FFC000", width = 20, alpha = 0.9) +
-  geom_line(aes(y = rec_m * scale_factor), color = "#1B365D", linewidth = 1.1) +
-  geom_point(aes(y = rec_m * scale_factor), color = "#1B365D", size = 2.2) +
+  geom_col(aes(y = pax_m, fill = "Passageiros"), width = 20, alpha = 0.9) +
+  geom_line(aes(y = rec_m * scale_factor, color = "Receitas"), linewidth = 1.1) +
+  geom_point(aes(y = rec_m * scale_factor, color = "Receitas"), size = 2.2) +
+  scale_fill_manual(name = NULL, values = c("Passageiros" = "#FFC000")) +
+  scale_color_manual(name = NULL, values = c("Receitas" = "#1B365D")) +
+  guides(
+    fill  = guide_legend(order = 1, override.aes = list(linetype = 0, shape = NA)),
+    color = guide_legend(order = 2, override.aes = list(fill = NA, linetype = 1, shape = NA))
+  ) +
   scale_y_continuous(
     name = "Passageiros Transportados (Milhões)",
-    sec.axis = sec_axis(~ . / scale_factor, name = "Receita de Passes (M€)", labels = label_number(accuracy = 0.1, decimal.mark = ","))
+    sec.axis = sec_axis(~ . / scale_factor, name = "Receita de Passes (M€)", labels = label_number(accuracy = 1, decimal.mark = ","))
   ) +
   scale_x_date(
-    date_breaks = "1 month",
-    date_labels = "%b/%y"
+    breaks = merged_plot$data,
+    labels = format(merged_plot$data, "%b/%y")
   ) +
   theme_minimal(base_size = 9) +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1),
     axis.title.y.left = element_text(color = "#B8860B", face = "bold"),
-    axis.title.y.right = element_text(color = "#1B365D", face = "bold"),
-    panel.grid.minor = element_blank()
+    axis.title.y.right = element_text(color = "#1B365D", face = "bold", angle = 90),
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom",
+    legend.key.width = unit(1.2, "cm")
   ) +
   labs(x = NULL)
 ```
 
+```{=typst}
+#pagebreak()
+#set page(paper: "a4", flipped: true, margin: (x: 1.5cm, top: 2.2cm, bottom: 1.5cm))
+#set text(size: 9pt)
+```
+
 ```{r}
-#| label: tabela7
+#| label: tbl-7
+#| tbl-cap: "Evolução dos passageiros e da repartição de receitas de passes Navegante desde janeiro de 2025"
+#| results: asis
 
 # Preparar dados da Tabela 7 a partir de rac
 meses_curtos <- c("jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez")
@@ -687,10 +741,10 @@ rac_pax_filtro <- rac %>%
   filter(ano < ANO | (ano == ANO & mes <= MES)) %>%
   arrange(ano, mes)
 
-rac_pax_filtro$Mês <- paste0(meses_curtos[rac_pax_filtro$mes], "/", substr(rac_pax_filtro$ano, 3, 4))
+rac_pax_filtro$Mes <- paste0(meses_curtos[rac_pax_filtro$mes], "/", substr(rac_pax_filtro$ano, 3, 4))
 rac_pax_filtro$Métrica <- ifelse(seq_len(nrow(rac_pax_filtro)) == 1, "Passageiros", "")
 
-tab7_pax <- rac_pax_filtro %>% select(Métrica, Mês, all_of(ops_cols))
+tab7_pax <- rac_pax_filtro %>% select(Métrica, Mes, all_of(ops_cols))
 
 # Calcular linha de variação homóloga (ano corrente vs ano anterior)
 mes_atual_pax <- rac %>% filter(Tipo == "Passageiros", ano == ANO, mes == MES)
@@ -699,7 +753,7 @@ mes_ant_pax   <- rac %>% filter(Tipo == "Passageiros", ano == (ANO - 1), mes == 
 if (nrow(mes_atual_pax) > 0 && nrow(mes_ant_pax) > 0) {
   var_row <- data.frame(
     Métrica = "",
-    Mês = paste0(meses_curtos[MES], "/", substr(ANO, 3, 4), " vs ", meses_curtos[MES], "/", substr(ANO - 1, 3, 4)),
+    Mes = paste0(meses_curtos[MES], "/", substr(ANO, 3, 4), " vs ", meses_curtos[MES], "/", substr(ANO - 1, 3, 4)),
     stringsAsFactors = FALSE
   )
   for (op in ops_cols) {
@@ -723,11 +777,11 @@ rac_rec_totais <- rac %>%
   filter(ano < ANO | (ano == ANO & mes <= MES)) %>%
   arrange(ano, mes)
 
-rac_rec_filtro$Mês <- paste0(meses_curtos[rac_rec_filtro$mes], "/", substr(rac_rec_filtro$ano, 3, 4))
+rac_rec_filtro$Mes <- paste0(meses_curtos[rac_rec_filtro$mes], "/", substr(rac_rec_filtro$ano, 3, 4))
 rac_rec_filtro$Métrica <- ifelse(seq_len(nrow(rac_rec_filtro)) == 1, "Receitas", "")
 
 # Formatar TOTAL como moeda e operadores como percentagem
-tab7_rec <- rac_rec_filtro %>% select(Métrica, Mês, all_of(ops_cols))
+tab7_rec <- rac_rec_filtro %>% select(Métrica, Mes, all_of(ops_cols))
 for (i in seq_len(nrow(tab7_rec))) {
   val_tot <- as.numeric(gsub("[^0-9,]", "", rac_rec_totais$TOTAL[i]) |> gsub(",", ".", x = _))
   tab7_rec$TOTAL[i] <- fmt_eur(val_tot)
@@ -737,38 +791,151 @@ for (i in seq_len(nrow(tab7_rec))) {
   }
 }
 
-tab7_final <- bind_rows(tab7_pax, tab7_rec)
 
-kable(tab7_final, align = c("l", "l", rep("r", length(ops_cols))), caption = "Tabela 7 – Evolução dos passageiros e da repartição de receitas de passes Navegante desde janeiro de 2025")
+# === Gerar tabela Typst com rowspan, colspan e labels rodados ===
+
+# Escapa chars especiais Typst no modo de conteúdo
+esc_t <- function(x) {
+  x <- as.character(x); x[is.na(x)] <- ""
+  gsub("#", "\\#", x, fixed = TRUE)
+}
+
+# Constrói table.cell(...)[content]
+tc <- function(content, ...) {
+  opts <- list(...)
+  if (length(opts) == 0) return(paste0("[", content, "]"))
+  opt_str <- paste(mapply(function(k, v) paste0(k, ": ", v),
+                          names(opts), as.character(opts)), collapse = ", ")
+  paste0("table.cell(", opt_str, ")[", content, "]")
+}
+
+n_pax <- nrow(tab7_pax)
+n_rec <- nrow(tab7_rec)
+cells <- character(0)
+
+# Cabeçalho
+cells <- c(cells,
+  "[#h(0pt)]",
+  "[*Mês/Ano*]",
+  "[*TOTAL*]",
+  "[*CP*]",
+  "[*FT*]",
+  "[*TT*]",
+  "[*SL*]",
+  "[*ML*]",
+  "[*MTS*]",
+  "[*Carris*]",
+  "[*TCB*]",
+  "[*AT Cascais*]",
+  "[*AT TML-CM*]",
+  "[*BT Oeste*]",
+  "table.hline(stroke: 0.6pt + black)"
+)
+
+# Bloco Passageiros
+cells <- c(cells,
+  tc("#rotate(-90deg, reflow: true)[*Passageiros*]",
+     rowspan = n_pax, align = "horizon + center")
+)
+for (i in seq_len(n_pax)) {
+  row <- tab7_pax[i, ]
+  is_var <- grepl("vs", row$Mes)
+  if (is_var) {
+    mk <- function(v) tc(paste0("*", esc_t(v), "*"), fill = "luma(240)")
+    mk_tot <- mk
+  } else {
+    mk <- function(v) paste0("[", esc_t(v), "]")
+    mk_tot <- function(v) paste0("[*", esc_t(v), "*]")
+  }
+  cells <- c(cells,
+    mk(row$Mes), mk_tot(row[["TOTAL"]]), mk(row[["CP"]]), mk(row[["FT"]]),
+    mk(row[["TT"]]), mk(row[["SL"]]), mk(row[["ML"]]), mk(row[["MTS"]]),
+    mk(row[["Carris"]]), mk(row[["TCB"]]),
+    mk(row[["AT Cascais"]]), mk(row[["AT TML - CM"]]), mk(row[["BT Oeste"]])
+  )
+}
+
+# Bloco Receitas (TT + SL fundidos em colspan=2)
+cells <- c(cells,
+  "table.hline(stroke: 0.5pt + black)",
+  tc("#rotate(-90deg, reflow: true)[*Receitas*]",
+     rowspan = n_rec, align = "horizon + center")
+)
+for (i in seq_len(n_rec)) {
+  row <- tab7_rec[i, ]
+  mk <- function(v) paste0("[", esc_t(v), "]")
+  mk_tot <- function(v) paste0("[*", esc_t(v), "*]")
+  cells <- c(cells,
+    mk(row$Mes), mk_tot(row[["TOTAL"]]), mk(row[["CP"]]), mk(row[["FT"]]),
+    tc(esc_t(row[["TT"]]), colspan = 2, align = "center"),
+    mk(row[["ML"]]), mk(row[["MTS"]]), mk(row[["Carris"]]), mk(row[["TCB"]]),
+    mk(row[["AT Cascais"]]), mk(row[["AT TML - CM"]]), mk(row[["BT Oeste"]])
+  )
+}
+cells <- c(cells, "table.hline(stroke: 0.6pt + black)")
+
+if (knitr::pandoc_to("typst")) {
+  cat(paste0(
+    "```{=typst}\n",
+    "#table(\n",
+    "  columns: (auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto, auto),\n",
+    "  inset: (x: 4pt, y: 3pt),\n",
+    "  stroke: none,\n",
+    "  align: (center + horizon, left + horizon, right + horizon, right + horizon,\n",
+    "          right + horizon, right + horizon, right + horizon, right + horizon,\n",
+    "          right + horizon, right + horizon, right + horizon, right + horizon,\n",
+    "          right + horizon, right + horizon),\n",
+    "  ", paste(cells, collapse = ",\n  "), "\n",
+    ")\n",
+    "```\n"
+  ))
+} else {
+  tab7_final <- bind_rows(tab7_pax, tab7_rec)
+  cat(knitr::kable(tab7_final, align = c("l", "l", rep("r", length(ops_cols))), format = "pipe"))
+}
+```
+
+```{=typst}
+#pagebreak()
+#set page(paper: "a4", flipped: false, margin: (x: 3.0cm, top: 4.0cm, bottom: 3.0cm))
+#set text(size: 11pt)
 ```
 
 # Proposta
 
 Ao abrigo do contrato de delegação e subdelegação de competências da Área Metropolitana de Lisboa na TML – Transportes Metropolitanos de Lisboa, E.M.T., S.A. e do disposto no Regulamento n.º 278-A/2019, na sua versão atual, coloca-se à consideração do Conselho de Administração da TML:
 
-1) Aprovar as quotas de repartição de receitas e de compensações determinadas com os dados de passageiros.km de `r mes_nome` de `r ANO`, conforme Tabela 1 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`”;
-2) Aprovar os valores provisórios de receita e compensações pela obrigação de serviço público tarifária pela disponibilização dos passes Navegante, de cada operador, em `r mes_nome` de `r ANO`, conforme Tabelas 4 e 5 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`”;
-3) Aprovar os valores das transferências [F`r MES`] e de pagamentos por conta de compensação pelo congelamento dos preços dos passes Navegante (CongNav[B`r MES`]), previstos no ponto 13 e 23.2 do Anexo V do Regulamento, respetivamente, a transferir pela TML para os Operadores no mês de `r mes_transf_nome` de `r ano_transf`, calculados com base nos dados provisórios de `r mes_nome` de `r ANO`, de acordo com a metodologia descrita na presente informação, num valor total de **`r fmt_eur(total_transferir)`** (`r numero_por_extenso(total_transferir)`), distribuído pelos Operadores conforme Tabela 5 da presente informação;
-`r if (excedente_mts > 0) paste0("4) Aprovar a transferência de receitas excedentes do Metro Transportes do Sul (MTS) ao operador Fertagus, num valor total de ", fmt_eur(excedente_mts), " (", numero_por_extenso(excedente_mts), ");") else ""`
-5) Aprovar, de acordo com o ponto 13.6 do Anexo V:
-`r if (incentiva_tp_pendente) {
-paste0("
-    a. Comunicar aos Operadores os valores das transferências aprovadas nas alíneas 3), 4) e 5) da proposta;
-    b. Dado que a verba do Fundo Ambiental (“FA”) relativa ao Incentiva +TP de ", mes_transf_nome, " de ", ano_transf, " não foi ainda disponibilizada, autorizar a faturação dos valores aprovados na alínea 3) de forma parcelar:
-        i. uma primeira parcela desse total, de valor correspondente à receita obtida através dos canais de receita partilhada [K", MES, "], num total de ", fmt_eur(receita_K_total), " (", numero_por_extenso(receita_K_total), ");
-        ii. uma segunda parcela, com o restante valor, somente após o recebimento da verba financiada pelo Fundo Ambiental;
-        iii. As transferências parcelares identificadas nos pontos anteriores devem seguir a mesma proporção da totalidade dos valores de transferência aprovados, conforme Tabela 8.")
-} else {
-"    a. Comunicar aos Operadores os valores das transferências aprovadas nas alíneas anteriores;
-    b. Autorizar a faturação e transferência integral dos valores aprovados na alínea 3)."
-}`
+1)  Aprovar as quotas de repartição de receitas e de compensações determinadas com os dados de passageiros.km de `r mes_nome` de `r ANO`, conforme Tabela 1 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`”;
 
-`r if (incentiva_tp_pendente) {
-"### Tabela 8 – Faturação parcelar"
-}`
+2)  Aprovar os valores provisórios de receita e compensações pela obrigação de serviço público tarifária pela disponibilização dos passes Navegante, de cada operador, em `r mes_nome` de `r ANO`, conforme Tabelas 4 e 5 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`”;
+
+3)  Aprovar os valores das transferências \[F`r MES`\] e de pagamentos por conta de compensação pelo congelamento dos preços dos passes Navegante (CongNav\[B`r MES`\]), previstos no ponto 13 e 23.2 do Anexo V do Regulamento, respetivamente, a transferir pela TML para os Operadores no mês de `r mes_transf_nome` de `r ano_transf`, calculados com base nos dados provisórios de `r mes_nome` de `r ANO`, de acordo com a metodologia descrita na presente informação, num valor total de **`r fmt_eur(total_transferir)`** (`r numero_por_extenso(total_transferir)`), distribuído pelos Operadores conforme Tabela 5 da presente informação;
+
+ `r if (excedente_mts > 0) paste0("4) Aprovar a transferência de receitas excedentes do Metro Transportes do Sul (MTS) ao operador Fertagus, num valor total de ", fmt_eur(excedente_mts), " (", numero_por_extenso(excedente_mts), ");") else ""`
+
+5)  Aprovar, de acordo com o ponto 13.6 do Anexo V:
 
 ```{r}
-#| label: tabela8
+#| results: asis
+#| echo: false
+if (incentiva_tp_pendente) {
+  cat(paste0(
+    "    a.  Comunicar aos Operadores os valores das transferências aprovadas nas alíneas 3), 4) e 5) da proposta;\n",
+    "    b.  Dado que a verba do Fundo Ambiental (\"FA\") relativa ao Incentiva +TP de ", mes_transf_nome, " de ", ano_transf, " não foi ainda disponibilizada, autorizar a faturação dos valores aprovados na alínea 3) de forma parcelar:\n",
+    "        i.  uma primeira parcela desse total, de valor correspondente à receita obtida através dos canais de receita partilhada [K", MES, "], num total de ", fmt_eur(receita_K_total), " (", numero_por_extenso(receita_K_total), ");\n",
+    "        ii. uma segunda parcela, com o restante valor, somente após o recebimento da verba financiada pelo Fundo Ambiental;\n",
+    "        iii. As transferências parcelares identificadas nos pontos anteriores devem seguir a mesma proporção da totalidade dos valores de transferência aprovados, conforme @tbl-8."
+  ))
+} else {
+  cat(paste0(
+    "    a.  Comunicar aos Operadores os valores das transferências aprovadas nas alíneas anteriores;\n",
+    "    c.  Autorizar a faturação e transferência integral dos valores aprovados na alínea 3)."
+  ))
+}
+```
+
+```{r}
+#| label: tbl-8
 #| eval: !expr incentiva_tp_pendente
 
 tab8 <- tabela_global %>%
@@ -782,24 +949,25 @@ tab8 <- tabela_global %>%
     `Parcela a faturar após recebimento do Incentiva + TP` = inc_fmt
   )
 
-kable(tab8, align = c("l", "r", "r"), caption = "Tabela 8 – Faturação parcelar")
+kable(tab8, align = c("l", "r", "r"), caption = "Faturação parcelar")
 ```
 
-6) Ao abrigo do n.º 26 do Anexo V do Regulamento, reter a transferência determinada para a AT Cascais;
-7) Ao abrigo do n.º 3 da Cláusula 4.ª do Aditamento ao Contrato Interadministrativo de Delegação e Subdelegação de Competências, comunicar as estimativas de pagamento apuradas na presente informação à Área Metropolitana de Lisboa, em data a determinar.
+6)  Ao abrigo do n.º 26 do Anexo V do Regulamento, reter a transferência determinada para a AT Cascais;
+
+7)  Ao abrigo do n.º 3 da Cláusula 4.ª do Aditamento ao Contrato Interadministrativo de Delegação e Subdelegação de Competências, comunicar as estimativas de pagamento apuradas na presente informação à Área Metropolitana de Lisboa, em data a determinar.
 
 Quando aprovado o seu pagamento, os operadores e respetivas autoridades deverão ser notificados dos respetivos valores.
 
-\vspace{1.5cm}
+\vspace{5.5cm}
 
 `r data_documento`
 
 \vspace{1cm}
 
-`r de_pessoa1_nome`  
+`r de_pessoa1_nome`\
 `r de_pessoa1_cargo`
 
 \vspace{0.5cm}
 
-`r de_pessoa2_nome`  
+`r de_pessoa2_nome`\
 `r de_pessoa2_cargo`
