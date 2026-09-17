@@ -15,6 +15,7 @@ format:
             #image("logo_tml.svg", width: 4cm)
           ]
         )
+        #set table(inset: (x: 2.5pt))
 #   docx:
 #     reference-doc: "../docs/TML_template.docx"
 filters:
@@ -85,11 +86,11 @@ suppressPackageStartupMessages({
 
 # ---- Funções Auxiliares de Formatação ----------------------------------------
 fmt_eur <- function(x) {
-  ifelse(is.na(x), "", scales::number(x, accuracy = 0.01, big.mark = " ", decimal.mark = ",", suffix = " €"))
+  ifelse(is.na(x), "", scales::number(x, accuracy = 0.01, big.mark = "\u00a0", decimal.mark = ",", suffix = "\u00a0€")) # não quebra o espaço antes do € nas tabelas
 }
 
 fmt_int <- function(x) {
-  ifelse(is.na(x), "", scales::number(round(x), accuracy = 1, big.mark = " "))
+  ifelse(is.na(x), "", scales::number(round(x), accuracy = 1, big.mark = "\u00a0"))
 }
 
 fmt_pct <- function(x, acc = 0.1) {
@@ -100,36 +101,8 @@ fmt_pct3 <- function(x) {
   ifelse(is.na(x), "", scales::percent(x, accuracy = 0.001, decimal.mark = ","))
 }
 
-# Helper tinytable para formatação padronizada de tabelas no relatório
-tml_table <- function(x, align = NULL, caption = NULL, bold_total = TRUE, ...) {
-  if (is.data.frame(x)) {
-    names(x) <- gsub("\n", " \\ ", names(x), fixed = TRUE)
-    x[] <- lapply(x, function(col) {
-      if (is.character(col)) {
-        col <- gsub("\n", " \\ ", col, fixed = TRUE)
-        col <- gsub("(\\w)\\*", "\\1\\\\*", col)
-        col
-      } else {
-        col
-      }
-    })
-  }
-  tab <- tt(x, caption = caption, ...)
-  if (!is.null(align)) {
-    for (j in seq_along(align)) {
-      tab <- style_tt(tab, j = j, align = align[j])
-    }
-  }
-  if (bold_total && nrow(x) > 0) {
-    total_idx <- which(grepl("^TOTAL", x[[1]], ignore.case = TRUE))
-    if (length(total_idx) > 0) {
-      tab <- style_tt(tab, i = total_idx, bold = TRUE)
-    }
-  }
-  tab
-}
-
-# Conversão de montantes em euros por extenso (em português)
+# Funções auxiliares de tabelas (tinytable) e montantes por extenso
+source(here::here("code", "utils_tables.R"))
 source(here::here("code", "utils_extenso.R"))
 
 # ---- Mês e Ano de Transferência (M + 3) --------------------------------------
@@ -465,6 +438,7 @@ O saldo de receita \[C\] em cada Operador é dado pela diferença entre receita 
 
 ```{r}
 #| label: tbl-1
+#| tbl-cap: !expr paste0("Saldo de Receitas em cada Operador, referente a ", mes_nome, " de ", ANO)
 
 tab1 <- tabela_global %>%
   mutate(
@@ -485,8 +459,8 @@ names(tab1)[3] <- paste0("Receita devida\n[B", MES, "]")
 names(tab1)[4] <- paste0("Saldo de Receitas\n[C", MES, "] = [A", MES, "] – [B", MES, "]")
 
 tml_table(tab1, 
-          align = c("l", "r", "r", "r"), 
-          caption = paste0("Saldo de Receitas em cada Operador, referente a ", mes_nome, " de ", ANO))
+          align = c("l", "r", "r", "r")
+          )
 ```
 
 *(1) Fusão destes operadores desde janeiro de 2024.*
@@ -503,6 +477,7 @@ Note-se que, conforme previsto no Regulamento (ponto 12.3 do Anexo V), procedeu-
 
 ```{r}
 #| label: tbl-2
+#| tbl-cap: !expr paste0("Procedimento de apuramento dos pagamentos por conta da COSP tarifária em ", mes_nome, " de ", ANO)
 
 tab2 <- tibble(
   `Designação` = c(
@@ -531,8 +506,7 @@ tab2 <- tibble(
   )
 )
 
-tml_table(tab2, align = c("l", "r"), caption = paste0("Procedimento de apuramento dos pagamentos por conta da COSP tarifária em ", mes_nome, " de ", ANO)) |>
-  style_tt(i = 10, bold = TRUE)
+tml_table(tab2, align = c("l", "r"))
 ```
 
 *\* Arredondado, por tipologia de passe, a 0 casas decimais.*
@@ -547,6 +521,7 @@ A @tbl-3 resume o procedimento de cálculo dos valores dos montantes mensais a t
 
 ```{r}
 #| label: tbl-3
+#| tbl-cap: !expr paste0("Cálculo dos montantes a transferir a cada Operador no mês de ", mes_transf_nome, " de ", ano_transf, ", referentes ao apuramento provisório de ", mes_nome, " de ", ANO)
 
 tab3 <- tabela_global %>%
   mutate(
@@ -563,12 +538,12 @@ tab3 <- tabela_global %>%
     `Transferências` = transf_F_fmt
   )
 
-names(tab3)[2] <- paste0("Saldo de Receitas [C", MES, "]")
-names(tab3)[3] <- paste0("Pagamentos por conta COSP Tarifária [D", MES, "]")
-names(tab3)[4] <- paste0("Saldo Global de Receitas [SG", MES, "]")
-names(tab3)[5] <- paste0("Transferências [F", MES, " = -SG", MES, "]")
+names(tab3)[2] <- paste0("Saldo de Receitas \n[C", MES, "]")
+names(tab3)[3] <- paste0("Pagamentos por conta COSP Tarifária \n[D", MES, "]")
+names(tab3)[4] <- paste0("Saldo Global de Receitas \n[SG", MES, "]")
+names(tab3)[5] <- paste0("Transferências \n[F", MES, " = -SG", MES, "]")
 
-tml_table(tab3, align = c("l", "r", "r", "r", "r"), caption = paste0("Cálculo dos montantes a transferir a cada Operador no mês de ", mes_transf_nome, " de ", ano_transf, ", referentes ao apuramento provisório de ", mes_nome, " de ", ANO))
+tml_table(tab3, align = c("l", "r", "r", "r", "r"))
 ```
 
 ## Pagamento por conta da compensação pelo Congelamento dos preços dos passes Navegante \[CongNav\[B`r MES`\]\] em `r mes_nome` de `r ANO` – Parcela referente à receita de passes Navegante
@@ -585,6 +560,7 @@ A @tbl-4 resume o procedimento de cálculo da compensação por congelamento dos
 
 ```{r}
 #| label: tbl-4
+#| tbl-cap: !expr paste0("Cálculo da compensação financeira por congelamento do preço dos passes Navegante, na receita devida ao operador, em ", mes_nome, " de ", ANO)
 
 tab4 <- tabela_global %>%
   mutate(
@@ -598,11 +574,10 @@ tab4 <- tabela_global %>%
   )
 
 names(tab4)[2] <- paste0("Receita devida\n[B", MES, "]")
-names(tab4)[3] <- paste0("Compensação congelamento passes Navegante\n[CongNav[B", MES, "]]")
+names(tab4)[3] <- paste0("Compensação congelamento\npasses Navegante\n[CongNav[B", MES, "]]")
 
 tml_table(tab4,
-          align = c("l", "r", "r"),
-          caption = paste0("Cálculo da compensação financeira por congelamento do preço dos passes Navegante, na receita devida ao operador, em ", mes_nome, " de ", ANO))
+          align = c("l", "r", "r"))
 ```
 
 ## Montante mensal total a transferir aos Operadores em `r mes_transf_nome` de `r ano_transf`
@@ -615,6 +590,7 @@ A metodologia utilizada visa minimizar as transferências entre Operadores, no e
 
 ```{r}
 #| label: tbl-5
+#| tbl-cap: !expr paste0("Montantes a transferir aos Operadores em ", mes_transf_nome, " de ", ano_transf, ", referentes ao apuramento provisório de ", mes_nome, " de ", ANO)
 
 tab5 <- tabela_global %>%
   mutate(
@@ -635,22 +611,26 @@ tab5 <- tabela_global %>%
     `% do montante total a transferir a cada Operador(1)` = pct_fmt
   )
 
-names(tab5)[2] <- paste0("Transferência\n[F", MES, "] (€)")
-names(tab5)[3] <- paste0("Congelamento Passes Navegante\n[CongNav[B", MES, "]] (€)")
+names(tab5)[2] <- paste0("Transferência\n[F", MES, "]")
+names(tab5)[3] <- paste0("Congelamento\nPasses\nNavegante\n[CongNav[B", MES, "]]")
 names(tab5)[4] <- paste0("[F", MES, "] +\n[CongNav[B", MES, "]]")
-names(tab5)[5] <- "Transferência entre\noperadores (€)"
-names(tab5)[6] <- "TOTAL a transferir\npela TML (€)"
-names(tab5)[7] <- "% do montante total a\ntransferir a cada Operador(1)"
+names(tab5)[5] <- "Transferência\nentre\noperadores"
+names(tab5)[6] <- "TOTAL a\ntransferir\npela TML"
+names(tab5)[7] <- "% total a\ntransferir\na cada\nOperador"
 
-tml_table(tab5, align = c("l", "r", "r", "r", "r", "r", "r"), caption = paste0("Montantes a transferir aos Operadores em ", mes_transf_nome, " de ", ano_transf, ", referentes ao apuramento provisório de ", mes_nome, " de ", ANO))
+tab5$Operador <- gsub("AT TML - CM", "AT\u00a0TML\u00a0\u2011\u00a0CM", tab5$Operador) # não permite a quebra depois do hifen
+
+tml_table(tab5, fontsize = 0.72, align = c("l", "r", "r", "r", "r", "r", "r"),
+  notes = "Na tabela, as percentagens apresentam-se com três casas decimais, porém o cálculo é realizado sem o arredondamento prévio da proporção.")
 ```
 
-*(1) Na tabela, as percentagens apresentam-se com três casas decimais, porém o cálculo é realizado sem o arredondamento prévio da proporção.*
+<!-- *(1) Na tabela, as percentagens apresentam-se com três casas decimais, porém o cálculo é realizado sem o arredondamento prévio da proporção.* -->
 
 A @tbl-6 apresenta a repartição, pela proveniência das verbas, do valor a transferir a cada operador.
 
 ```{r}
 #| label: tbl-6
+#| tbl-cap: "Faturação repartida pela origem das verbas"
 
 tab6 <- tabela_global %>%
   mutate(
@@ -663,7 +643,10 @@ tab6 <- tabela_global %>%
     `Parcela proveniente das verbas do Incentiva +TP` = inc_fmt
   )
 
-tml_table(tab6, align = c("l", "r", "r"), caption = "Faturação repartida pela origem das verbas")
+names(tab6)[2] <- "Parcela proveniente das verbas \ndos canais de receita partilhada"
+names(tab6)[3] <- "Parcela proveniente das verbas \ndo Incentiva +TP"
+
+tml_table(tab6, align = c("l", "r", "r"))
 ```
 
 # Evolução dos passageiros e da repartição das receitas de passes Navegante desde janeiro de `r min(as.integer(rac$ano[rac$Tipo == "Passageiros" & !is.na(rac$ano)]))`
@@ -949,7 +932,7 @@ if (incentiva_tp_pendente) {
 } else {
   cat(paste0(
     "    a.  Comunicar aos Operadores os valores das transferências aprovadas nas alíneas anteriores;\n",
-    "    c.  Autorizar a faturação e transferência integral dos valores aprovados na alínea 3)."
+    "    b.  Autorizar a faturação e transferência integral dos valores aprovados na alínea 3)."
   ))
 }
 ```
@@ -960,6 +943,7 @@ if (incentiva_tp_pendente) {
 
 ```{r}
 #| label: tbl-8
+#| tbl-cap: "Faturação parcelar"
 #| eval: !expr incentiva_tp_pendente
 
 tab8 <- tabela_global %>%
@@ -973,7 +957,9 @@ tab8 <- tabela_global %>%
     `Parcela a faturar após recebimento do Incentiva + TP` = inc_fmt
   )
 
-tml_table(tab8, align = c("l", "r", "r"), caption = "Faturação parcelar")
+  names(tab8)[3] <- paste0("Parcela a faturar após recebimento\ndo Incentiva + TP")
+
+tml_table(tab8, align = c("l", "r", "r"))
 ```
 
 
