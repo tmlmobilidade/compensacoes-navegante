@@ -511,16 +511,16 @@ tab2 <- tibble(
     paste0("Pagamento por conta mensal\nCOSP tarifária em ", mes_nome, " de ", ANO)
   ),
   `Fórmula` = c(
-    "[a]",
-    "[b]",
-    "[c] = [a] / [b]",
-    "NumNavExc",
-    "[d] = NumNavExc / [c]",
-    "[e] = [a] x [d]",
-    "[VMC]",
-    "CompNav =\nVMC / NumNavExc",
-    "[f]",
-    "[g] = [e] x\nCompNav x (1-[f])"
+    "$[a]$",
+    "$[b]$",
+    "$[c] = [a] slash [b]$",
+    "$\"NumNavExc\"$",
+    "$[d] = \"NumNavExc\" slash [c]$",
+    "$[e] = [a] times [d]$",
+    "$\"VMC\"$",
+    "$\"CompNav\" = frac(\"VMC\", \"NumNavExc\")$",
+    "$[f]$",
+    "$[g] = [e] times \"CompNav\" times (1 - [f])$"
   ),
   `Valor` = c(
     fmt_int(qty_total_mes),
