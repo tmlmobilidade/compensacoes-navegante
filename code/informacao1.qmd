@@ -36,6 +36,23 @@ execute:
 # (ajustar aqui o que for relativo a esta emissão da Informação)
 # =============================================================================
 
+# Datas de disponibilização dos dados de bilhética (DITS e ITS)
+data_dados_dits   <- "31 de julho de 2026"
+data_dados_its    <- "7 de agosto de 2026"
+
+# Versão do processamento de distâncias Carris Metropolitana (Trino)
+load_version      <- 27
+
+# ---- Financiamento / Faturação ----------------------------------------------
+# TRUE  = Verba do Fundo Ambiental (Incentiva +TP) ainda NÃO transferida à data -> faturação parcelar
+# FALSE = Verba do FA já disponibilizada -> faturação total imediata
+incentiva_tp_pendente <- TRUE
+
+
+# ---- Referência e Datas -----------------------------------------------------
+numero_informacao <- "TML-XXXX-XXXX-INF-XXXX-DEP"
+data_documento    <- format(Sys.Date(), "%d/%m/%Y")
+
 # ---- Identificação e Autoria ------------------------------------------------
 de_pessoa1_nome  <- "Ana Isabel Capote Fernandes Rosado"
 de_pessoa1_cargo <- "Técnica Superior"
@@ -48,22 +65,6 @@ de_divisao       <- "Estudos e Planeamento - Sistemas de Transportes"
 para_pessoa_nome <- "Helena Catarina Mota Ferreira Tavares Marcelino"
 para_cargo       <- "Coordenadora"
 para_divisao     <- "Estudos e Planeamento - Sistemas de Transportes"
-
-# ---- Referência e Datas -----------------------------------------------------
-numero_informacao <- "TML-XXXX-XXXX-INF-XXXX-DEP"
-data_documento    <- format(Sys.Date(), "%d/%m/%Y")
-
-# Datas de disponibilização dos dados de bilhética (DITS e ITS)
-data_dados_dits   <- "31 de julho de 2026"
-data_dados_its    <- "7 de agosto de 2026"
-
-# Versão do processamento de distâncias Carris Metropolitana (Trino)
-load_version      <- 27
-
-# ---- Financiamento / Faturação ----------------------------------------------
-# TRUE  = Verba do Fundo Ambiental (Incentiva +TP) ainda NÃO transferida à data -> faturação parcelar
-# FALSE = Verba do FA já disponibilizada -> faturação total imediata
-incentiva_tp_pendente <- TRUE
 ```
 
 ```{r}
@@ -333,6 +334,9 @@ if (!ja_existe_mes) {
 
 # Informação n.º `r numero_informacao` {.unnumbered}
 
+```{=typst}
+#v(1cm)
+```
 ::::: {style="font-size: 0.8em;"}
 
 :::: {layout-ncol=2}
@@ -357,19 +361,24 @@ if (!ja_existe_mes) {
 
 :::::
 
-\vspace{0.5cm}
 
 **Assunto: Apuramento provisório do mês de `r mes_nome` de `r ANO` e cálculo dos montantes a transferir aos operadores de transporte público ou às autoridades de transporte, em `r mes_transf_nome` de `r ano_transf`, no âmbito do Regulamento n.º 278-A/2019 da AML, na sua redação atual**
 
+```{=typst}
+#v(1cm)
+```
+
 **PARECER/VISTO:**
 
-\vspace{1cm}
+```{=typst}
+#v(2cm)
+```
 
 **DESPACHOS:**
 
-\vspace{1cm}
-
-\hline
+```{=typst}
+#v(2cm)
+```
 
 # Enquadramento
 
@@ -935,16 +944,18 @@ tml_table(tab8, align = c("l", "r", "r"))
 
 Quando aprovado o seu pagamento, os operadores e respetivas autoridades deverão ser notificados dos respetivos valores.
 
-\vspace{5.5cm}
+```{=typst}
+#v(2cm)
+```
 
 `r data_documento`
 
-\vspace{1cm}
+```{=typst}
+#v(1cm)
+```
 
 `r de_pessoa1_nome`\
 `r de_pessoa1_cargo`
-
-\vspace{0.5cm}
 
 `r de_pessoa2_nome`\
 `r de_pessoa2_cargo`
