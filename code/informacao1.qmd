@@ -3,6 +3,8 @@ lang: pt
 format:
   typst:
     papersize: a4
+    linestretch: 1.2
+    mainfont: "Lexend" # não parece sério
     margin:
       x: 3.0cm
       y: 3.0cm
