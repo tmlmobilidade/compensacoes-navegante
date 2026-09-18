@@ -138,6 +138,34 @@ cor_border      <- "#e5b32b"  # Dourado para bordas
 cor_border_soft <- "#D9D9D9"  # Cinzento suave para grelha
 cor_neg         <- "#FFC7CE"  # Fundo para excedentes negativos
 cor_zero        <- "#C6EFCE"  # Fundo para linhas a zero (MTS)
+cor_gray_text   <- "#A6A6A6"  # Cinzento mais claro para zeros e títulos sem atividade
+
+
+# Identificar títulos sem qualquer venda, receita ou validação no mês
+# (qty_total == 0 e receita_distribuir == 0 em rtd_raw)
+pt_totais <- if (exists("F_PT") && file.exists(F_PT)) {
+  df_pt <- read.csv2(F_PT, stringsAsFactors = FALSE, dec = ",")
+  df_pt |>
+    dplyr::mutate(ticket_code = as.integer(ticket_code),
+                  pt_operador = as.numeric(gsub(",", ".", pt_operador))) |>
+    dplyr::group_by(ticket_code) |>
+    dplyr::summarise(pt_total = sum(pt_operador, na.rm = TRUE), .groups = "drop")
+} else {
+  NULL
+}
+
+titulos_inativos <- rtd_raw |>
+  dplyr::left_join(if (!is.null(pt_totais)) pt_totais else tibble(ticket_code = integer(), pt_total = numeric()),
+                   by = "ticket_code") |>
+  dplyr::mutate(
+    pt_total = tidyr::replace_na(pt_total, 0),
+    sem_atividade = (qty_total == 0 | is.na(qty_total)) &
+                    (receita_distribuir == 0 | is.na(receita_distribuir)) &
+                    (pt_total == 0)
+  ) |>
+  dplyr::filter(sem_atividade) |>
+  dplyr::pull(ticket_code)
+
 
 wb <- createWorkbook()
 
@@ -461,18 +489,33 @@ n_q_rows <- nrow(quotas_out)
 for (i in seq_len(n_q_rows)) {
   rw <- i + 2
   fg <- if (i %% 2 == 0) cor_alt_row else cor_white
-  addStyle(wb, ws_q, createStyle(fgFill = fg, halign = "center", border = "LeftRight",
+
+  # Código, Designação e PVP sempre a cor normal
+  addStyle(wb, ws_q, createStyle(fgFill = fg, fontColour = cor_darkgray, halign = "center", border = "LeftRight",
                                  borderColour = cor_border_soft, fontSize = 9),
            rows = rw, cols = 1)
-  addStyle(wb, ws_q, createStyle(fgFill = fg, halign = "left", border = "LeftRight",
+  addStyle(wb, ws_q, createStyle(fgFill = fg, fontColour = cor_darkgray, halign = "left", border = "LeftRight",
                                  borderColour = cor_border_soft, fontSize = 9),
            rows = rw, cols = 2)
-  addStyle(wb, ws_q, createStyle(fgFill = fg, numFmt = "#,##0.00", halign = "right",
+  addStyle(wb, ws_q, createStyle(fgFill = fg, fontColour = cor_darkgray, numFmt = "#,##0.00", halign = "right",
                                  border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
            rows = rw, cols = 3)
-  addStyle(wb, ws_q, createStyle(fgFill = fg, numFmt = "0.0000%", halign = "right",
+
+  # Quotas dos operadores: se 0,00%, mostrar a cinzento claro; caso contrário em preto
+  for (j in seq_along(ordem_ops_sep)) {
+    c_idx <- 3 + j
+    val_q <- quotas_out[[ordem_ops_sep[j]]][i]
+    f_col <- if (!is.na(val_q) && val_q == 0) cor_gray_text else cor_darkgray
+
+    addStyle(wb, ws_q, createStyle(fgFill = fg, fontColour = f_col, numFmt = "0.0000%", halign = "right",
+                                   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = c_idx)
+  }
+
+  # Coluna Total Quota sempre a preto (cor normal)
+  addStyle(wb, ws_q, createStyle(fgFill = fg, fontColour = cor_darkgray, numFmt = "0.0000%", halign = "right",
                                  border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-           rows = rw, cols = 4:n_q_cols, gridExpand = TRUE)
+           rows = rw, cols = n_q_cols)
 }
 
 setColWidths(wb, ws_q, cols = 1, widths = 8)
@@ -704,19 +747,22 @@ for (i in seq_len(n_det)) {
     addStyle(wb, ws_ak, st_total_int, rows = rw, cols = c(4, 6, 8), gridExpand = TRUE)
     addStyle(wb, ws_ak, st_total_num, rows = rw, cols = c(5, 7, 9), gridExpand = TRUE)
   } else {
-    addStyle(wb, ws_ak, createStyle(fgFill = fg, halign = "center", border = "LeftRight",
+    t_cod <- detalhe_ak_full$ticket_code[i]
+    f_col <- if (!is.na(t_cod) && t_cod %in% titulos_inativos) cor_gray_text else cor_darkgray
+
+    addStyle(wb, ws_ak, createStyle(fgFill = fg, fontColour = f_col, halign = "center", border = "LeftRight",
                                    borderColour = cor_border_soft, fontSize = 9),
              rows = rw, cols = 1)
-    addStyle(wb, ws_ak, createStyle(fgFill = fg, halign = "left", border = "LeftRight",
+    addStyle(wb, ws_ak, createStyle(fgFill = fg, fontColour = f_col, halign = "left", border = "LeftRight",
                                    borderColour = cor_border_soft, fontSize = 9),
              rows = rw, cols = 2)
-    addStyle(wb, ws_ak, createStyle(fgFill = fg, numFmt = "#,##0.00", halign = "right",
+    addStyle(wb, ws_ak, createStyle(fgFill = fg, fontColour = f_col, numFmt = "#,##0.00", halign = "right",
                                    border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
              rows = rw, cols = 3)
-    addStyle(wb, ws_ak, createStyle(fgFill = fg, numFmt = "#,##0", halign = "right",
+    addStyle(wb, ws_ak, createStyle(fgFill = fg, fontColour = f_col, numFmt = "#,##0", halign = "right",
                                    border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
              rows = rw, cols = c(4, 6, 8), gridExpand = TRUE)
-    addStyle(wb, ws_ak, createStyle(fgFill = fg, numFmt = "#,##0.00", halign = "right",
+    addStyle(wb, ws_ak, createStyle(fgFill = fg, fontColour = f_col, numFmt = "#,##0.00", halign = "right",
                                    border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
              rows = rw, cols = c(5, 7, 9), gridExpand = TRUE)
   }
@@ -1086,19 +1132,22 @@ for (i in seq_len(n_det_rows)) {
     addStyle(wb, ws_cosp, st_total_int, rows = rw, cols = 4:5, gridExpand = TRUE)
     addStyle(wb, ws_cosp, st_total_num, rows = rw, cols = 6:n_det_cols, gridExpand = TRUE)
   } else {
-    addStyle(wb, ws_cosp, createStyle(fgFill = fg, halign = "center", border = "LeftRight",
+    t_cod <- cosp_wide_out$ticket_code[i]
+    f_col <- if (!is.na(t_cod) && t_cod %in% titulos_inativos) cor_gray_text else cor_darkgray
+
+    addStyle(wb, ws_cosp, createStyle(fgFill = fg, fontColour = f_col, halign = "center", border = "LeftRight",
                                       borderColour = cor_border_soft, fontSize = 9),
              rows = rw, cols = 1)
-    addStyle(wb, ws_cosp, createStyle(fgFill = fg, halign = "left", border = "LeftRight",
+    addStyle(wb, ws_cosp, createStyle(fgFill = fg, fontColour = f_col, halign = "left", border = "LeftRight",
                                       borderColour = cor_border_soft, fontSize = 9),
              rows = rw, cols = 2)
-    addStyle(wb, ws_cosp, createStyle(fgFill = fg, numFmt = "#,##0.00", halign = "right",
+    addStyle(wb, ws_cosp, createStyle(fgFill = fg, fontColour = f_col, numFmt = "#,##0.00", halign = "right",
                                       border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
              rows = rw, cols = 3)
-    addStyle(wb, ws_cosp, createStyle(fgFill = fg, numFmt = "#,##0", halign = "right",
+    addStyle(wb, ws_cosp, createStyle(fgFill = fg, fontColour = f_col, numFmt = "#,##0", halign = "right",
                                       border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
              rows = rw, cols = 4:5, gridExpand = TRUE)
-    addStyle(wb, ws_cosp, createStyle(fgFill = fg, numFmt = "#,##0.00", halign = "right",
+    addStyle(wb, ws_cosp, createStyle(fgFill = fg, fontColour = f_col, numFmt = "#,##0.00", halign = "right",
                                       border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
              rows = rw, cols = 6:n_det_cols, gridExpand = TRUE)
   }
