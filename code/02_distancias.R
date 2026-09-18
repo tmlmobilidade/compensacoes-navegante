@@ -30,23 +30,20 @@ PT_mesano  <- read.csv2(F_PT,
 
 # ---- 1. Distâncias dinâmicas APEX (CM e CAP) ---------------------------------
 # Ficheiro exportado do Oracle PDBDWPROD (procurar em INPUT_DIR ou REPLICATE_DIR)
-apex_files <- list.files(
-  c(INPUT_DIR, REPLICATE_DIR),
-  pattern = "*V_REG_AVERAGE_DISTANCE_FINAL_ALL.*\\.csv$",
-  full.names = TRUE
-)
-apex_files <- unique(apex_files)
+# Regra: 1. Ficheiro mais recente com "AVERAGE_DISTANCE" (pelo timestamp no nome)
+#        2. Se houver mais do que um com a mesma data, usar o que diz "_update"
+apex_file <- if (exists("F_APEX_DISTANCIAS") && !is.null(F_APEX_DISTANCIAS) && file.exists(F_APEX_DISTANCIAS)) {
+  F_APEX_DISTANCIAS
+} else {
+  selecionar_ficheiro_recente(
+    c(INPUT_DIR, REPLICATE_DIR),
+    pattern_pref = "AVERAGE_DISTANCE.*\\.csv$"
+  )
+}
 
-if (length(apex_files) == 0)
+if (is.null(apex_file) || !file.exists(apex_file))
   stop("Ficheiro de distâncias APEX não encontrado em: ", INPUT_DIR)
 
-# Usar o ficheiro mais recente (preferir ficheiro com "update" no nome, se existir)
-update_files <- grep("update", apex_files, ignore.case = TRUE, value = TRUE)
-apex_file <- if (length(update_files) > 0) {
-  tail(sort(update_files), 1)
-} else {
-  tail(sort(apex_files), 1)
-}
 message("Ficheiro APEX: ", basename(apex_file))
 
 # Ler (separador ";" com vírgula decimal é possível — verificar)

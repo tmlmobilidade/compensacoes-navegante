@@ -55,9 +55,11 @@ F_TRANSFERENCIAS <- file.path(OUT_DIR, paste0("6_transferencias_",           SUF
 F_TABELA_XLSX   <- file.path(OUT_DIR, paste0("Anexo_calculos_",              SUFIXO, ".xlsx"))
 
 # ---- Função auxiliar para selecção de ficheiros recentes ---------------------
-#' Seleciona o ficheiro mais recente que corresponda a um padrão,
-#' dando prioridade a ficheiros com '_update' ou 'update' no nome,
-#' e em seguida ao timestamp numérico mais recente no nome (ou mtime).
+#' Seleciona o ficheiro mais recente que corresponda a um padrão.
+#' Regras:
+#' 1. Usar o ficheiro mais recente pelo timestamp de data no nome (YYYYMMDD...);
+#' 2. Se houver mais do que um ficheiro com a mesma data mais recente, preferir o que diz "_update" (ou "update");
+#' 3. Desempate final pelo timestamp completo mais recente (ou mtime).
 selecionar_ficheiro_recente <- function(diretorias, pattern_pref, pattern_fallback = NULL) {
   files <- list.files(diretorias, pattern = pattern_pref, ignore.case = TRUE, full.names = TRUE)
   if (length(files) == 0 && !is.null(pattern_fallback)) {
@@ -65,32 +67,57 @@ selecionar_ficheiro_recente <- function(diretorias, pattern_pref, pattern_fallba
   }
   files <- unique(files)
   if (length(files) == 0) return(NULL)
+  if (length(files) == 1) return(files[1])
 
-  # Se houver ficheiros com "_update" ou "update", dar prioridade a esses
-  update_files <- grep("update", files, ignore.case = TRUE, value = TRUE)
-  alvos <- if (length(update_files) > 0) update_files else files
-
-  if (length(alvos) == 1) return(alvos[1])
-
-  # Determinar o timestamp mais recente entre os alvos
-  extrair_ts <- function(p) {
+  info <- lapply(files, function(p) {
     fname <- basename(p)
-    # Extrair sequência de 8 a 14 dígitos (ex: 202609111613 ou 20260911_1613)
-    m <- regmatches(fname, gregexpr("\\b\\d{8}(_?\\d{4,6})?\\b|\\d{8,14}", fname))[[1]]
+    # Extrair sequência de 8 a 14 dígitos (ex: 202609171208 ou 20260911_1613 ou 20260911)
+    m <- regmatches(fname, gregexpr("\\b20\\d{6,12}\\b|\\d{8,14}", fname))[[1]]
+    has_update <- grepl("update", fname, ignore.case = TRUE)
     if (length(m) > 0) {
       digs <- gsub("[^0-9]", "", tail(m, 1))
-      digs_pad <- substr(paste0(digs, "00000000000000"), 1, 14)
-      val <- as.numeric(digs_pad)
-      if (!is.na(val)) return(val)
+      date_8 <- as.numeric(substr(digs, 1, 8))
+      ts_full <- as.numeric(substr(paste0(digs, "00000000000000"), 1, 14))
+      has_ts <- TRUE
+    } else {
+      # Fallback: mtime do ficheiro se não houver timestamp no nome
+      fi <- suppressWarnings(file.info(p))
+      mtime <- if (!is.na(fi$mtime[1])) fi$mtime[1] else as.POSIXct("1970-01-01")
+      date_8 <- as.numeric(format(mtime, "%Y%m%d"))
+      ts_full <- as.numeric(format(mtime, "%Y%m%d%H%M%S"))
+      has_ts <- FALSE
     }
-    # Fallback: mtime do ficheiro formatado como YYYYMMDDHHMMSS
-    as.numeric(format(file.info(p)$mtime, "%Y%m%d%H%M%S"))
+    data.frame(path = p, fname = fname, date_8 = date_8, ts_full = ts_full,
+               has_update = has_update, has_ts = has_ts,
+               mtime = as.numeric(file.info(p)$mtime),
+               stringsAsFactors = FALSE)
+  })
+  df <- do.call(rbind, info)
+
+  # Regra 1: Filtrar para a data mais recente no nome (date_8)
+  max_date <- max(df$date_8)
+  candidatos <- df[df$date_8 == max_date, ]
+
+  # Regra 2: Se houver mais do que um com a mesma data mais recente,
+  # dar prioridade ao que diz "_update"
+  if (nrow(candidatos) > 1) {
+    candidatos_up <- candidatos[candidatos$has_update, ]
+    if (nrow(candidatos_up) > 0) {
+      candidatos <- candidatos_up
+    }
   }
 
-  datas <- sapply(alvos, extrair_ts)
-  alvos_ordenados <- alvos[order(datas, alvos)]
-  tail(alvos_ordenados, 1)
+  # Desempate por timestamp completo mais recente, mtime e nome de ficheiro
+  candidatos <- candidatos[order(candidatos$ts_full, candidatos$mtime, candidatos$fname, decreasing = TRUE), ]
+  candidatos$path[1]
 }
+
+# Ficheiro Oracle com distâncias APEX (CM e CAP)
+# Padrão: ficheiro com AVERAGE_DISTANCE no nome (ignora distancias_dinamicas)
+F_APEX_DISTANCIAS <- selecionar_ficheiro_recente(
+  c(INPUT_DIR, REPLICATE_DIR),
+  pattern_pref = "AVERAGE_DISTANCE.*\\.csv$"
+)
 
 # Ficheiro Oracle com validações TT (entity 5) e SL (entity 8) — query 2b de query_SL_TT.sql
 # Exportado de PDBDWPROD: DW_PROC.F_VALIDATIONS com ENTITY_ID IN (5,8), TICKET_OPERATOR_CODE=31
@@ -102,7 +129,7 @@ SL_RUN_CODE  <- 7L    # RUN_CODE do ferry Soflusa/Barreiro — identifica valida
 
 F_TT_SL_VALIDACOES <- selecionar_ficheiro_recente(
   c(INPUT_DIR, REPLICATE_DIR),
-  pattern_pref     = "(^|_)tt_sl.*\\.csv$",
+  pattern_pref     = "tt_sl.*\\.csv$",
   pattern_fallback = "(validacoes_TT_SL|TICKET_OPERATOR).*\\.csv$"
 )
 
@@ -110,7 +137,7 @@ F_TT_SL_VALIDACOES <- selecionar_ficheiro_recente(
 # Padrão: entity23_*(timestamp).csv (ou fallback CM_viva / PV_CM)
 F_CM_VIVA_VALIDACOES <- selecionar_ficheiro_recente(
   c(INPUT_DIR, REPLICATE_DIR),
-  pattern_pref     = "(^|_)entity_?23.*\\.csv$",
+  pattern_pref     = "entity_?23.*\\.csv$",
   pattern_fallback = "(CM_viva|PV_CM).*\\.csv$"
 )
 

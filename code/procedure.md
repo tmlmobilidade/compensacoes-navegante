@@ -243,9 +243,15 @@ ORDER BY TICKET_CODE, AREA_CM;
 
 > [!TIP]
 > **Regra de Seleção Automática de Ficheiros:**
-> - Ao exportar, grava os ficheiros com os prefixos `tt_sl_` e `entity23_` seguidos de timestamp (ex.: `tt_sl_202609111613.csv`).
-> - Se precisares de atualizar um ficheiro, podes adicionar `_update` ao nome (ex.: `tt_sl_202609111613_update.csv`). O script dá **prioridade máxima aos ficheiros com `_update`**.
-> - Se houver múltiplos ficheiros (ou múltiplos updates), o script seleciona automaticamente o de **timestamp mais recente**.
+> O script seleciona automaticamente os ficheiros de input em `{MES_ANO}_replicate/input/` segundo a seguinte hierarquia:
+> 1. **Ficheiro mais recente pela data/timestamp no nome** (formato numérico `YYYYMMDD...`);
+> 2. **Se houver mais do que um ficheiro com a mesma data**, usar o que diz `_update` (ou `update`) no nome (ex.: `..._update.csv`);
+> 3. Em caso de empate, desempate pelo timestamp completo mais recente (ou `mtime`).
+> 
+> Esta regra aplica-se de forma uniforme e transversal a:
+> - **Distâncias médias APEX**: qualquer ficheiro com `AVERAGE_DISTANCE` no nome (ex.: `PDBDWPROD_V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv` ou `V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv`; ficheiros como `distancias_dinamicas` são ignorados);
+> - **Tabelas de validações TT / SL**: ficheiros com `tt_sl` no nome (ex.: `tt_sl_*.csv`);
+> - **Tabelas de fiscais móveis CM**: ficheiros com `entity23` no nome (ex.: `entity23_*.csv`).
 
 **Comportamento em Fallback (se os ficheiros não existirem em `input/`):**
 - TT/SL: assume TT como TT+SL e ignora SL (emitindo um aviso no console).
@@ -291,8 +297,11 @@ where distribution_month = 05 and distribution_year = 2026;  -- Alterar ano e m�
 ```
 
 que, carregando em "Export data" em csv, separado por ;, me dá o resultado em:
-- `05_mai_2026_replicate/input/V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv`
-- `06_jun_2026_replicate/input/V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv`
+- `05_mai_2026_replicate/input/` (ex.: `PDBDWPROD_V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv` ou `V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv`)
+- `06_jun_2026_replicate/input/`
+
+> [!NOTE]
+> O script seleciona automaticamente o ficheiro mais recente com `AVERAGE_DISTANCE` no nome pelo timestamp de data (preferindo `_update` se houver empate de data). Ficheiros com outros nomes (como `distancias_dinamicas`) são ignorados.
 
 Deste ficheiro, preciso do `TICKET_CODE_REF`, `ENTITY_ID` e `CALC_FINAL_VALUE` - que já tem a distância média calculada internamente, para estes operadores (`ENTITY_ID`) e para cada título.
 
