@@ -7,6 +7,14 @@
 ANO <- if (!is.na(Sys.getenv("ANO", unset = NA))) as.integer(Sys.getenv("ANO")) else 2026
 MES <- if (!is.na(Sys.getenv("MES", unset = NA))) as.integer(Sys.getenv("MES")) else 5      # 5 = maio, 6 = junho, etc.
 
+# ---- Renderização de Documentos (Quarto) -------------------------------------
+# Parâmetros booleanos para controlar se os documentos devem ser renderizados
+# e guardados na pasta de destino (output/docs/)
+RENDER_INFORMACAO1 <- if (!is.na(Sys.getenv("RENDER_INFORMACAO1", unset = NA))) as.logical(Sys.getenv("RENDER_INFORMACAO1")) else TRUE
+RENDER_OFICIO1     <- if (!is.na(Sys.getenv("RENDER_OFICIO1", unset = NA))) as.logical(Sys.getenv("RENDER_OFICIO1")) else FALSE
+RENDER_OFICIO2     <- if (!is.na(Sys.getenv("RENDER_OFICIO2", unset = NA))) as.logical(Sys.getenv("RENDER_OFICIO2")) else FALSE
+RENDER_DOCX        <- FALSE   # Ignorar Word (DOCX) por agora; focar apenas em PDF (Typst)
+
 # ---- Caminhos base -----------------------------------------------------------
 BASE_DIR <- here::here()   # raiz do projecto (onde está o code/)
 LISTS_DIR  <- file.path(BASE_DIR, "lists")
@@ -25,14 +33,16 @@ DATA_DIR      <- file.path(BASE_DIR, mes_ano)
 REPLICATE_DIR <- file.path(BASE_DIR, paste0(mes_ano, "_replicate")) # estava a usar este para output intermédio, mas ajustar para input/output final
 INPUT_DIR     <- file.path(REPLICATE_DIR, "input")
 OUT_DIR       <- file.path(REPLICATE_DIR, "output")
+DOCS_DIR      <- file.path(OUT_DIR, "docs")
 
 # Sufixo para nomes de ficheiros de output: paste0(mes_abrev, ano curto)
 # ex: "mai26", "jun26"
 SUFIXO <- paste0(mes_abrev, substr(as.character(ANO), 3, 4))
 
-# Criar pastas de input e output se não existirem
+# Criar pastas de input, output e docs se não existirem
 dir.create(INPUT_DIR, showWarnings = FALSE, recursive = TRUE)
 dir.create(OUT_DIR,   showWarnings = FALSE, recursive = TRUE)
+dir.create(DOCS_DIR,  showWarnings = FALSE, recursive = TRUE)
 
 # ---- Nomes de ficheiros de output (centralizados) ----------------------------
 # Todos os ficheiros intermédios e finais usam SUFIXO no nome.
@@ -53,6 +63,14 @@ F_D_OPERADOR    <- file.path(OUT_DIR, paste0("5_cosp_operador_",             SUF
 F_VAT           <- file.path(OUT_DIR, paste0("1d_validacoes_",               SUFIXO, ".csv"))
 F_TRANSFERENCIAS <- file.path(OUT_DIR, paste0("6_transferencias_",           SUFIXO, ".csv"))
 F_TABELA_XLSX   <- file.path(OUT_DIR, paste0("Anexo_calculos_",              SUFIXO, ".xlsx"))
+
+# Ficheiros de relatórios e ofícios (Quarto)
+F_DOC_INFO1_PDF    <- file.path(DOCS_DIR, paste0("informacao1_", SUFIXO, ".pdf"))
+F_DOC_INFO1_DOCX   <- file.path(DOCS_DIR, paste0("informacao1_", SUFIXO, ".docx"))
+F_DOC_OFICIO1_PDF  <- file.path(DOCS_DIR, paste0("oficio1_",      SUFIXO, ".pdf"))
+F_DOC_OFICIO1_DOCX <- file.path(DOCS_DIR, paste0("oficio1_",      SUFIXO, ".docx"))
+F_DOC_OFICIO2_PDF  <- file.path(DOCS_DIR, paste0("oficio2_",      SUFIXO, ".pdf"))
+F_DOC_OFICIO2_DOCX <- file.path(DOCS_DIR, paste0("oficio2_",      SUFIXO, ".docx"))
 
 # ---- Função auxiliar para selecção de ficheiros recentes ---------------------
 #' Seleciona o ficheiro mais recente que corresponda a um padrão.

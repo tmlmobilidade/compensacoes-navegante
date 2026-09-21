@@ -12,6 +12,7 @@ Replica com precisão matemática a metodologia regulamentar (Regulamento n.º 1
 - **Compensação por Obrigações de Serviço Público — COSP (D)**
 - **Apuramento Final de Transferências Financeiras (F)**
 - **Relatório Oficial em Excel (XLSX)**: Quadro cruzado de 14 colunas com transferências entre operadores (MTS/FT), rateio de canais partilhados (Total K) e verbas do Incentiva +TP
+- **Documentos Técnicos Oficiais (PDF via Typst)**: Geração automatizada e imediata da Informação Técnica e Ofícios de pagamento em PDF de alta qualidade gráfica via Quarto e Typst, com tabelas dinâmicas padronizadas (`tinytable`).
 
 ---
 
@@ -34,10 +35,10 @@ Colocar em `{MES}_{mes_abrev}_{ANO}/Recibos B/`:
 Executar as seguintes consultas na base de dados Oracle e exportar os CSVs (separador `;`) para `{MES}_{mes_abrev}_{ANO}_replicate/input/`:
 
 
-| Ficheiro a gravar em`input/`                        | Consulta / Script                                                                                                        | Objetivo                                                                                        |
+| Ficheiro a gravar em `input/`                        | Consulta / Script                                                                                                        | Objetivo                                                                                        |
 | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | `V_REG_AVERAGE_DISTANCE_FINAL_ALL_*(timestamp).csv` | `SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = <MES> AND distribution_year = <ANO>;` | Distâncias médias dinâmicas APEX para Carris Metropolitana (`75`) e Cascais Próxima (`22`). |
-| `tt_sl_*(timestamp).csv`                            | [`code/query_SL_TT.sql`](code/query_SL_TT.sql) (Query 2b)                                                                | Rácios de georreferenciação por`RUN_CODE` para separar Transtejo (`TT`) de Soflusa (`SL`).   |
+| `tt_sl_*(timestamp).csv`                            | [`code/query_SL_TT.sql`](code/query_SL_TT.sql) (Query 2b)                                                                | Rácios de georreferenciação por `RUN_CODE` para separar Transtejo (`TT`) de Soflusa (`SL`).   |
 | `entity23_*(timestamp).csv`                         | [`code/query_CM_fiscaismoveis.sql`](code/query_CM_fiscaismoveis.sql) (Query 2c)                                          | Validações em terminais móveis dos fiscais da Carris Metropolitana (`ENTITY_ID = 23`).       |
 
 > **Dica de versionamento de ficheiros:**
@@ -49,13 +50,19 @@ Executar as seguintes consultas na base de dados Oracle e exportar os CSVs (sepa
 
 ## 🚀 Como Executar
 
-### Passo 1: Configuração do Mês/Ano
+### Passo 1: Configuração do Mês/Ano e Opções
 
-Edita o ficheiro [`code/config.R`](code/config.R) para definir o ano e o mês:
+Edita o ficheiro [`code/config.R`](code/config.R) para definir o ano, o mês e as opções de renderização de documentos:
 
 ```r
 ANO <- 2026
 MES <- 5       # 5 = Maio, 6 = Junho, etc.
+
+# Controlo de Documentos (Quarto / Typst)
+RENDER_INFORMACAO1 <- TRUE   # Gerar Informação 1 (PDF)
+RENDER_OFICIO1     <- FALSE  # Gerar Ofício 1 (em preparação)
+RENDER_OFICIO2     <- FALSE  # Gerar Ofício 2 (em preparação)
+RENDER_DOCX        <- FALSE  # FALSE desativa Word; renderização rápida e fiel em Typst PDF
 ```
 
 *(Em alternativa, podes passar variáveis de ambiente: `ANO=2026 MES=5 Rscript code/99_run_all.R`)*
@@ -66,15 +73,47 @@ MES <- 5       # 5 = Maio, 6 = Junho, etc.
 Rscript code/00_setup.R
 ```
 
-*(Verifica e instala automaticamente os pacotes: `tidyverse`, `readxl`, `writexl`, `janitor`, `glue`, `here`, `lubridate`, `scales`, `openxlsx`)*
+*(Instala e valida os pacotes R: `tidyverse`, `readxl`, `writexl`, `janitor`, `glue`, `here`, `lubridate`, `scales`, `openxlsx`, `tinytable`. Requer também o [Quarto CLI](https://quarto.org) instalado no sistema para compilação Typst).*
 
 ### Passo 3: Executar o Pipeline Completo
+
+Para correr todo o cálculo matemático e gerar automaticamente os documentos configurados:
 
 ```bash
 Rscript code/99_run_all.R
 ```
 
-Tempo de execução típico: **~3 a 4 segundos**.
+O pipeline executa os cálculos (passos 01 a 08) em ~3 segundos e compila os documentos ativos (passo 10) em ~10 segundos.
+
+---
+
+## 📄 Como Gerar os Documentos (Informações e Ofícios)
+
+Os relatórios técnicos usam **Quarto** com o backend **Typst** e o pacote **`tinytable`**, produzindo ficheiros PDF de elevada qualidade gráfica com paginação profissional, totais em negrito e notas ajustadas.
+
+### Opção A: No Pipeline Geral (Recomendado)
+Ao executar `Rscript code/99_run_all.R`, o script mestre executa automaticamente o passo `code/10_documentos.R` caso `RENDER_INFORMACAO1` (ou dos ofícios) esteja como `TRUE` em `code/config.R`.
+
+### Opção B: Renderização Isolada (Rápida)
+Se os cálculos já tiverem sido executados e quiseres apenas recompilar a Informação 1 (por exemplo, após rever o texto ou os parâmetros no documento):
+
+```bash
+# Executa todos os documentos ativos em config.R:
+Rscript code/10_documentos.R
+
+# Ou executa diretamente a Informação 1:
+Rscript code/render_informacao1.R
+```
+
+### Personalização da Emissão
+No cabeçalho de [`code/informacao1.qmd`](code/informacao1.qmd), podes ajustar os parâmetros específicos da emissão do mês:
+- `data_dados_dits` e `data_dados_its`: datas de receção dos dados de bilhética;
+- `load_version`: versão do cálculo de distâncias Trino/APEX;
+- `incentiva_tp_pendente`: `TRUE` se o Fundo Ambiental ainda não tiver transferido a dotação (recomenda faturação parcelar), ou `FALSE` se o montante já estiver disponível;
+- `numero_informacao` e intervenientes técnicos.
+
+Os documentos PDF gerados são gravados diretamente na subpasta:
+`{MES}_{mes_abrev}_{ANO}_replicate/output/docs/informacao1_{SUFIXO}.pdf`
 
 ---
 
@@ -84,7 +123,8 @@ Os resultados são gerados na pasta `{MES}_{mes_abrev}_{ANO}_replicate/output/` 
 
 | Ficheiro | Descrição |
 | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`tabela_transferencias_{SUFIXO}.xlsx`**          | **Workbook Excel oficial consolidado**: <br>• `0 - Global`: Quadro oficial de 14 colunas com apuramento TML, acerto entre operadores (MTS $\rightarrow$ FT), rateio dos canais partilhados ($K$) e dotação Incentiva +TP.<br>• `1 - Quotas`: Matriz de quotas de repartição por título e operador.<br>• `2 - Vendas AK`: Resumo de bilheteiras (A) e canais externos (K).<br>• `4 - Receita B e CongNav B`: Síntese de receita devida e congelamento.<br>• `5 - Pag Conta COSP D`: Parâmetros regulamentares COSP e pagamentos.<br>• `6 - Transferencias F`: Formato longo por métrica. |
+| **`docs/informacao1_{SUFIXO}.pdf`**                 | **Relatório Oficial da Informação 1 (PDF via Typst)**: Documento técnico completo com narrativa formal, fórmulas, quadros explicativos e Tabelas 1 a 8 formatadas com `tinytable`. |
+| **`Anexo_calculos_{SUFIXO}.xlsx`**                  | **Workbook Excel oficial consolidado**: <br>• `0 - Global`: Quadro oficial de 14 colunas com apuramento TML, acerto entre operadores (MTS $\rightarrow$ FT), rateio dos canais partilhados ($K$) e dotação Incentiva +TP.<br>• `1 - Quotas`: Matriz de quotas de repartição por título e operador.<br>• `2 - Vendas AK`: Resumo de bilheteiras (A) e canais externos (K).<br>• `4 - Receita B e CongNav B`: Síntese de receita devida e congelamento.<br>• `5 - Pag Conta COSP D`: Parâmetros regulamentares COSP e pagamentos.<br>• `6 - Transferencias F`: Formato longo por métrica. |
 | **`6_transferencias_{SUFIXO}.csv`**                | **Tabela final de compensações (CSV)**: receitas na posse (`receita_A`), receitas devidas (`receita_B`), saldo (`saldo_C`), COSP (`cosp_D`), saldo global (`SG`), transferências (`F_transferencia`), congelamento (`congelamento_B`) e total a transferir por operador. |
 | `1a_PT_{SUFIXO}.csv`                                | Passageiros transportados (validações) agregados por título e operador.                                                                                               |
 | `1b_PT_CM_{SUFIXO}.csv`                             | Agregação explícita das áreas A1 a A4 + fiscais móveis da Carris Metropolitana.                                                                                      |
@@ -107,8 +147,8 @@ Os resultados são gerados na pasta `{MES}_{mes_abrev}_{ANO}_replicate/output/` 
 ```
 Compensacoes/
 ├── code/
-│   ├── config.R                  # Configuração global de caminhos e parâmetros regulamentares
-│   ├── 00_setup.R                # Gestão e instalação de dependências R
+│   ├── config.R                  # Configuração global de caminhos, parâmetros e flags de documentos
+│   ├── 00_setup.R                # Gestão e instalação de dependências R (tidyverse, tinytable, etc.)
 │   ├── 01_recibos_b.R            # Agregação dos Recibos B e reconciliação Oracle
 │   ├── 02_distancias.R           # Distâncias médias (APEX dinâmicas e estáticas)
 │   ├── 03_quotas.R               # Cálculo de PKM e quotas de distribuição
@@ -117,7 +157,12 @@ Compensacoes/
 │   ├── 06_cosp_D.R               # Cálculo da compensação COSP (D)
 │   ├── 07_transferencias_F.R     # Apuramento das transferências finais (F)
 │   ├── 08_tables.R               # Exportação do relatório consolidado em Excel (xlsx)
-│   ├── 99_run_all.R              # Script mestre de execução sequencial
+│   ├── 10_documentos.R           # Renderização e exportação de relatórios/ofícios (Typst PDF)
+│   ├── 99_run_all.R              # Script mestre de execução sequencial de todo o pipeline
+│   ├── informacao1.qmd           # Template Quarto para a Informação 1 (Typst)
+│   ├── render_informacao1.R      # Script de conveniência para renderizar apenas a Informação 1
+│   ├── utils_tables.R            # Funções de formatação de tabelas (tinytable) para Typst
+│   ├── custom_styles.typ         # Regras tipográficas e estilos customizados para Typst
 │   ├── procedure.md              # Documentação técnica e metodológica detalhada
 │   ├── query_SL_TT.sql           # Query Oracle para separação TT / SL (Query 2b)
 │   └── query_CM_fiscaismoveis.sql# Query Oracle para validações fiscais CM (Query 2c)

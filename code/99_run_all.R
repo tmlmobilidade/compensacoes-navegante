@@ -73,7 +73,8 @@ resultados <- list(
   "05_reparticao_B.R"     = run_step("05_reparticao_B.R",     "Repartição B + Congelamento"),
   "06_cosp_D.R"           = run_step("06_cosp_D.R",           "COSP (D)"),
   "07_transferencias_F.R" = run_step("07_transferencias_F.R", "Transferências (F)"),
-  "08_tables.R"           = run_step("08_tables.R",           "Exporta Excel final")
+  "08_tables.R"           = run_step("08_tables.R",           "Exporta Excel final"),
+  "10_documentos.R"       = run_step("10_documentos.R",       "Renderiza relatórios Quarto (PDF/Word)")
 )
 
 # ---- Sumário final -----------------------------------------------------------
@@ -98,11 +99,22 @@ cat(sprintf("Output em:         %s\n", OUT_DIR))
 
 # ---- Ficheiros gerados -------------------------------------------------------
 if (n_ok == length(resultados)) {
-  cat("\nFicheiros gerados:\n")
+  cat("\nFicheiros de cálculo gerados:\n")
   ficheiros_out <- list.files(OUT_DIR, pattern = "\\.(csv|xlsx)$", full.names = FALSE)
   for (f in sort(ficheiros_out)) {
     fsize <- file.size(file.path(OUT_DIR, f))
     cat(sprintf("  %-50s %6.1f KB\n", f, fsize / 1024))
+  }
+
+  if (dir.exists(DOCS_DIR)) {
+    docs_out <- list.files(DOCS_DIR, pattern = "\\.(pdf|docx)$", full.names = FALSE)
+    if (length(docs_out) > 0) {
+      cat("\nDocumentos gerados (em output/docs/):\n")
+      for (d in sort(docs_out)) {
+        dsize <- file.size(file.path(DOCS_DIR, d))
+        cat(sprintf("  %-50s %6.1f KB\n", d, dsize / 1024))
+      }
+    }
   }
 
   # Mostrar tabela final de transferências

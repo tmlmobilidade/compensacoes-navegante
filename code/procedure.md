@@ -20,7 +20,12 @@ code/
 ├── 06_cosp_D.R               # Calcula COSP (D)
 ├── 07_transferencias_F.R     # Calcula transferências finais F
 ├── 08_tables.R               # Exporta tabela de transferências em Excel (xlsx)
-├── 99_run_all.R              # Script mestre — corre tudo em sequência
+├── 10_documentos.R           # Renderiza relatórios e ofícios (Typst PDF) em output/docs/
+├── 99_run_all.R              # Script mestre — corre tudo em sequência (incluindo docs)
+├── informacao1.qmd           # Template Quarto da Informação 1 (Typst)
+├── render_informacao1.R      # Script rápido para renderizar a Informação 1 isoladamente
+├── utils_tables.R            # Funções de formatação de tabelas com tinytable para Typst
+├── custom_styles.typ         # Estilos customizados e regras Typst
 ├── query_SL_TT.sql           # Query Oracle para separação TT/SL (Query 2b)
 └── query_CM_fiscaismoveis.sql # Query Oracle para fiscais móveis CM (Query 2c)
 ```
@@ -36,6 +41,11 @@ code/
 | `REPLICATE_DIR` | `05_mai_2026_replicate/` | Pasta de replicação do mês |
 | `INPUT_DIR` | `05_mai_2026_replicate/input/` | Pasta de inputs específicos do mês (ex: APEX distâncias) |
 | `OUT_DIR` | `05_mai_2026_replicate/output/` | Pasta de outputs gerados pelos scripts |
+| `DOCS_DIR` | `05_mai_2026_replicate/output/docs/` | Pasta de destino para relatórios e ofícios gerados |
+| `RENDER_INFORMACAO1` | `TRUE` | Booleano: controla a renderização da Informação 1 |
+| `RENDER_OFICIO1` | `FALSE` | Booleano: controla a renderização do Ofício 1 |
+| `RENDER_OFICIO2` | `FALSE` | Booleano: controla a renderização do Ofício 2 |
+| `RENDER_DOCX` | `FALSE` | Booleano: `FALSE` desativa Word (DOCX); compilação direta e rápida em Typst (PDF) |
 | `LISTS_DIR` | `lists/` | Tabelas estáticas de referência |
 | `DIST_REF_FILE` | `distanciasref_out21_incompleto.csv` | Distâncias de referência (verão → `ago21`) |
 | `APEX_ENTITY_IDS` | `c(75, 22)` | Entidades com distâncias dinâmicas (CM, CAP) |
@@ -67,6 +77,9 @@ As variáveis `F_*` em `config.R` centralizam todos os caminhos.
 | `F_D_OPERADOR` | `5_cosp_operador_{SUFIXO}.csv` | `06_cosp_D.R` | COSP total (D) por operador |
 | `F_TRANSFERENCIAS` | `6_transferencias_{SUFIXO}.csv` | `07_transferencias_F.R` | **Tabela final**: A, B, D, Congelamento, F, Total |
 | `F_TABELA_XLSX` | `Anexo_calculos_{SUFIXO}.xlsx` | `08_tables.R` | **Workbook Excel**: 6 folhas (0 - Global, 1 - Quotas, 2 - Vendas AK, 4 - Receita B e CongNav B, 5 - Pag Conta COSP D, 6 - Transferencias F) |
+| `F_DOC_INFO1_PDF` | `docs/informacao1_{SUFIXO}.pdf` | `10_documentos.R` | **Relatório da Informação 1** em formato Typst (PDF) de alta qualidade gráfica |
+| `F_DOC_OFICIO1_PDF`| `docs/oficio1_{SUFIXO}.pdf` | `10_documentos.R` | **Ofício 1** (pagamento imediato, a disponibilizar) |
+| `F_DOC_OFICIO2_PDF`| `docs/oficio2_{SUFIXO}.pdf` | `10_documentos.R` | **Ofício 2** (pagamento Incentiva, a disponibilizar) |
 
 ---
 
@@ -528,9 +541,54 @@ A COSP e o Congelamento são pagos pelo programa "Incentiva". O "Incentiva" é p
 
 # 7. Informações e Ofícios
 
-Faz-se 1 Informação interna (eg: `05_mai_2026/TML-I01880-20260807-INF-00256-DEP.docx`) e 2 ofícios, um deles para pagar já e o outro para pagar o remanescente quando o Incentiva for transferido.
+Faz-se 1 Informação interna (ex.: `TML-XXXX-XXXX-INF-XXXX-DEP`) e 2 ofícios, um deles para liquidação imediata (verbas já disponíveis da receita própria) e outro para liquidação quando a verba do programa Incentiva +TP for transferida pelo Fundo Ambiental.
 
-> Para Cascais não se paga nada todos os meses, e espera-se pelo acerto no final do ano devido à gratuitidade municipal que eles implementaram.
+> Para Cascais não se paga nada todos os meses, aguardando-se pelo acerto de contas no final do ano devido à gratuitidade municipal que implementaram.
+
+### Arquitetura de Geração de Documentos
+
+A produção dos relatórios é automatizada com **Quarto** e compilada através do motor **Typst** para gerar PDFs de alta fidelidade gráfica:
+
+- **Template Quarto**: [`code/informacao1.qmd`](informacao1.qmd)
+  - Carrega automaticamente os outputs de dados calculados nos passos anteriores (`01` a `08`) a partir de `config.R`.
+  - Contém a narrativa técnica, os quadros comparativos, fórmulas e as tabelas regulamentares (Tabelas 1 a 8).
+- **Formatação de Tabelas (`tinytable`)**: [`code/utils_tables.R`](utils_tables.R)
+  - Padroniza o aspeto visual das tabelas: cabeçalhos escuros (`#2c3e50`), linhas zebradas subtis, linhas de separação minimalistas, totais a negrito e notas de rodapé (`notes`) com tamanho de fonte reduzido (`0.75em`).
+  - Suporta quebras de linha manuais em cabeçalhos longos (ex.: Tabela 5) e rotação de títulos em tabelas largas em modo paisagem (Tabela 7).
+- **Estilos Tipográficos Typst**: [`code/custom_styles.typ`](custom_styles.typ)
+  - Regras nativas em Typst para espaçamento vertical entre linhas de tabela (`inset`), alinhamentos e quebras de página.
+- **Script de Pipeline**: [`code/10_documentos.R`](10_documentos.R)
+  - Executa a compilação de cada documento configurado como ativo em `config.R`.
+  - Copia o PDF resultante com o sufixo do mês diretamente para a pasta de destino `output/docs/` (ex: `informacao1_mai26.pdf`).
+
+### Parâmetros de Configuração
+
+1. **Em [`code/config.R`](config.R):**
+   - `RENDER_INFORMACAO1 <- TRUE`: Ativa a geração da Informação 1.
+   - `RENDER_OFICIO1     <- FALSE`: Ativa a geração do Ofício 1 (pagamento imediato, em preparação).
+   - `RENDER_OFICIO2     <- FALSE`: Ativa a geração do Ofício 2 (pagamento Incentiva, em preparação).
+   - `RENDER_DOCX        <- FALSE`: Desativa a conversão para Word (.docx), assegurando compilação ultrarrápida (~10s) e garantindo fidelidade de layout com Typst.
+
+2. **No bloco inicial de parâmetros de [`code/informacao1.qmd`](informacao1.qmd):**
+   - `data_dados_dits` e `data_dados_its`: Datas de disponibilização dos dados de bilhética.
+   - `load_version`: Versão do processamento de distâncias Carris Metropolitana (Trino/APEX).
+   - `incentiva_tp_pendente`: Booleano (`TRUE`/`FALSE`) que indica se a verba do Fundo Ambiental está pendente (ativando a recomendação de faturação parcelar) ou já transferida.
+   - `numero_informacao`, signatários e cargos para o fecho do documento.
+
+### Como Executar
+
+- **Em conjunto com toda a pipeline**:
+  ```bash
+  Rscript code/99_run_all.R
+  ```
+- **Apenas a geração de documentos**:
+  ```bash
+  Rscript code/10_documentos.R
+  # ou alternativamente:
+  Rscript code/render_informacao1.R
+  ```
+- **Output gerado**:
+  `{MES_ANO}_replicate/output/docs/informacao1_{SUFIXO}.pdf`
 
 
 # Outras notas

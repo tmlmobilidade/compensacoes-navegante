@@ -12,7 +12,8 @@ pkgs_needed <- c(
   "here",        # caminhos relativos robustos
   "lubridate",   # datas
   "scales",      # formatação de números
-  "openxlsx"     # criação e formatação avançada de Excel (.xlsx)
+  "openxlsx",    # criação e formatação avançada de Excel (.xlsx)
+  "tinytable"    # formatação de tabelas avançadas (Typst e HTML/PDF)
 )
 
 pkgs_missing <- pkgs_needed[!sapply(pkgs_needed, requireNamespace, quietly = TRUE)]
