@@ -357,6 +357,11 @@ total_row_g <- tibble(
 
 tabela_global <- bind_rows(transf_g_display, total_row_g)
 
+# Exportar tabela global como CSV (fonte única de verdade para o relatório)
+write.csv2(tabela_global, F_TABELA_GLOBAL, row.names = FALSE)
+message("Tabela global exportada: ", F_TABELA_GLOBAL)
+
+
 # Nomes de exibição
 names_global <- c(
   "Operador",

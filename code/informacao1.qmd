@@ -114,116 +114,34 @@ ano_transf      <- ANO + ((MES + 3 - 1) %/% 12)
 mes_transf_nome <- tolower(meses_pt_nome[mes_transf_num])
 
 # ---- Carregar Outputs das Fases Anteriores -----------------------------------
-transf_raw <- read.csv2(F_TRANSFERENCIAS, stringsAsFactors = FALSE, dec = ",")
-if ("congelamento_B" %in% names(transf_raw) && !"congelamento" %in% names(transf_raw)) {
-  transf_raw$congelamento <- transf_raw$congelamento_B
-}
-num_cols_tr <- c("receita_B", "congelamento", "receita_A", "cosp_D", "F_transferencia", "total_transferir")
-transf_raw[num_cols_tr] <- lapply(transf_raw[num_cols_tr], function(x) as.numeric(gsub(",", ".", x)))
-
 rtd_raw <- read.csv2(F_RTD, stringsAsFactors = FALSE, dec = ",")
 num_cols_rtd <- c("pvp", "receita_A_total", "qty_A_total", "qty_K", "receita_K", "qty_vat", "qty_total", "receita_distribuir")
 for (col in intersect(num_cols_rtd, names(rtd_raw))) {
   rtd_raw[[col]] <- as.numeric(gsub(",", ".", rtd_raw[[col]]))
 }
-total_K_val <- sum(rtd_raw$receita_K, na.rm = TRUE)
 
 # Nomes de operadores com TT e SL agregados (10 operadores)
 ordem_ops_merged <- c("CP", "FT", "TT + SL", "ML", "MTS", "Carris", "TCB", "AT Cascais", "AT TML - CM", "BT Oeste")
-nome_op_merged   <- c(
-  CP = "CP", FT = "FT", TT = "TT + SL", SL = "TT + SL", ML = "ML", MS = "MTS",
-  CA = "Carris", TB = "TCB", CAP = "AT Cascais", CM = "AT TML - CM", BQ = "BT Oeste"
-)
 
-# Mapear para TT + SL
-transf_g <- transf_raw %>%
-  mutate(nome_tab = nome_op_merged[operador]) %>%
-  filter(!is.na(nome_tab)) %>%
-  group_by(nome_tab) %>%
-  summarise(
-    receita_A        = sum(receita_A,        na.rm = TRUE),
-    receita_B        = sum(receita_B,        na.rm = TRUE),
-    congelamento     = sum(congelamento,     na.rm = TRUE),
-    cosp_D           = sum(cosp_D,           na.rm = TRUE),
-    F_transferencia  = sum(F_transferencia,  na.rm = TRUE),
-    total_transferir = sum(total_transferir, na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  mutate(
-    C  = receita_A - receita_B,
-    SG = C - cosp_D
-  )
+# ---- Carregar tabela global pré-calculada por 08_tables.R -------------------
+# A reconciliação de cêntimos e todos os cálculos de parcela_partilhada /
+# parcela_incentiva são feitos em 08_tables.R e exportados para F_TABELA_GLOBAL.
+# O relatório lê esse ficheiro directamente, sem recalcular nada,
+# garantindo consistência total com o XLSX exportado.
+tabela_global <- read.csv2(F_TABELA_GLOBAL, stringsAsFactors = FALSE, dec = ",")
 
-transf_g <- transf_g %>%
-  mutate(nome_tab = factor(nome_tab, levels = ordem_ops_merged)) %>%
-  arrange(nome_tab) %>%
-  mutate(nome_tab = as.character(nome_tab))
-
-# Excedente MTS
-mts_row <- transf_g %>% filter(nome_tab == "MTS")
-excedente_mts <- if (nrow(mts_row) > 0 && mts_row$total_transferir < 0) abs(mts_row$total_transferir) else 0
-
-transf_g_calc <- transf_g %>%
-  mutate(
-    transf_entre_ops = case_when(
-      nome_tab == "FT"  ~  excedente_mts,
-      nome_tab == "MTS" ~ -excedente_mts,
-      TRUE              ~ NA_real_
-    ),
-    total_tml = total_transferir + coalesce(-transf_entre_ops, 0),
-    total_transferir = round(total_transferir, 2),
-    total_tml        = round(total_tml, 2)
-  )
-
-soma_total_tml <- sum(transf_g_calc$total_tml, na.rm = TRUE)
-
-transf_g_calc <- transf_g_calc %>%
-  mutate(
-    pct = if (soma_total_tml > 0) total_tml / soma_total_tml else 0,
-    val_partilhada_raw = if_else(nome_tab == "MTS", 0, pct * total_K_val),
-    parcela_partilhada = round(val_partilhada_raw, 2)
-  )
-
-# Reconciliação de cêntimos de arredondamento em parcela_partilhada
-dif_centimos <- round(sum(transf_g_calc$parcela_partilhada, na.rm = TRUE) - total_K_val, 2)
-n_ajustes    <- as.integer(round(abs(dif_centimos) * 100))
-if (n_ajustes > 0) {
-  idx_validos <- which(transf_g_calc$nome_tab != "MTS")
-  residuos    <- transf_g_calc$parcela_partilhada[idx_validos] - transf_g_calc$val_partilhada_raw[idx_validos]
-  if (dif_centimos > 0) {
-    idx_ordenados <- idx_validos[order(-residuos)]
-    alvos <- head(idx_ordenados, n_ajustes)
-    transf_g_calc$parcela_partilhada[alvos] <- transf_g_calc$parcela_partilhada[alvos] - 0.01
-  } else {
-    idx_ordenados <- idx_validos[order(residuos)]
-    alvos <- head(idx_ordenados, n_ajustes)
-    transf_g_calc$parcela_partilhada[alvos] <- transf_g_calc$parcela_partilhada[alvos] + 0.01
-  }
+num_cols_tg <- c("receita_A", "receita_B", "C", "cosp_D", "SG",
+                 "F_transferencia", "congelamento", "total_transferir",
+                 "transf_entre_ops", "total_tml", "pct",
+                 "parcela_partilhada", "parcela_incentiva")
+for (col in intersect(num_cols_tg, names(tabela_global))) {
+  tabela_global[[col]] <- as.numeric(gsub(",", ".", tabela_global[[col]]))
 }
 
-transf_g_display <- transf_g_calc %>%
-  mutate(
-    parcela_incentiva = if_else(nome_tab == "MTS", 0, total_tml - parcela_partilhada)
-  )
+# Linha TOTAL (última linha do CSV)
+total_row_g      <- tabela_global[tabela_global$nome_tab == "TOTAL", ]
+transf_g_display <- tabela_global[tabela_global$nome_tab != "TOTAL", ]
 
-total_row_g <- tibble(
-  nome_tab           = "TOTAL",
-  receita_A          = sum(transf_g_display$receita_A),
-  receita_B          = sum(transf_g_display$receita_B),
-  C                  = sum(transf_g_display$C),
-  cosp_D             = sum(transf_g_display$cosp_D),
-  SG                 = sum(transf_g_display$SG),
-  F_transferencia    = sum(transf_g_display$F_transferencia),
-  congelamento       = sum(transf_g_display$congelamento),
-  total_transferir   = sum(transf_g_display$total_transferir),
-  transf_entre_ops   = sum(transf_g_display$transf_entre_ops, na.rm = TRUE),
-  total_tml          = sum(transf_g_display$total_tml),
-  pct                = sum(transf_g_display$pct),
-  parcela_partilhada = sum(transf_g_display$parcela_partilhada),
-  parcela_incentiva  = sum(transf_g_display$parcela_incentiva)
-)
-
-tabela_global <- bind_rows(transf_g_display, total_row_g)
 
 # Valores escalares globais
 receita_A_total     <- total_row_g$receita_A

@@ -63,6 +63,7 @@ F_D_OPERADOR    <- file.path(OUT_DIR, paste0("5_cosp_operador_",             SUF
 F_VAT           <- file.path(OUT_DIR, paste0("1d_validacoes_",               SUFIXO, ".csv"))
 F_TRANSFERENCIAS <- file.path(OUT_DIR, paste0("6_transferencias_",           SUFIXO, ".csv"))
 F_TABELA_XLSX   <- file.path(OUT_DIR, paste0("Anexo_calculos_",              SUFIXO, ".xlsx"))
+F_TABELA_GLOBAL <- file.path(OUT_DIR, paste0("0_tabela_global_",             SUFIXO, ".csv"))
 
 # Ficheiros de relatórios e ofícios (Quarto)
 F_DOC_INFO1_PDF    <- file.path(DOCS_DIR, paste0("informacao1_", SUFIXO, ".pdf"))
