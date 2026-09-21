@@ -399,11 +399,11 @@ Os cálculos realizados tiveram por base dados de passageiros e vendas disponibi
 
 Importa referir que a implementação de validações com cartão virtual nas linhas da Carris Metropolitana teve início a 19 de setembro de 2025. O procedimento implementado tem implicações, quer ao nível das transações de venda, quer ao nível das validações.
 
-Quanto às transações de venda, o carregamento de um cartão virtual pressupõe o carregamento prévio de um cartão físico, ficando ambas as transações registadas no sistema de bilhética como transações de tipologia 3 (venda e carregamento). Isto significa a existência de 2 registos de venda: 1 com o título efetivamente comprado e carregado no cartão físico; e outro, invariavelmente, com o título Navegante Metropolitano Normal (`ticket_code 900`) carregado no cartão virtual. A equipa de DITS utilizou o campo "`CARD_PHYSICAL_TYPE_ID= 31`" e o “`PRICE=0`” para excluir os carregamentos do cartão virtual no apuramento das receitas.
+Quanto às transações de venda, o carregamento de um cartão virtual pressupõe o carregamento prévio de um cartão físico, ficando ambas as transações registadas no sistema de bilhética como transações de tipologia 3 (venda e carregamento). Isto significa a existência de 2 registos de venda: 1 com o título efetivamente comprado e carregado no cartão físico; e outro, invariavelmente, com o título Navegante Metropolitano Normal (`ticket_code 900`) carregado no cartão virtual. A equipa de DITS utilizou o campo "`CARD_PHYSICAL_TYPE_ID=31`" e o “`PRICE=0`” para excluir os carregamentos do cartão virtual no apuramento das receitas.
 
 No que concerne às validações, a validação com o cartão virtual é sempre registada como a validação de um título Metropolitano Normal (`ticket_code 900`) independentemente da modalidade carregada no cartão físico, o que significa que em situações de validação com cartão virtual de passes com modalidade distinta da “Normal” (Jovem, PAC ou Circula PT), a mesma fica registada no sistema de bilhética no `ticket_code 900`, contribuindo para o número de passageiros e a quota deste título, em detrimento do título “correto”.
 
-Desde o mês de abril de 2026 , o algoritmo de cálculo contabiliza e associa as validações pelo número de cliente no caso dos clientes que utilizem o cartão virtual.
+Desde o mês de abril de 2026, o algoritmo de cálculo contabiliza e associa as validações pelo número de cliente no caso dos clientes que utilizem o cartão virtual.
 
 Conforme o Regulamento supracitado, os valores das transferências a realizar pela TML devem ser comunicados até ao dia 8 (oito) de cada mês. Caso a verba a disponibilizar pelo Fundo Ambiental (“FA”), no âmbito do programa «Incentiva +TP» tenha sido transferida até essa data, poderá ser faturada de imediato a totalidade do valor da transferência indicada. Caso contrário, será realizada uma primeira transferência correspondente à receita obtida através das vendas pelos canais de receita partilhada e, uma segunda, referente ao montante financiado pelo FA, somente após o recebimento dessa verba.
 
@@ -421,7 +421,7 @@ Em 2025, ao contrário dos últimos anos, o Estado não impôs a manutenção do
 
 Nos subcapítulos seguintes são apresentados os procedimentos para a definição do valor mensal a transferir a cada Operador, que inclui a transferência para reposição de saldos \[F`r MES`\] e a parcela relativa ao congelamento dos preços dos passes Navegante \[CongNav\[B`r MES`\]\]. De notar que o índice “`r MES`” utilizado daqui em diante, simboliza que os valores apurados se referem ao mês `r MES` (`r mes_nome` de `r ANO`).
 
-## Quota de Repartição Dinâmica de `r mes_nome` de `r ANO`
+## Quota de Repartição Dinâmica de `r mes_nome` de `r ANO` {#sec-quota-reparticao}
 
 A quota de repartição a aplicar às receitas e às compensações do sistema de `r mes_nome` de `r ANO` foi determinada por tipologia de passe Navegante e por Operador, recorrendo à expressão numérica prevista no ponto 6.1 ou, quando aplicável, à do ponto 6.4 da secção II do Anexo V.
 
@@ -441,15 +441,17 @@ Com a implementação do Passe gratuito Jovem Estudante, foram criados dois tít
 
 Em janeiro de 2025, com a entrada em vigor do Circula.pt, foram criadas duas modalidades de Navegante +65 – Navegante +65 cPT A e Navegante +65 cPT B. Enquanto forem utilizadas as distâncias médias de outubro e agosto de 2021, aplicam-se a estes novos títulos as mesmas distâncias médias do passe Navegante +65.
 
-Na Tabela 1 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`”, podem ser consultadas as quotas de repartição por título e por Operador, assim como os dados base que estiveram na origem do seu cálculo.
+Na Folha "1 - Quotas" do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`”, podem ser consultadas as quotas de repartição por título e por Operador, assim como os dados base que estiveram na origem do seu cálculo.
 
 ## Receitas de passes Navegante de `r mes_nome` de `r ANO`
 
-As receitas de passes Navegante, apuradas neste ponto, são obtidas a partir das vendas no mês de `r mes_nome` de `r ANO`, nos canais de venda próprios e de receita partilhada. O número de passes vendidos foi determinado cumprindo as regras previstas no ponto 7 do anexo V.
+As receitas de passes Navegante, apuradas neste ponto, são obtidas a partir das vendas no mês de `r mes_nome` de `r ANO`, nos canais de venda próprios e de receita partilhada.
 
-### Receitas de passes Navegante na posse de cada Operador \[A`r MES`\] e nos canais de receita partilhada \[K`r MES`\] em `r mes_nome` de `r ANO`
+O número de passes vendidos foi determinado cumprindo as regras previstas no ponto 7 do anexo V.
 
-Na Tabela 2 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`”, é apresentada a distribuição de vendas e receitas de passes Navegante no mês de `r mes_nome` de `r ANO`, por título, pelos diferentes canais de venda.
+### Receitas de passes Navegante na posse de cada Operador \[A`r MES`\] e nos canais de receita partilhada \[K`r MES`\] em `r mes_nome` de `r ANO` {#sec-receitasak}
+
+Na Folha "2 - Vendas AK" do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`”, é apresentada a distribuição de vendas e receitas de passes Navegante no mês de `r mes_nome` de `r ANO`, por título, pelos diferentes canais de venda.
 
 As receitas nos canais próprios de cada Operador \[A\] ficam na posse de cada um e as vendas nos canais de receita partilhada \[K\] ficam na posse da TML, como autoridade gestora desses canais.
 
@@ -457,7 +459,9 @@ Em `r mes_nome` de `r ANO`, a receita na posse dos operadores totaliza um valor 
 
 ### Receitas de passes Navegante devidas a cada Operador \[B`r MES`\] em `r mes_nome` de `r ANO`
 
-A receita devida a cada Operador foi determinada aplicando a quota de repartição definida em 2.1. às receitas do sistema apresentadas no ponto 2.2.1. A Tabela 4 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`” resume as receitas de passes Navegante devidas a cada Operador, relativas ao mês de `r mes_nome` de `r ANO`.
+A receita devida a cada Operador foi determinada aplicando a quota de repartição definida em -@sec-quota-reparticao. às receitas do sistema apresentadas no ponto -@sec-receitasak.
+
+A Folha "4 - Receita B e CongNav B" do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`” resume as receitas de passes Navegante devidas a cada Operador, relativas ao mês de `r mes_nome` de `r ANO`.
 
 ### Saldo de receita em cada Operador \[C`r MES`\] em `r mes_nome` de `r ANO`
 
@@ -498,7 +502,7 @@ Para determinar os pagamentos por conta da COSP tarifária foi necessário defin
 
 Conforme previsto no Regulamento (ponto 5.1.3. do Anexo V), o Valor Máximo de Compensação anual (“VMC”) foi atualizado com a TAT de 2024, de 6,43%, com a TAT de 2025, de 2,02% e com a TAT de 2026 de 2,28%, pelo que em `r ANO`, o VMC corresponde a `r fmt_eur(VMC_ano)` e consequentemente a compensação por passe vendido é de `r fmt_eur(valor_medio_passe)`.
 
-A @tbl-2 resume o procedimento descrito e a @tbl-5 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`” resume o valor de pagamentos por conta da COSP tarifária por título para cada Operador.
+A @tbl-2 resume o procedimento descrito e a Folha "5 - Pag Conta COSP" do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`” resume o valor de pagamentos por conta da COSP tarifária por título para cada Operador.
 
 Note-se que, conforme previsto no Regulamento (ponto 12.3 do Anexo V), procedeu-se à retenção de 2,5% do valor estimado de pagamento por conta da COSP tarifária.
 
@@ -579,8 +583,8 @@ tab3 <- tabela_global %>%
   )
 
 names(tab3)[2] <- paste0("Saldo de Receitas \n[C", MES, "]")
-names(tab3)[3] <- paste0("Pagamentos por conta\nCOSP Tarifária \n[D", MES, "]")
-names(tab3)[4] <- paste0("Saldo Global de Receitas \n[SG", MES, "]")
+names(tab3)[3] <- paste0("Pagamentos\npor conta\nCOSP Tarifária \n[D", MES, "]")
+names(tab3)[4] <- paste0("Saldo Global\nde Receitas \n[SG", MES, "]")
 names(tab3)[5] <- paste0("Transferências \n[F", MES, " = -SG", MES, "]")
 
 tml_table(tab3, align = c("l", "r", "r", "r", "r"))
@@ -626,7 +630,7 @@ Ao abrigo do ponto 13 do ponto 23.2 do Anexo V, o valor a transferir pela TML em
 
 A metodologia utilizada visa minimizar as transferências entre Operadores, no entanto, nos casos em que não seja possível suprir o saldo de um Operador por via das transferências da TML, significa que esse Operador tem excedente de receitas em sua posse e por isso, deve transferir esse excedente a outro Operador. Essa transferência é determinada pela TML (ponto 13.3 do Anexo V).
 
-`r if (excedente_mts > 0) paste0("A TML determina, conforme procedimento já realizado em pagamentos por conta de meses anteriores, que o excedente de receitas na posse do MTS (", fmt_eur(excedente_mts), ") deve ser transferido ao operador Fertagus, sempre que esse montante seja inferior ao valor total apurado a transferir pela TML ao operador Fertagus.") else ""`
+`r if (excedente_mts > 0) paste0("A TML determina, conforme procedimento já realizado em pagamentos por conta de meses anteriores, que o excedente de receitas na posse do MTS deve ser transferido ao operador Fertagus, sempre que esse montante seja inferior ao valor total apurado a transferir pela TML ao operador Fertagus.") else ""`
 
 ```{r}
 #| label: tbl-5
