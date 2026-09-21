@@ -15,6 +15,9 @@
   inset: (x: 2.5pt, y: 6pt)   // Margem interna das células
 )
 
+// Legendas de tabelas e figuras a 9pt
+#show figure.caption: set text(size: 9pt)
+
 // Ativar numeração dos cabeçalhos
 #set heading(numbering: "1.1")
 
