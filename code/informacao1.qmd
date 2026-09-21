@@ -4,20 +4,14 @@ format:
   typst:
     papersize: a4
     linestretch: 1.2
-    mainfont: "Lexend" # não parece sério
+    # mainfont: "Lexend" # não parece sério
     margin:
       x: 3.0cm
       y: 3.0cm
       top: 4.0cm
       bottom: 3.0cm
     include-in-header:
-      text: |
-        #set page(
-          header: align(left)[
-            #image("logo_tml.svg", width: 4cm)
-          ]
-        )
-        #set table(inset: (x: 2.5pt))
+      - custom_styles.typ
 #   docx:
 #     reference-doc: "../docs/TML_template.docx"
 filters:
@@ -338,7 +332,9 @@ if (!ja_existe_mes) {
 
 ```{=typst}
 #align(right)[
-  #heading(level: 1, numbering: none)[Informação n.º `r numero_informacao`]
+  #heading(level: 1, numbering: none)[
+    #text(size: 12pt)[Informação n.º `r numero_informacao`]
+  ]
 ]
 #v(1cm)
 ```
