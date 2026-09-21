@@ -334,12 +334,15 @@ if (!ja_existe_mes) {
 }
 ```
 
-# Informação n.º `r numero_informacao` {.unnumbered}
+<!-- # Informação n.º `r numero_informacao` {.unnumbered} -->
 
 ```{=typst}
+#align(right)[
+  #heading(level: 1, numbering: none)[Informação n.º `r numero_informacao`]
+]
 #v(1cm)
 ```
-::::: {style="font-size: 0.8em;"}
+::::: {style="font-size: 0.7em;"}
 
 :::: {layout-ncol=2}
 
@@ -374,12 +377,14 @@ if (!ja_existe_mes) {
 
 ```{=typst}
 #v(2cm)
+#line(length: 100%)
 ```
 
 **DESPACHOS:**
 
 ```{=typst}
 #v(2cm)
+#line(length: 100%)
 ```
 
 # Enquadramento
