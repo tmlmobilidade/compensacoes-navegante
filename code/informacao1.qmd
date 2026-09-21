@@ -745,7 +745,9 @@ merged_plot <- inner_join(
     rec_m = rec_val / 1e6
   )
 
-scale_factor <- max(merged_plot$pax_m, na.rm=TRUE) / max(merged_plot$rec_m, na.rm=TRUE)
+max_pax <- 60
+max_rec <- 25
+scale_factor <- max_pax / max_rec
 
 ggplot(merged_plot, aes(x = data)) +
   geom_col(aes(y = pax_m, fill = "Passageiros"), width = 20, alpha = 0.9) +
@@ -759,7 +761,14 @@ ggplot(merged_plot, aes(x = data)) +
   ) +
   scale_y_continuous(
     name = "Passageiros Transportados (Milhões)",
-    sec.axis = sec_axis(~ . / scale_factor, name = "Receita de Passes (M€)", labels = label_number(accuracy = 1, decimal.mark = ","))
+    limits = c(0, max_pax),
+    breaks = seq(0, max_pax, by = 20),
+    sec.axis = sec_axis(
+      ~ . / scale_factor,
+      name = "Receita de Passes Navegante (M€)",
+      breaks = seq(0, max_rec, by = 5),
+      labels = label_number(accuracy = 1, decimal.mark = ",")
+    )
   ) +
   scale_x_date(
     breaks = merged_plot$data,
@@ -769,7 +778,7 @@ ggplot(merged_plot, aes(x = data)) +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1),
     axis.title.y.left = element_text(color = "#B8860B", face = "bold"),
-    axis.title.y.right = element_text(color = "#1B365D", face = "bold", angle = 90),
+    axis.title.y.right = element_text(color = "#1B365D", face = "bold", angle = 90, vjust = -1),
     panel.grid.minor = element_blank(),
     legend.position = "bottom",
     legend.key.width = unit(1.2, "cm")
