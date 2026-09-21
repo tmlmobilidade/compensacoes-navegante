@@ -19,12 +19,18 @@
 #set heading(numbering: "1.1")
 
 // 3. Parágrafos e Texto normal
+// Garantir tamanho 10pt e peso de forma global
 #set text(
   font: "Lexend",
   size: 10pt,
+  weight: "light", // ou "extralight"
 )
 
+// Se o Quarto/template estiver a sobrepor, force com show rule:
+// #show text: set text(size: 10pt)
+
 #set par(
+  spacing: 12pt,
   leading: 0.65em,
   justify: true,
 )
