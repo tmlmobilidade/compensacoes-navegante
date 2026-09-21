@@ -12,7 +12,7 @@
 
 // 2. Tabelas
 #set table(
-  inset: (x: 2.5pt, y: 3.5pt)   // Margem interna das células
+  inset: (x: 2.5pt, y: 6pt)   // Margem interna das células
 )
 
 // Ativar numeração dos cabeçalhos
@@ -30,11 +30,11 @@
 // #show text: set text(size: 10pt)
 
 #set par(
-  spacing: 12pt,
+  spacing: 18pt,
   leading: 0.65em,
   justify: true,
 )
-#show par: set block(spacing: 12pt)
+// #show par: set block(spacing: 12pt) // overwrite rules do Quarto/template
 
 // 4. Tipografia de cada nível
 #show heading.where(level: 1): set text(size: 14pt, weight: "bold")

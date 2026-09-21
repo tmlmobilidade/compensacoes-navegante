@@ -374,14 +374,14 @@ if (!ja_existe_mes) {
 **PARECER/VISTO:**
 
 ```{=typst}
-#v(2cm)
+#v(1.5cm)
 #line(length: 100%)
 ```
 
 **DESPACHOS:**
 
 ```{=typst}
-#v(2cm)
+#v(1.5cm)
 #line(length: 100%)
 ```
 
@@ -884,7 +884,7 @@ tab7
 #pagebreak()
 #set page(paper: "a4", flipped: false, margin: (x: 3.0cm, top: 4.0cm, bottom: 3.0cm))
 #set text(size: 11pt)
-#set table(inset: (x: 2.5pt, y: 3.5pt))
+#set table(inset: (x: 2.5pt, y: 6pt))
 ```
 
 # Proposta
@@ -950,13 +950,13 @@ tml_table(tab8, align = c("l", "r", "r"))
 Quando aprovado o seu pagamento, os operadores e respetivas autoridades deverão ser notificados dos respetivos valores.
 
 ```{=typst}
-#v(2cm)
+#v(0.8cm)
 ```
 
 `r data_documento`
 
 ```{=typst}
-#v(1cm)
+#v(0.3cm)
 ```
 
 `r de_pessoa1_nome`\
