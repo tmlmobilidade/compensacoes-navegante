@@ -120,6 +120,12 @@ for (col in intersect(num_cols_rtd, names(rtd_raw))) {
   rtd_raw[[col]] <- as.numeric(gsub(",", ".", rtd_raw[[col]]))
 }
 
+# total_K_val: soma das receitas nos canais partilhados (K) — idem ao 08_tables.R l.127
+# Definido aqui para o QMD ser auto-suficiente quando renderizado standalone
+if (!exists("total_K_val")) {
+  total_K_val <- sum(rtd_raw$receita_K, na.rm = TRUE)
+}
+
 # Nomes de operadores com TT e SL agregados (10 operadores)
 ordem_ops_merged <- c("CP", "FT", "TT + SL", "ML", "MTS", "Carris", "TCB", "AT Cascais", "AT TML - CM", "BT Oeste")
 
@@ -150,6 +156,14 @@ receita_B_total     <- total_row_g$receita_B
 cosp_total_mes      <- total_row_g$cosp_D
 congelamento_total  <- total_row_g$congelamento
 total_transferir    <- total_row_g$total_tml
+
+# excedente_mts: excedente de receitas na posse do MTS a transferir ao FT (se > 0)
+# idem ao 08_tables.R l.269 — derivado aqui da tabela_global para render standalone
+if (!exists("excedente_mts")) {
+  mts_row_g <- tabela_global[tabela_global$nome_tab == "MTS", ]
+  excedente_mts <- if (nrow(mts_row_g) > 0 && !is.na(mts_row_g$total_transferir) &&
+                         mts_row_g$total_transferir < 0) abs(mts_row_g$total_transferir) else 0
+}
 
 # Parâmetros COSP e Sazonalidade
 saz_df <- read.csv2(file.path(LISTS_DIR, "sazonalidade.csv"), stringsAsFactors = FALSE, dec = ".")
@@ -431,6 +445,7 @@ Note-se que, conforme previsto no Regulamento (ponto 12.3 do Anexo V), procedeu-
 ```{=typst}
 #set table(inset: (x: 3pt, y: 9pt))
 ```
+
 ```{r}
 #| label: tbl-2
 #| tbl-cap: !expr paste0("Procedimento de apuramento dos pagamentos por conta da COSP tarifária em ", mes_nome, " de ", ANO)
@@ -482,6 +497,7 @@ tml_table(tab2, align = c("l", "c", "r"),
 ```{=typst}
 #set table(inset: (x: 2.5pt, y: 6pt))
 ```
+
 
 ## Transferência para reposição de saldos \[F`r MES`\]
 
