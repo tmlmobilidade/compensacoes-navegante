@@ -3,10 +3,17 @@
 // Ficheiro: custom_styles.typ
 // =============================================================================
 
-// 1. Cabeçalho de página (Logo TML)
+// 1. Cabeçalho de página (Logo TML) e numeração de páginas (romana)
 #set page(
   header: align(left)[
     #image("logo_tml.svg", width: 4cm)
+  ],
+  //numbering: "I",
+  number-align: right,
+  footer: context align(right)[
+    #text(fill: luma(120))[
+      #counter(page).display("I")
+    ]
   ]
 )
 

@@ -5,6 +5,7 @@ format:
     papersize: a4
     linestretch: 1.2
     # mainfont: "Lexend" # não parece sério
+    numbering: "I"
     margin:
       x: 3.0cm
       y: 3.0cm
@@ -892,7 +893,7 @@ tab7
 #pagebreak()
 #set page(paper: "a4", flipped: false, margin: (x: 3.0cm, top: 4.0cm, bottom: 3.0cm))
 #set text(size: 11pt)
-#set table(inset: (x: 2.5pt, y: 6pt))
+#set table(inset: (x: 3pt, y: 6pt))
 ```
 
 # Proposta
