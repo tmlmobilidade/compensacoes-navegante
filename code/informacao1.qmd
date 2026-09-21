@@ -103,9 +103,11 @@ source(here::here("code", "utils_tables.R"))
 source(here::here("code", "utils_extenso.R"))
 
 # ---- Mês e Ano de Transferência (M + 3) --------------------------------------
+# No relatório textual, os nomes dos meses são apresentados em minúsculas (ex: "maio", "agosto")
+mes_nome        <- tolower(mes_nome)
 mes_transf_num  <- ((MES - 1 + 3) %% 12) + 1
 ano_transf      <- ANO + ((MES + 3 - 1) %/% 12)
-mes_transf_nome <- meses_pt_nome[mes_transf_num]
+mes_transf_nome <- tolower(meses_pt_nome[mes_transf_num])
 
 # ---- Carregar Outputs das Fases Anteriores -----------------------------------
 transf_raw <- read.csv2(F_TRANSFERENCIAS, stringsAsFactors = FALSE, dec = ",")
