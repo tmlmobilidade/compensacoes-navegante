@@ -364,8 +364,12 @@ if (!ja_existe_mes) {
 
 :::::
 
-
-**Assunto: Apuramento provisório do mês de `r mes_nome` de `r ANO` e cálculo dos montantes a transferir aos operadores de transporte público ou às autoridades de transporte, em `r mes_transf_nome` de `r ano_transf`, no âmbito do Regulamento n.º 278-A/2019 da AML, na sua redação atual**
+```{=typst}
+#par(hanging-indent: 52pt)[
+    #set text(weight: "bold")
+Assunto: Apuramento provisório do mês de `r mes_nome` de `r ANO` e cálculo dos montantes a transferir aos operadores de transporte público ou às autoridades de transporte, em `r mes_transf_nome` de `r ano_transf`, no âmbito do Regulamento n.º 278-A/2019 da AML, na sua redação atual
+]
+```
 
 ```{=typst}
 #v(1cm)
@@ -395,7 +399,7 @@ Os cálculos realizados tiveram por base dados de passageiros e vendas disponibi
 
 Importa referir que a implementação de validações com cartão virtual nas linhas da Carris Metropolitana teve início a 19 de setembro de 2025. O procedimento implementado tem implicações, quer ao nível das transações de venda, quer ao nível das validações.
 
-Quanto às transações de venda, o carregamento de um cartão virtual pressupõe o carregamento prévio de um cartão físico, ficando ambas as transações registadas no sistema de bilhética como transações de tipologia 3 (venda e carregamento). Isto significa a existência de 2 registos de venda: 1 com o título efetivamente comprado e carregado no cartão físico; e outro, invariavelmente, com o título Navegante Metropolitano Normal (ticket_code 900) carregado no cartão virtual. A equipa de DITS utilizou o campo "`CARD_PHYSICAL_TYPE_ID= 31`" e o “`PRICE=0`” para excluir os carregamentos do cartão virtual no apuramento das receitas.
+Quanto às transações de venda, o carregamento de um cartão virtual pressupõe o carregamento prévio de um cartão físico, ficando ambas as transações registadas no sistema de bilhética como transações de tipologia 3 (venda e carregamento). Isto significa a existência de 2 registos de venda: 1 com o título efetivamente comprado e carregado no cartão físico; e outro, invariavelmente, com o título Navegante Metropolitano Normal (`ticket_code 900`) carregado no cartão virtual. A equipa de DITS utilizou o campo "`CARD_PHYSICAL_TYPE_ID= 31`" e o “`PRICE=0`” para excluir os carregamentos do cartão virtual no apuramento das receitas.
 
 No que concerne às validações, a validação com o cartão virtual é sempre registada como a validação de um título Metropolitano Normal (`ticket_code 900`) independentemente da modalidade carregada no cartão físico, o que significa que em situações de validação com cartão virtual de passes com modalidade distinta da “Normal” (Jovem, PAC ou Circula PT), a mesma fica registada no sistema de bilhética no `ticket_code 900`, contribuindo para o número de passageiros e a quota deste título, em detrimento do título “correto”.
 
