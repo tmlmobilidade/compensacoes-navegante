@@ -8,6 +8,14 @@ source(here::here("code", "config.R"))
 # Criar pasta de destino docs/ se não existir
 dir.create(DOCS_DIR, showWarnings = FALSE, recursive = TRUE)
 
+# Garantir que a tabela global consolidada (passo 08) existe antes de renderizar
+if (isTRUE(get0("RENDER_INFORMACAO1", ifnotfound = TRUE)) &&
+    !file.exists(F_TABELA_GLOBAL) &&
+    file.exists(here::here("code", "08_tables.R"))) {
+  message("ℹ Ficheiro da tabela global (F_TABELA_GLOBAL) não encontrado. A executar code/08_tables.R...")
+  source(here::here("code", "08_tables.R"))
+}
+
 #' Renderiza um documento Quarto (.qmd) para Typst (PDF) e Word (DOCX)
 #' e guarda na pasta de destino DOCS_DIR
 render_qmd_doc <- function(qmd_name, pdf_dest, docx_dest = NULL) {

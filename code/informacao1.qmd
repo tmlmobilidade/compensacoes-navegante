@@ -134,6 +134,10 @@ ordem_ops_merged <- c("CP", "FT", "TT + SL", "ML", "MTS", "Carris", "TCB", "AT C
 # parcela_incentiva são feitos em 08_tables.R e exportados para F_TABELA_GLOBAL.
 # O relatório lê esse ficheiro directamente, sem recalcular nada,
 # garantindo consistência total com o XLSX exportado.
+if (!file.exists(F_TABELA_GLOBAL)) {
+  message("ℹ Ficheiro da tabela global não encontrado. A executar 08_tables.R...")
+  source(here::here("code", "08_tables.R"))
+}
 tabela_global <- read.csv2(F_TABELA_GLOBAL, stringsAsFactors = FALSE, dec = ",")
 
 num_cols_tg <- c("receita_A", "receita_B", "C", "cosp_D", "SG",
