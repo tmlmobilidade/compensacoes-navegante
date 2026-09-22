@@ -1,5 +1,6 @@
 ---
 lang: pt
+doc-tipo: externo
 format:
   typst:
     papersize: a4
@@ -31,6 +32,11 @@ execute:
 # =============================================================================
 # CARREGAMENTO DE DADOS E CÁLCULOS DO RELATÓRIO
 # =============================================================================
+
+# Referência da Informação associada
+if (!exists("numero_informacao")) {
+  numero_informacao <- "TML-XXXX-XXXX-INF-XXXX-DEP"
+}
 
 source(here::here("code", "config.R"))
 

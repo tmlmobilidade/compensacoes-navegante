@@ -8,6 +8,17 @@ source(here::here("code", "config.R"))
 # Criar pasta de destino docs/ se não existir
 dir.create(DOCS_DIR, showWarnings = FALSE, recursive = TRUE)
 
+# Garantir sincronização dos modelos/fundos timbrados de docs/ para code/docs/
+code_docs_dir <- here::here("code", "docs")
+dir.create(code_docs_dir, showWarnings = FALSE, recursive = TRUE)
+for (f in c("folha_1.pdf", "folha_restantes.pdf", "folha1.png", "folhas_restantes.png")) {
+  src <- here::here("docs", f)
+  dst <- file.path(code_docs_dir, f)
+  if (file.exists(src) && (!file.exists(dst) || file.mtime(src) > file.mtime(dst))) {
+    file.copy(src, dst, overwrite = TRUE)
+  }
+}
+
 # Garantir que a tabela global consolidada (passo 08) existe antes de renderizar
 if (isTRUE(get0("RENDER_INFORMACAO1", ifnotfound = TRUE)) &&
     !file.exists(F_TABELA_GLOBAL) &&
@@ -118,7 +129,18 @@ if (isTRUE(RENDER_INFORMACAO1)) {
   message("ℹ Informação 1: ignorada (RENDER_INFORMACAO1 = FALSE em config.R).")
 }
 
-# 2. Ofício 1 (a disponibilizar brevemente)
+# 2. Metodologia
+if (isTRUE(RENDER_METODOLOGIA)) {
+  render_qmd_doc(
+    qmd_name  = "metodologia.qmd",
+    pdf_dest  = F_DOC_METODOLOGIA_PDF,
+    docx_dest = F_DOC_METODOLOGIA_DOCX
+  )
+} else {
+  message("ℹ Metodologia: ignorada (RENDER_METODOLOGIA = FALSE em config.R).")
+}
+
+# 3. Ofício 1 (a disponibilizar brevemente)
 if (isTRUE(RENDER_OFICIO1)) {
   render_qmd_doc(
     qmd_name  = "oficio1.qmd",

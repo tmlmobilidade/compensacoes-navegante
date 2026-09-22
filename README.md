@@ -60,6 +60,7 @@ MES <- 5       # 5 = Maio, 6 = Junho, etc.
 
 # Controlo de Documentos (Quarto / Typst)
 RENDER_INFORMACAO1 <- TRUE   # Gerar Informação 1 (PDF)
+RENDER_METODOLOGIA <- TRUE   # Gerar Anexo Metodologia (PDF com timbrado externo)
 RENDER_OFICIO1     <- FALSE  # Gerar Ofício 1 (em preparação)
 RENDER_OFICIO2     <- FALSE  # Gerar Ofício 2 (em preparação)
 RENDER_DOCX        <- FALSE  # TRUE converte PDF para Word (DOCX) via PDF24 Toolbox
@@ -134,7 +135,8 @@ Os resultados são gerados na pasta `{MES}_{mes_abrev}_{ANO}_replicate/output/` 
 
 | Ficheiro | Descrição |
 | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`docs/informacao1_{SUFIXO}.pdf`**                 | **Relatório Oficial da Informação 1 (PDF via Typst)**: Documento técnico completo com narrativa formal, fórmulas, quadros explicativos e Tabelas 1 a 8 formatadas com `tinytable`. |
+| **`docs/informacao1_{SUFIXO}.pdf`**                 | **Relatório Oficial da Informação 1 (PDF via Typst)**: Documento técnico interno com narrativa formal, fórmulas, quadros explicativos e Tabelas 1 a 8 formatadas com `tinytable`. |
+| **`docs/metodologia_{SUFIXO}.pdf`**                 | **Anexo da Metodologia de Apuramento (PDF com timbrado oficial)**: Documento formal externo com cabeçalho timbrado na folha de rosto (`folha_1.pdf`) e folhas seguintes (`folha_restantes.pdf`). |
 | **`docs/informacao1_{SUFIXO}.docx`**                | **Versão Word (DOCX via PDF24)**: Documento convertido a partir do PDF (modo *flow* ou *blocks*), gerado quando `RENDER_DOCX <- TRUE`. |
 | **`Anexo_calculos_{SUFIXO}.xlsx`**                  | **Workbook Excel oficial consolidado**: <br>• `0 - Global`: Quadro oficial de 14 colunas com apuramento TML, acerto entre operadores (MTS $\rightarrow$ FT), rateio dos canais partilhados ($K$) e dotação Incentiva +TP.<br>• `1 - Quotas`: Matriz de quotas de repartição por título e operador.<br>• `2 - Vendas AK`: Resumo de bilheteiras (A) e canais externos (K).<br>• `4 - Receita B e CongNav B`: Síntese de receita devida e congelamento.<br>• `5 - Pag Conta COSP D`: Parâmetros regulamentares COSP e pagamentos.<br>• `6 - Transferencias F`: Formato longo por métrica. |
 | **`6_transferencias_{SUFIXO}.csv`**                | **Tabela final de compensações (CSV)**: receitas na posse (`receita_A`), receitas devidas (`receita_B`), saldo (`saldo_C`), COSP (`cosp_D`), saldo global (`SG`), transferências (`F_transferencia`), congelamento (`congelamento_B`) e total a transferir por operador. |

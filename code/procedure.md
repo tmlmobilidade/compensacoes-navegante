@@ -565,11 +565,18 @@ A produção dos relatórios é automatizada com **Quarto** e compilada através
 ### Parâmetros de Configuração
 
 1. **Em [`code/config.R`](config.R):**
-   - `RENDER_INFORMACAO1 <- TRUE`: Ativa a geração da Informação 1.
+   - `RENDER_INFORMACAO1 <- TRUE`: Ativa a geração da Informação 1 (documento interno, cabeçalho simples com logo TML).
+   - `RENDER_METODOLOGIA <- TRUE`: Ativa a geração do Anexo Metodologia (documento externo com papel timbrado oficial).
    - `RENDER_OFICIO1     <- FALSE`: Ativa a geração do Ofício 1 (pagamento imediato, em preparação).
    - `RENDER_OFICIO2     <- FALSE`: Ativa a geração do Ofício 2 (pagamento Incentiva, em preparação).
    - `RENDER_DOCX        <- FALSE`: Se `TRUE`, converte automaticamente o PDF gerado para Word (`.docx`) através do CLI do **PDF24 Toolbox** instalado na máquina.
    - `DOCX_MODE          <- "asposeFlow"`: Modo de conversão PDF24: `"asposeFlow"` (texto corrido) ou `"asposeBlocks"` (blocos de texto estruturados).
+
+2. **Diferenciação entre Documentos Internos e Externos:**
+   - **Documentos Internos** (ex: `informacao1.qmd`): utilizam o cabeçalho padrão com o logo da TML no topo da página.
+   - **Documentos Externos** (ex: `metodologia.qmd`, `oficio1.qmd`, `oficio2.qmd`): definem `doc-tipo: externo` no cabeçalho YAML. O filtro Pandoc injeta a etiqueta `<doc-externo>`, e o ficheiro [`code/custom_styles.typ`](custom_styles.typ) aplica automaticamente os modelos vetoriais de papel timbrado oficial da TML:
+     - 1.ª página: fundo com `docs/folha_1.pdf` (logo TML, contactos institucionais no rodapé e marcas de furação);
+     - Páginas seguintes: fundo com `docs/folha_restantes.pdf`.
 
 2. **No bloco inicial de parâmetros de [`code/informacao1.qmd`](informacao1.qmd):**
    - `data_dados_dits` e `data_dados_its`: Datas de disponibilização dos dados de bilhética.

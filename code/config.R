@@ -11,6 +11,7 @@ MES <- if (!is.na(Sys.getenv("MES", unset = NA))) as.integer(Sys.getenv("MES")) 
 # Parâmetros booleanos para controlar se os documentos devem ser renderizados
 # e guardados na pasta de destino (output/docs/)
 RENDER_INFORMACAO1 <- if (!is.na(Sys.getenv("RENDER_INFORMACAO1", unset = NA))) as.logical(Sys.getenv("RENDER_INFORMACAO1")) else TRUE
+RENDER_METODOLOGIA <- if (!is.na(Sys.getenv("RENDER_METODOLOGIA", unset = NA))) as.logical(Sys.getenv("RENDER_METODOLOGIA")) else TRUE
 RENDER_OFICIO1     <- if (!is.na(Sys.getenv("RENDER_OFICIO1", unset = NA))) as.logical(Sys.getenv("RENDER_OFICIO1")) else FALSE
 RENDER_OFICIO2     <- if (!is.na(Sys.getenv("RENDER_OFICIO2", unset = NA))) as.logical(Sys.getenv("RENDER_OFICIO2")) else FALSE
 RENDER_DOCX        <- if (!is.na(Sys.getenv("RENDER_DOCX", unset = NA))) as.logical(Sys.getenv("RENDER_DOCX")) else FALSE   # Converte PDF para Word (DOCX) via PDF24 Toolbox
@@ -67,12 +68,14 @@ F_TABELA_XLSX   <- file.path(OUT_DIR, paste0("Anexo_calculos_",              SUF
 F_TABELA_GLOBAL <- file.path(OUT_DIR, paste0("0_tabela_global_",             SUFIXO, ".csv"))
 
 # Ficheiros de relatórios e ofícios (Quarto)
-F_DOC_INFO1_PDF    <- file.path(DOCS_DIR, paste0("informacao1_", SUFIXO, ".pdf"))
-F_DOC_INFO1_DOCX   <- file.path(DOCS_DIR, paste0("informacao1_", SUFIXO, ".docx"))
-F_DOC_OFICIO1_PDF  <- file.path(DOCS_DIR, paste0("oficio1_",      SUFIXO, ".pdf"))
-F_DOC_OFICIO1_DOCX <- file.path(DOCS_DIR, paste0("oficio1_",      SUFIXO, ".docx"))
-F_DOC_OFICIO2_PDF  <- file.path(DOCS_DIR, paste0("oficio2_",      SUFIXO, ".pdf"))
-F_DOC_OFICIO2_DOCX <- file.path(DOCS_DIR, paste0("oficio2_",      SUFIXO, ".docx"))
+F_DOC_INFO1_PDF       <- file.path(DOCS_DIR, paste0("informacao1_", SUFIXO, ".pdf"))
+F_DOC_INFO1_DOCX      <- file.path(DOCS_DIR, paste0("informacao1_", SUFIXO, ".docx"))
+F_DOC_METODOLOGIA_PDF <- file.path(DOCS_DIR, paste0("metodologia_",  SUFIXO, ".pdf"))
+F_DOC_METODOLOGIA_DOCX<- file.path(DOCS_DIR, paste0("metodologia_",  SUFIXO, ".docx"))
+F_DOC_OFICIO1_PDF     <- file.path(DOCS_DIR, paste0("oficio1_",      SUFIXO, ".pdf"))
+F_DOC_OFICIO1_DOCX    <- file.path(DOCS_DIR, paste0("oficio1_",      SUFIXO, ".docx"))
+F_DOC_OFICIO2_PDF     <- file.path(DOCS_DIR, paste0("oficio2_",      SUFIXO, ".pdf"))
+F_DOC_OFICIO2_DOCX    <- file.path(DOCS_DIR, paste0("oficio2_",      SUFIXO, ".docx"))
 
 # ---- Função auxiliar para selecção de ficheiros recentes ---------------------
 #' Seleciona o ficheiro mais recente que corresponda a um padrão.

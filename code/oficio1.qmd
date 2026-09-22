@@ -1,5 +1,6 @@
 ---
 lang: pt
+doc-tipo: externo
 format:
   typst:
     papersize: a4
@@ -279,19 +280,10 @@ if (!ja_existe_mes) {
 :::: {layout-ncol=2}
 
 ::: {}
-<!-- **De:**\
-`r de_pessoa1_nome`\
-`r de_pessoa1_cargo`\
-`r de_pessoa2_nome`\
-`r de_pessoa2_cargo`\
-`r de_divisao` -->
+<!-- blank -->
 :::
 
 ::: {}
-<!-- **Para:**\ -->
-<!-- `r para_pessoa_nome`\
-`r para_cargo`\
-`r para_divisao` -->
 Exmos. Senhores
 Operadores de transporte público que disponibilizam o título Intermodal Navegante
  
@@ -330,7 +322,7 @@ Assunto: Apuramento provisório do mês de `r mes_nome` de `r ANO` e cálculo do
 Foi publicado no dia 27 de dezembro de 2023, o Regulamento n.º 1362-C/2023, que procede à 6.ª alteração ao Regulamento n.º 278-A/2019.
 Com a referida alteração, ficou definida, no Anexo V, uma metodologia que fixa novas regras relativas à titularidade das receitas tarifárias e às compensações financeiras devidas aos Operadores de serviço público de transporte regular de passageiros da área metropolitana de Lisboa, pelo cumprimento das OSP tarifárias inerentes ao sistema tarifário metropolitano, pela disponibilização dos passes Navegante a preços acessíveis.
 
-No âmbito das competências delegadas e subdelegadas pela Área Metropolitana de Lisboa (“AML”) na TML – Transportes Metropolitanos de Lisboa, E.M.T., S.A. (“TML”) ao abrigo do Contrato Interadministrativo de Delegação e Subdelegação de Competências e respetivo Aditamento em vigor, vimos pelo presente informar que o Conselho de Administração da TML, nos termos do Regulamento n.º 278-A/2019 da AML, na sua versão atual, e com base na metodologia e pressupostos apresentados no “Anexo – Metodologia_5_2026”, aprovou:
+No âmbito das competências delegadas e subdelegadas pela Área Metropolitana de Lisboa (“AML”) na TML – Transportes Metropolitanos de Lisboa, E.M.T., S.A. (“TML”) ao abrigo do Contrato Interadministrativo de Delegação e Subdelegação de Competências e respetivo Aditamento em vigor, vimos pelo presente informar que o Conselho de Administração da TML, nos termos do Regulamento n.º 278-A/2019 da AML, na sua versão atual, e com base na metodologia e pressupostos apresentados no “`r paste0("Anexo – Metodologia_",MES,"_",ANO)”, aprovou:
 
 1)	As quotas de repartição de receitas e de compensações financeiras determinadas com dados de passageiros.km de maio de 2026, conforme Tabela 1 do ficheiro “Anexo_Calculos_5_2026”;
 

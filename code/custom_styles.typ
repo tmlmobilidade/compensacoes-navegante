@@ -3,11 +3,25 @@
 // Ficheiro: custom_styles.typ
 // =============================================================================
 
-// 1. Cabeçalho de página (Logo TML) e numeração de páginas (romana)
+// 1. Cabeçalho de página (Logo TML para documentos internos) / Fundos timbrados (para documentos externos)
 #set page(
-  header: align(left)[
-    #image("logo_tml.svg", width: 4cm)
-  ],
+  header: context {
+    let is-externo = query(<doc-externo>).len() > 0 or query(<externo>).len() > 0
+    if not is-externo {
+      align(left)[#image("logo_tml.svg", width: 4cm)]
+    }
+  },
+  background: context {
+    let is-externo = query(<doc-externo>).len() > 0 or query(<externo>).len() > 0
+    if is-externo {
+      let page_num = counter(page).get().first()
+      if page_num == 1 {
+        image("docs/folha_1.pdf", width: 100%, height: 100%)
+      } else {
+        image("docs/folha_restantes.pdf", width: 100%, height: 100%)
+      }
+    }
+  },
   //numbering: "I",
   number-align: right,
   footer: context align(right)[
