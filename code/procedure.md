@@ -45,7 +45,8 @@ code/
 | `RENDER_INFORMACAO1` | `TRUE` | Booleano: controla a renderização da Informação 1 |
 | `RENDER_OFICIO1` | `FALSE` | Booleano: controla a renderização do Ofício 1 |
 | `RENDER_OFICIO2` | `FALSE` | Booleano: controla a renderização do Ofício 2 |
-| `RENDER_DOCX` | `FALSE` | Booleano: `FALSE` desativa Word (DOCX); compilação direta e rápida em Typst (PDF) |
+| `RENDER_DOCX` | `FALSE` | Booleano: `TRUE` converte o PDF para Word (DOCX) via PDF24 Toolbox |
+| `DOCX_MODE` | `"asposeFlow"` | Modo de conversão PDF24: `"asposeFlow"` (texto corrido) ou `"asposeBlocks"` (blocos/caixas) |
 | `LISTS_DIR` | `lists/` | Tabelas estáticas de referência |
 | `DIST_REF_FILE` | `distanciasref_out21_incompleto.csv` | Distâncias de referência (verão → `ago21`) |
 | `APEX_ENTITY_IDS` | `c(75, 22)` | Entidades com distâncias dinâmicas (CM, CAP) |
@@ -567,7 +568,8 @@ A produção dos relatórios é automatizada com **Quarto** e compilada através
    - `RENDER_INFORMACAO1 <- TRUE`: Ativa a geração da Informação 1.
    - `RENDER_OFICIO1     <- FALSE`: Ativa a geração do Ofício 1 (pagamento imediato, em preparação).
    - `RENDER_OFICIO2     <- FALSE`: Ativa a geração do Ofício 2 (pagamento Incentiva, em preparação).
-   - `RENDER_DOCX        <- FALSE`: Desativa a conversão para Word (.docx), assegurando compilação ultrarrápida (~10s) e garantindo fidelidade de layout com Typst.
+   - `RENDER_DOCX        <- FALSE`: Se `TRUE`, converte automaticamente o PDF gerado para Word (`.docx`) através do CLI do **PDF24 Toolbox** instalado na máquina.
+   - `DOCX_MODE          <- "asposeFlow"`: Modo de conversão PDF24: `"asposeFlow"` (texto corrido) ou `"asposeBlocks"` (blocos de texto estruturados).
 
 2. **No bloco inicial de parâmetros de [`code/informacao1.qmd`](informacao1.qmd):**
    - `data_dados_dits` e `data_dados_its`: Datas de disponibilização dos dados de bilhética.

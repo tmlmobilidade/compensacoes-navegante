@@ -62,7 +62,8 @@ MES <- 5       # 5 = Maio, 6 = Junho, etc.
 RENDER_INFORMACAO1 <- TRUE   # Gerar Informação 1 (PDF)
 RENDER_OFICIO1     <- FALSE  # Gerar Ofício 1 (em preparação)
 RENDER_OFICIO2     <- FALSE  # Gerar Ofício 2 (em preparação)
-RENDER_DOCX        <- FALSE  # FALSE desativa Word; renderização rápida e fiel em Typst PDF
+RENDER_DOCX        <- FALSE  # TRUE converte PDF para Word (DOCX) via PDF24 Toolbox
+DOCX_MODE          <- "asposeFlow" # "asposeFlow" (fluxo contínuo) ou "asposeBlocks" (blocos)
 ```
 
 *(Em alternativa, podes passar variáveis de ambiente: `ANO=2026 MES=5 Rscript code/99_run_all.R`)*

@@ -16,7 +16,64 @@ if (isTRUE(get0("RENDER_INFORMACAO1", ifnotfound = TRUE)) &&
   source(here::here("code", "08_tables.R"))
 }
 
-#' Renderiza um documento Quarto (.qmd) para Typst (PDF) e Word (DOCX)
+#' Converte um PDF para Word (DOCX) usando o PDF24 Toolbox em modo flow (asposeFlow)
+convert_pdf_to_docx_pdf24 <- function(pdf_file, docx_dest, mode = "asposeFlow") {
+  pdf24_exe <- "C:/Program Files/PDF24/pdf24-Toolbox.exe"
+  if (!file.exists(pdf24_exe)) {
+    pdf24_exe <- "C:/Program Files (x86)/PDF24/pdf24-Toolbox.exe"
+  }
+  if (!file.exists(pdf24_exe)) {
+    which_pdf24 <- Sys.which("pdf24-Toolbox.exe")
+    if (nzchar(which_pdf24)) pdf24_exe <- which_pdf24
+  }
+
+  if (!file.exists(pdf24_exe)) {
+    warning("PDF24 Toolbox não encontrado em C:/Program Files/PDF24/. Conversão para DOCX ignorada.")
+    return(FALSE)
+  }
+
+  if (!file.exists(pdf_file)) {
+    warning(sprintf("PDF de origem %s não encontrado para conversão.", pdf_file))
+    return(FALSE)
+  }
+
+  temp_dir <- tempdir()
+  job_file <- file.path(temp_dir, paste0("pdf24_job_", as.integer(Sys.time()), ".json"))
+  res_file <- file.path(temp_dir, paste0("pdf24_res_", as.integer(Sys.time()), ".json"))
+
+  job_data <- list(
+    action = "convertPdfTo",
+    fileInfos = list(list(file = normalizePath(pdf_file, winslash = "\\"))),
+    outputFileType = "docx",
+    conversionMode = mode
+  )
+
+  jsonlite::write_json(job_data, job_file, auto_unbox = TRUE, pretty = TRUE)
+  if (file.exists(res_file)) unlink(res_file)
+
+  message(sprintf("-> A converter PDF para Word (DOCX) via PDF24 Toolbox (modo '%s')...", mode))
+  status <- system2(pdf24_exe, args = c("-processJob", shQuote(job_file), shQuote(res_file)), wait = TRUE)
+
+  if (file.exists(res_file)) {
+    res <- tryCatch(jsonlite::read_json(res_file), error = function(e) NULL)
+    unlink(job_file)
+    unlink(res_file)
+
+    if (!is.null(res$state) && res$state == "done" && length(res$outputFiles) > 0) {
+      out_temp <- res$outputFiles[[1]]$file
+      if (file.exists(out_temp)) {
+        file.copy(out_temp, docx_dest, overwrite = TRUE)
+        unlink(out_temp)
+        message(sprintf("✓ DOCX guardado em: %s", docx_dest))
+        return(TRUE)
+      }
+    }
+  }
+  warning("Falha na conversão de PDF para DOCX pelo PDF24 Toolbox.")
+  return(FALSE)
+}
+
+#' Renderiza um documento Quarto (.qmd) para Typst (PDF) e converte para Word (DOCX)
 #' e guarda na pasta de destino DOCS_DIR
 render_qmd_doc <- function(qmd_name, pdf_dest, docx_dest = NULL) {
   qmd_file <- here::here("code", qmd_name)
@@ -39,19 +96,13 @@ render_qmd_doc <- function(qmd_name, pdf_dest, docx_dest = NULL) {
     message(sprintf("✓ PDF guardado em:  %s", pdf_dest))
   } else {
     warning(sprintf("Falha ao gerar %s.pdf.", base_name))
+    return(FALSE)
   }
 
-  # 2. Renderizar Word (DOCX) apenas se explicitamente ativado em config.R
+  # 2. Converter PDF gerado para Word (DOCX) via PDF24 CLI, se ativado em config.R
   if (!is.null(docx_dest) && isTRUE(get0("RENDER_DOCX", ifnotfound = FALSE))) {
-    message("-> A gerar Word (DOCX)...")
-    status_docx <- system2("quarto", c("render", shQuote(qmd_file), "--to", "docx"))
-    docx_src <- here::here("code", paste0(base_name, ".docx"))
-    if (status_docx == 0 && file.exists(docx_src)) {
-      file.copy(docx_src, docx_dest, overwrite = TRUE)
-      message(sprintf("✓ DOCX guardado em: %s", docx_dest))
-    } else {
-      warning(sprintf("Falha ao gerar %s.docx.", base_name))
-    }
+    mode_chosen <- get0("DOCX_MODE", ifnotfound = "asposeFlow")
+    convert_pdf_to_docx_pdf24(pdf_dest, docx_dest, mode = mode_chosen)
   }
   TRUE
 }
