@@ -124,7 +124,6 @@ No cabeçalho de [`code/informacao1.qmd`](code/informacao1.qmd), podes ajustar o
 - `numero_informacao` e intervenientes técnicos.
 
 Os documentos gerados são gravados diretamente na subpasta:
-- PDF: `{MES}_{mes_abrev}_{ANO}_replicate/output/docs/informacao1_{SUFIXO}.pdf`
 - PDF Informação 1: `{MES}_{mes_abrev}_{ANO}_replicate/output/docs/informacao1_{SUFIXO}.pdf`
 - PDF Metodologia: `{MES}_{mes_abrev}_{ANO}_replicate/output/docs/metodologia_{SUFIXO}.pdf`
 - DOCX: `{MES}_{mes_abrev}_{ANO}_replicate/output/docs/informacao1_{SUFIXO}.docx` (quando ativado)
@@ -138,7 +137,6 @@ Os resultados são gerados na pasta `{MES}_{mes_abrev}_{ANO}_replicate/output/` 
 | Ficheiro | Descrição |
 | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`docs/informacao1_{SUFIXO}.pdf`**                 | **Relatório Oficial da Informação 1 (PDF via Typst)**: Documento técnico interno com narrativa formal, fórmulas, quadros explicativos e Tabelas 1 a 8 formatadas com `tinytable`. |
-| **`docs/metodologia_{SUFIXO}.pdf`**                 | **Anexo da Metodologia de Apuramento (PDF com timbrado oficial)**: Documento formal externo com cabeçalho timbrado na folha de rosto (`folha_1.pdf`) e folhas seguintes (`folha_restantes.pdf`). |
 | **`docs/metodologia_{SUFIXO}.pdf`**                 | **Anexo da Metodologia de Apuramento (PDF com timbrado oficial)**: Documento formal externo com cabeçalho timbrado na folha de rosto (`templates/folha_1.pdf`) e folhas seguintes (`templates/folha_restantes.pdf`). |
 | **`docs/informacao1_{SUFIXO}.docx`**                | **Versão Word (DOCX via PDF24)**: Documento convertido a partir do PDF (modo *flow* ou *blocks*), gerado quando `RENDER_DOCX <- TRUE`. |
 | **`Anexo_calculos_{SUFIXO}.xlsx`**                  | **Workbook Excel oficial consolidado**: <br>• `0 - Global`: Quadro oficial de 14 colunas com apuramento TML, acerto entre operadores (MTS $\rightarrow$ FT), rateio dos canais partilhados ($K$) e dotação Incentiva +TP.<br>• `1 - Quotas`: Matriz de quotas de repartição por título e operador.<br>• `2 - Vendas AK`: Resumo de bilheteiras (A) e canais externos (K).<br>• `4 - Receita B e CongNav B`: Síntese de receita devida e congelamento.<br>• `5 - Pag Conta COSP D`: Parâmetros regulamentares COSP e pagamentos.<br>• `6 - Transferencias F`: Formato longo por métrica. |
@@ -176,7 +174,6 @@ Compensacoes/
 │   ├── 08_tables.R               # Exportação do relatório consolidado em Excel (xlsx)
 │   ├── 10_documentos.R           # Renderização e exportação de relatórios/ofícios (Typst PDF)
 │   ├── 99_run_all.R              # Script mestre de execução sequencial de todo o pipeline
-│   ├── informacao1.qmd           # Template Quarto para a Informação 1 (Typst)
 │   ├── informacao1.qmd           # Template Quarto para a Informação 1 (documento interno)
 │   ├── metodologia.qmd           # Template Quarto para o Anexo Metodologia (documento externo)
 │   ├── oficio1.qmd               # Template Quarto para o Ofício 1 (documento externo)
@@ -184,10 +181,8 @@ Compensacoes/
 │   ├── utils_tables.R            # Funções de formatação de tabelas (tinytable) para Typst
 │   ├── utils_extenso.R           # Funções auxiliares para montantes por extenso em euros
 │   ├── custom_styles.typ         # Regras tipográficas e estilos customizados para Typst
-│   ├── procedure.md              # Documentação técnica e metodológica detalhada
 │   ├── linebreaks.lua            # Filtro Pandoc (quebras de linha e deteção de doc-tipo: externo)
 │   ├── query_SL_TT.sql           # Query Oracle para separação TT / SL (Query 2b)
-│   └── query_CM_fiscaismoveis.sql# Query Oracle para validações fiscais CM (Query 2c)
 │   ├── query_CM_fiscaismoveis.sql# Query Oracle para validações fiscais CM (Query 2c)
 │   └── templates/                # Modelos e recursos visuais institucionais (versionados no Git)
 │       ├── folha_1.pdf           # Papel timbrado oficial TML (1.ª página vetorial)

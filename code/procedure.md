@@ -22,18 +22,15 @@ code/
 ├── 08_tables.R               # Exporta tabela de transferências em Excel (xlsx)
 ├── 10_documentos.R           # Renderiza relatórios e ofícios (Typst PDF) em output/docs/
 ├── 99_run_all.R              # Script mestre — corre tudo em sequência (incluindo docs)
-├── informacao1.qmd           # Template Quarto da Informação 1 (Typst)
 ├── informacao1.qmd           # Template Quarto da Informação 1 (documento interno)
 ├── metodologia.qmd           # Template Quarto do Anexo Metodologia (documento externo)
 ├── oficio1.qmd               # Template Quarto do Ofício 1 (documento externo)
 ├── render_informacao1.R      # Script rápido para renderizar a Informação 1 isoladamente
 ├── utils_tables.R            # Funções de formatação de tabelas com tinytable para Typst
-├── custom_styles.typ         # Estilos customizados e regras Typst
 ├── utils_extenso.R           # Funções auxiliares para montantes por extenso em euros
 ├── custom_styles.typ         # Estilos customizados Typst (regras de cabeçalhos e fundos)
 ├── linebreaks.lua            # Filtro Pandoc: quebras de linha e deteção de doc-tipo: externo
 ├── query_SL_TT.sql           # Query Oracle para separação TT/SL (Query 2b)
-└── query_CM_fiscaismoveis.sql # Query Oracle para fiscais móveis CM (Query 2c)
 ├── query_CM_fiscaismoveis.sql# Query Oracle para fiscais móveis CM (Query 2c)
 └── templates/                # Modelos e recursos visuais oficiais (versionados no Git)
     ├── folha_1.pdf           # Fundo timbrado oficial da 1.ª página (vetorial)
@@ -90,9 +87,6 @@ As variáveis `F_*` em `config.R` centralizam todos os caminhos.
 | `F_D_OPERADOR` | `5_cosp_operador_{SUFIXO}.csv` | `06_cosp_D.R` | COSP total (D) por operador |
 | `F_TRANSFERENCIAS` | `6_transferencias_{SUFIXO}.csv` | `07_transferencias_F.R` | **Tabela final**: A, B, D, Congelamento, F, Total |
 | `F_TABELA_XLSX` | `Anexo_calculos_{SUFIXO}.xlsx` | `08_tables.R` | **Workbook Excel**: 6 folhas (0 - Global, 1 - Quotas, 2 - Vendas AK, 4 - Receita B e CongNav B, 5 - Pag Conta COSP D, 6 - Transferencias F) |
-| `F_DOC_INFO1_PDF` | `docs/informacao1_{SUFIXO}.pdf` | `10_documentos.R` | **Relatório da Informação 1** em formato Typst (PDF) de alta qualidade gráfica |
-| `F_DOC_OFICIO1_PDF`| `docs/oficio1_{SUFIXO}.pdf` | `10_documentos.R` | **Ofício 1** (pagamento imediato, a disponibilizar) |
-| `F_DOC_OFICIO2_PDF`| `docs/oficio2_{SUFIXO}.pdf` | `10_documentos.R` | **Ofício 2** (pagamento Incentiva, a disponibilizar) |
 | `F_DOC_INFO1_PDF` | `docs/informacao1_{SUFIXO}.pdf` | `10_documentos.R` | **Relatório da Informação 1** em formato Typst (PDF, documento interno) |
 | `F_DOC_METODOLOGIA_PDF` | `docs/metodologia_{SUFIXO}.pdf` | `10_documentos.R` | **Anexo Metodologia** em formato Typst (PDF, documento externo com papel timbrado) |
 | `F_DOC_OFICIO1_PDF`| `docs/oficio1_{SUFIXO}.pdf` | `10_documentos.R` | **Ofício 1** (pagamento imediato, em preparação) |
@@ -589,20 +583,11 @@ A produção dos relatórios é automatizada com **Quarto** e compilada através
    - `DOCX_MODE          <- "asposeFlow"`: Modo de conversão PDF24: `"asposeFlow"` (texto corrido) ou `"asposeBlocks"` (blocos de texto estruturados).
 
 2. **Diferenciação entre Documentos Internos e Externos:**
-   - **Documentos Internos** (ex: `informacao1.qmd`): utilizam o cabeçalho padrão com o logo da TML no topo da página.
-   - **Documentos Externos** (ex: `metodologia.qmd`, `oficio1.qmd`, `oficio2.qmd`): definem `doc-tipo: externo` no cabeçalho YAML. O filtro Pandoc injeta a etiqueta `<doc-externo>`, e o ficheiro [`code/custom_styles.typ`](custom_styles.typ) aplica automaticamente os modelos vetoriais de papel timbrado oficial da TML:
-     - 1.ª página: fundo com `docs/folha_1.pdf` (logo TML, contactos institucionais no rodapé e marcas de furação);
-     - Páginas seguintes: fundo com `docs/folha_restantes.pdf`.
    - **Documentos Internos** (ex: `informacao1.qmd`): utilizam o cabeçalho padrão com o logótipo da TML (`templates/logo_tml.svg`) alinhado à esquerda no topo da página.
    - **Documentos Externos** (ex: `metodologia.qmd`, `oficio1.qmd`, `oficio2.qmd`): definem `doc-tipo: externo` no cabeçalho YAML. O filtro Pandoc ([`linebreaks.lua`](linebreaks.lua)) injeta a etiqueta `<doc-externo>`, e o ficheiro [`code/custom_styles.typ`](custom_styles.typ) aplica automaticamente os modelos vetoriais de papel timbrado oficial da TML (guardados em [`code/templates/`](templates/)):
      - 1.ª página: fundo timbrado com `templates/folha_1.pdf` (logótipo TML, contactos institucionais no rodapé e marcas de furação);
      - Páginas seguintes: fundo timbrado com `templates/folha_restantes.pdf`.
 
-2. **No bloco inicial de parâmetros de [`code/informacao1.qmd`](informacao1.qmd):**
-   - `data_dados_dits` e `data_dados_its`: Datas de disponibilização dos dados de bilhética.
-   - `load_version`: Versão do processamento de distâncias Carris Metropolitana (Trino/APEX).
-   - `incentiva_tp_pendente`: Booleano (`TRUE`/`FALSE`) que indica se a verba do Fundo Ambiental está pendente (ativando a recomendação de faturação parcelar) ou já transferida.
-   - `numero_informacao`, signatários e cargos para o fecho do documento.
 3. **No bloco inicial de parâmetros dos documentos:**
    - Em [`code/informacao1.qmd`](informacao1.qmd):
      - `data_dados_dits` e `data_dados_its`: Datas de disponibilização dos dados de bilhética.
@@ -621,12 +606,9 @@ A produção dos relatórios é automatizada com **Quarto** e compilada através
 - **Apenas a geração de documentos**:
   ```bash
   Rscript code/10_documentos.R
-  # ou alternativamente:
   # ou alternativamente apenas a Informação 1:
   Rscript code/render_informacao1.R
   ```
-- **Output gerado**:
-  `{MES_ANO}_replicate/output/docs/informacao1_{SUFIXO}.pdf`
 - **Outputs gerados** (em `{MES_ANO}_replicate/output/docs/`):
   - `informacao1_{SUFIXO}.pdf` (documento interno, cabeçalho simples)
   - `metodologia_{SUFIXO}.pdf` (documento externo com papel timbrado oficial)
