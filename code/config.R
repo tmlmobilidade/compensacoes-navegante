@@ -64,18 +64,18 @@ F_COSP_D        <- file.path(OUT_DIR, paste0("5a_cosp_",                     SUF
 F_D_OPERADOR    <- file.path(OUT_DIR, paste0("5_cosp_operador_",             SUFIXO, ".csv"))
 F_VAT           <- file.path(OUT_DIR, paste0("1d_validacoes_",               SUFIXO, ".csv"))
 F_TRANSFERENCIAS <- file.path(OUT_DIR, paste0("6_transferencias_",           SUFIXO, ".csv"))
-F_TABELA_XLSX   <- file.path(OUT_DIR, paste0("Anexo_Calculos_",              SUFIXO, ".xlsx"))
 F_TABELA_GLOBAL <- file.path(OUT_DIR, paste0("0_tabela_global_",             SUFIXO, ".csv"))
+F_TABELA_XLSX   <- file.path(DOCS_DIR, paste0("Anexo_Calculos_",              SUFIXO, ".xlsx"))
 
 # Ficheiros de relatórios e ofícios (Quarto)
-F_DOC_INFO1_PDF       <- file.path(DOCS_DIR, paste0("informacao1_", SUFIXO, ".pdf"))
-F_DOC_INFO1_DOCX      <- file.path(DOCS_DIR, paste0("informacao1_", SUFIXO, ".docx"))
+F_DOC_INFO1_PDF       <- file.path(DOCS_DIR, paste0("Informacao_", SUFIXO, ".pdf"))
+F_DOC_INFO1_DOCX      <- file.path(DOCS_DIR, paste0("Informacao_", SUFIXO, ".docx"))
 F_DOC_METODOLOGIA_PDF <- file.path(DOCS_DIR, paste0("Anexo_Metodologia_",  SUFIXO, ".pdf"))
 F_DOC_METODOLOGIA_DOCX<- file.path(DOCS_DIR, paste0("Anexo_Metodologia_",  SUFIXO, ".docx"))
-F_DOC_OFICIO1_PDF     <- file.path(DOCS_DIR, paste0("oficio1_",      SUFIXO, ".pdf"))
-F_DOC_OFICIO1_DOCX    <- file.path(DOCS_DIR, paste0("oficio1_",      SUFIXO, ".docx"))
-F_DOC_OFICIO2_PDF     <- file.path(DOCS_DIR, paste0("oficio2_",      SUFIXO, ".pdf"))
-F_DOC_OFICIO2_DOCX    <- file.path(DOCS_DIR, paste0("oficio2_",      SUFIXO, ".docx"))
+F_DOC_OFICIO1_PDF     <- file.path(DOCS_DIR, paste0("Oficio1_",      SUFIXO, ".pdf"))
+F_DOC_OFICIO1_DOCX    <- file.path(DOCS_DIR, paste0("Oficio1_",      SUFIXO, ".docx"))
+F_DOC_OFICIO2_PDF     <- file.path(DOCS_DIR, paste0("Oficio2_",      SUFIXO, ".pdf"))
+F_DOC_OFICIO2_DOCX    <- file.path(DOCS_DIR, paste0("Oficio2_",      SUFIXO, ".docx"))
 
 # ---- Função auxiliar para selecção de ficheiros recentes ---------------------
 #' Seleciona o ficheiro mais recente que corresponda a um padrão.
