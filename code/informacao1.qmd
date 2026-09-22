@@ -13,8 +13,6 @@ format:
       bottom: 3.0cm
     include-in-header:
       - custom_styles.typ
-#   docx:
-#     reference-doc: "templates/TML_template.docx"
 filters:
   - linebreaks.lua
 number-sections: true
