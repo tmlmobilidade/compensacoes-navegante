@@ -99,11 +99,20 @@ Ao executar `Rscript code/99_run_all.R`, o script mestre executa automaticamente
 Se os cálculos já tiverem sido executados e quiseres apenas recompilar a Informação 1 (por exemplo, após rever o texto ou os parâmetros no documento):
 
 ```bash
-# Executa todos os documentos ativos em config.R:
+# Executa todos os documentos ativos em config.R (gera PDF Typst):
 Rscript code/10_documentos.R
 
 # Ou executa diretamente a Informação 1:
 Rscript code/render_informacao1.R
+```
+
+Para gerar também a versão Word (DOCX) via PDF24 Toolbox na linha de comandos:
+```powershell
+# Gerar PDF e converter para Word (modo flow):
+$env:RENDER_DOCX="TRUE"; Rscript code/10_documentos.R
+
+# Gerar PDF e converter para Word em modo blocks:
+$env:RENDER_DOCX="TRUE"; $env:DOCX_MODE="asposeBlocks"; Rscript code/10_documentos.R
 ```
 
 ### Personalização da Emissão
@@ -113,8 +122,9 @@ No cabeçalho de [`code/informacao1.qmd`](code/informacao1.qmd), podes ajustar o
 - `incentiva_tp_pendente`: `TRUE` se o Fundo Ambiental ainda não tiver transferido a dotação (recomenda faturação parcelar), ou `FALSE` se o montante já estiver disponível;
 - `numero_informacao` e intervenientes técnicos.
 
-Os documentos PDF gerados são gravados diretamente na subpasta:
-`{MES}_{mes_abrev}_{ANO}_replicate/output/docs/informacao1_{SUFIXO}.pdf`
+Os documentos gerados são gravados diretamente na subpasta:
+- PDF: `{MES}_{mes_abrev}_{ANO}_replicate/output/docs/informacao1_{SUFIXO}.pdf`
+- DOCX: `{MES}_{mes_abrev}_{ANO}_replicate/output/docs/informacao1_{SUFIXO}.docx` (quando ativado)
 
 ---
 
@@ -125,6 +135,7 @@ Os resultados são gerados na pasta `{MES}_{mes_abrev}_{ANO}_replicate/output/` 
 | Ficheiro | Descrição |
 | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`docs/informacao1_{SUFIXO}.pdf`**                 | **Relatório Oficial da Informação 1 (PDF via Typst)**: Documento técnico completo com narrativa formal, fórmulas, quadros explicativos e Tabelas 1 a 8 formatadas com `tinytable`. |
+| **`docs/informacao1_{SUFIXO}.docx`**                | **Versão Word (DOCX via PDF24)**: Documento convertido a partir do PDF (modo *flow* ou *blocks*), gerado quando `RENDER_DOCX <- TRUE`. |
 | **`Anexo_calculos_{SUFIXO}.xlsx`**                  | **Workbook Excel oficial consolidado**: <br>• `0 - Global`: Quadro oficial de 14 colunas com apuramento TML, acerto entre operadores (MTS $\rightarrow$ FT), rateio dos canais partilhados ($K$) e dotação Incentiva +TP.<br>• `1 - Quotas`: Matriz de quotas de repartição por título e operador.<br>• `2 - Vendas AK`: Resumo de bilheteiras (A) e canais externos (K).<br>• `4 - Receita B e CongNav B`: Síntese de receita devida e congelamento.<br>• `5 - Pag Conta COSP D`: Parâmetros regulamentares COSP e pagamentos.<br>• `6 - Transferencias F`: Formato longo por métrica. |
 | **`6_transferencias_{SUFIXO}.csv`**                | **Tabela final de compensações (CSV)**: receitas na posse (`receita_A`), receitas devidas (`receita_B`), saldo (`saldo_C`), COSP (`cosp_D`), saldo global (`SG`), transferências (`F_transferencia`), congelamento (`congelamento_B`) e total a transferir por operador. |
 | `1a_PT_{SUFIXO}.csv`                                | Passageiros transportados (validações) agregados por título e operador.                                                                                               |
