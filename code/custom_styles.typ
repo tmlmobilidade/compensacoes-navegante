@@ -8,7 +8,7 @@
   header: context {
     let is-externo = query(<doc-externo>).len() > 0 or query(<externo>).len() > 0
     if not is-externo {
-      align(left)[#image("logo_tml.svg", width: 4cm)]
+      align(left)[#image("templates/logo_tml.svg", width: 4cm)]
     }
   },
   background: context {
@@ -16,9 +16,9 @@
     if is-externo {
       let page_num = counter(page).get().first()
       if page_num == 1 {
-        image("docs/folha_1.pdf", width: 100%, height: 100%)
+        image("templates/folha_1.pdf", width: 100%, height: 100%)
       } else {
-        image("docs/folha_restantes.pdf", width: 100%, height: 100%)
+        image("templates/folha_restantes.pdf", width: 100%, height: 100%)
       }
     }
   },

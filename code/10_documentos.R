@@ -8,16 +8,6 @@ source(here::here("code", "config.R"))
 # Criar pasta de destino docs/ se não existir
 dir.create(DOCS_DIR, showWarnings = FALSE, recursive = TRUE)
 
-# Garantir sincronização dos modelos/fundos timbrados de docs/ para code/docs/
-code_docs_dir <- here::here("code", "docs")
-dir.create(code_docs_dir, showWarnings = FALSE, recursive = TRUE)
-for (f in c("folha_1.pdf", "folha_restantes.pdf", "folha1.png", "folhas_restantes.png")) {
-  src <- here::here("docs", f)
-  dst <- file.path(code_docs_dir, f)
-  if (file.exists(src) && (!file.exists(dst) || file.mtime(src) > file.mtime(dst))) {
-    file.copy(src, dst, overwrite = TRUE)
-  }
-}
 
 # Garantir que a tabela global consolidada (passo 08) existe antes de renderizar
 if (isTRUE(get0("RENDER_INFORMACAO1", ifnotfound = TRUE)) &&
