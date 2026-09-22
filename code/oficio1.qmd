@@ -1,0 +1,431 @@
+---
+lang: pt
+format:
+  typst:
+    papersize: a4
+    linestretch: 1.2
+    # mainfont: "Lexend" # não parece sério
+    numbering: "I"
+    margin:
+      x: 3.0cm
+      y: 3.0cm
+      top: 4.0cm
+      bottom: 3.0cm
+    include-in-header:
+      - custom_styles.typ
+#   docx:
+#     reference-doc: "../docs/TML_template.docx"
+filters:
+  - linebreaks.lua
+number-sections: true
+section-numbering: 1.1.1.
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: params
+
+# =============================================================================
+# PARÂMETROS ESPECÍFICOS DESTE DOCUMENTO
+# (ajustar aqui o que for relativo a esta emissão da Informação)
+# =============================================================================
+
+# Datas de disponibilização dos dados de bilhética (DITS e ITS)
+data_dados_dits   <- "31 de julho de 2026" # maio26
+data_dados_its    <- "7 de agosto de 2026" # maio26
+# data_dados_dits   <- "24 de agosto de 2026" # junho26
+# data_dados_its    <- "24 de agosto de 2026" # junho26 tambem
+
+# Versão do processamento de distâncias Carris Metropolitana (Trino)
+load_version      <- 27 # maio26
+# load_version      <- 31 # junho26
+
+# ---- Financiamento / Faturação ----------------------------------------------
+# TRUE  = Verba do Fundo Ambiental (Incentiva +TP) ainda NÃO transferida à data -> faturação parcelar
+# FALSE = Verba do FA já disponibilizada -> faturação total imediata
+incentiva_tp_pendente <- TRUE
+
+
+# ---- Referência e Datas -----------------------------------------------------
+numero_informacao <- "TML-XXXX-XXXX-INF-XXXX-DEP"
+data_documento    <- format(Sys.Date(), "%d/%m/%Y")
+numero_oficio     <- "TML-XXXX-XXXX-OF-XXXX-DEP"
+
+# ---- Identificação e Autoria ------------------------------------------------
+de_pessoa1_nome  <- "Ana Isabel Capote Fernandes Rosado"
+de_pessoa1_cargo <- "Técnica Superior"
+
+de_pessoa2_nome  <- "Luísa Salomé Freixo Lopes de Castro Nogueira"
+de_pessoa2_cargo <- "Técnica Superior"
+
+de_pessoa3_nome  <- "António Sérgio Vaz Rei Manso Pinheiro"
+de_pessoa3_cargo <- "Diretor do Departamento de Estudos e Planeamento"
+
+de_divisao       <- "Estudos e Planeamento - Sistemas de Transportes"
+
+para_pessoa_nome <- "Helena Catarina Mota Ferreira Tavares Marcelino"
+para_cargo       <- "Coordenadora"
+para_divisao     <- "Estudos e Planeamento - Sistemas de Transportes"
+```
+
+```{r}
+#| label: setup
+
+# =============================================================================
+# CARREGAMENTO DE DADOS E CÁLCULOS DO RELATÓRIO
+# =============================================================================
+
+source(here::here("code", "config.R"))
+
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(tidyr)
+  library(scales)
+  library(knitr)
+  library(ggplot2)
+  library(tinytable)
+})
+
+# ---- Funções Auxiliares de Formatação ----------------------------------------
+fmt_eur <- function(x) {
+  ifelse(is.na(x), "", scales::number(x, accuracy = 0.01, big.mark = "\u00a0", decimal.mark = ",", suffix = "\u00a0€")) # não quebra o espaço antes do € nas tabelas
+}
+
+fmt_int <- function(x) {
+  ifelse(is.na(x), "", scales::number(round(x), accuracy = 1, big.mark = "\u00a0"))
+}
+
+fmt_pct <- function(x, acc = 0.1) {
+  ifelse(is.na(x), "", scales::percent(x, accuracy = acc, decimal.mark = ","))
+}
+
+fmt_pct3 <- function(x) {
+  ifelse(is.na(x), "", scales::percent(x, accuracy = 0.001, decimal.mark = ","))
+}
+
+# Funções auxiliares de tabelas (tinytable) e montantes por extenso
+source(here::here("code", "utils_tables.R"))
+source(here::here("code", "utils_extenso.R"))
+
+# ---- Mês e Ano de Transferência (M + 3) --------------------------------------
+# No relatório textual, os nomes dos meses são apresentados em minúsculas (ex: "maio", "agosto")
+mes_nome        <- tolower(mes_nome)
+mes_transf_num  <- ((MES - 1 + 3) %% 12) + 1
+ano_transf      <- ANO + ((MES + 3 - 1) %/% 12)
+mes_transf_nome <- tolower(meses_pt_nome[mes_transf_num])
+
+# ---- Carregar Outputs das Fases Anteriores -----------------------------------
+rtd_raw <- read.csv2(F_RTD, stringsAsFactors = FALSE, dec = ",")
+num_cols_rtd <- c("pvp", "receita_A_total", "qty_A_total", "qty_K", "receita_K", "qty_vat", "qty_total", "receita_distribuir")
+for (col in intersect(num_cols_rtd, names(rtd_raw))) {
+  rtd_raw[[col]] <- as.numeric(gsub(",", ".", rtd_raw[[col]]))
+}
+
+# total_K_val: soma das receitas nos canais partilhados (K) — idem ao 08_tables.R l.127
+# Definido aqui para o QMD ser auto-suficiente quando renderizado standalone
+if (!exists("total_K_val")) {
+  total_K_val <- sum(rtd_raw$receita_K, na.rm = TRUE)
+}
+
+# Nomes de operadores com TT e SL agregados (10 operadores)
+ordem_ops_merged <- c("CP", "FT", "TT + SL", "ML", "MTS", "Carris", "TCB", "AT Cascais", "AT TML - CM", "BT Oeste")
+
+# ---- Carregar tabela global pré-calculada por 08_tables.R -------------------
+# A reconciliação de cêntimos e todos os cálculos de parcela_partilhada /
+# parcela_incentiva são feitos em 08_tables.R e exportados para F_TABELA_GLOBAL.
+# O relatório lê esse ficheiro directamente, sem recalcular nada,
+# garantindo consistência total com o XLSX exportado.
+if (!file.exists(F_TABELA_GLOBAL)) {
+  message("ℹ Ficheiro da tabela global não encontrado. A executar 08_tables.R...")
+  source(here::here("code", "08_tables.R"))
+}
+tabela_global <- read.csv2(F_TABELA_GLOBAL, stringsAsFactors = FALSE, dec = ",")
+
+num_cols_tg <- c("receita_A", "receita_B", "C", "cosp_D", "SG",
+                 "F_transferencia", "congelamento", "total_transferir",
+                 "transf_entre_ops", "total_tml", "pct",
+                 "parcela_partilhada", "parcela_incentiva")
+for (col in intersect(num_cols_tg, names(tabela_global))) {
+  tabela_global[[col]] <- as.numeric(gsub(",", ".", tabela_global[[col]]))
+}
+
+# Linha TOTAL (última linha do CSV)
+total_row_g      <- tabela_global[tabela_global$nome_tab == "TOTAL", ]
+transf_g_display <- tabela_global[tabela_global$nome_tab != "TOTAL", ]
+
+
+# Valores escalares globais
+receita_A_total     <- total_row_g$receita_A
+receita_K_total     <- total_K_val
+receita_B_total     <- total_row_g$receita_B
+cosp_total_mes      <- total_row_g$cosp_D
+congelamento_total  <- total_row_g$congelamento
+total_transferir    <- total_row_g$total_tml
+
+# excedente_mts: excedente de receitas na posse do MTS a transferir ao FT (se > 0)
+# idem ao 08_tables.R l.269 — derivado aqui da tabela_global para render standalone
+if (!exists("excedente_mts")) {
+  mts_row_g <- tabela_global[tabela_global$nome_tab == "MTS", ]
+  excedente_mts <- if (nrow(mts_row_g) > 0 && !is.na(mts_row_g$total_transferir) &&
+                         mts_row_g$total_transferir < 0) abs(mts_row_g$total_transferir) else 0
+}
+
+# Parâmetros COSP e Sazonalidade
+saz_df <- read.csv2(file.path(LISTS_DIR, "sazonalidade.csv"), stringsAsFactors = FALSE, dec = ".")
+tat_df <- read.csv2(TAT_FILE, stringsAsFactors = FALSE, dec = ".")
+tat_df$tat <- as.numeric(tat_df$tat)
+fator_tat_vmc <- prod(1 + tat_df$tat[tat_df$ano <= ANO])
+VMC_ano       <- round(VMC_2023 * fator_tat_vmc, 2)
+valor_medio_passe <- VMC_ano / N_PASSES_COMPENSAR
+
+saz_df$sazonalidade <- as.numeric(saz_df$sazonalidade)
+saz_mes <- as.numeric(saz_df$sazonalidade[saz_df$mes == MES])
+
+qty_total_mes <- sum(rtd_raw$qty_total, na.rm = TRUE)
+estimativa_passes_anuais <- qty_total_mes / saz_mes
+pct_compensar <- min(1, N_PASSES_COMPENSAR / estimativa_passes_anuais)
+
+cosp_detail_raw <- read.csv2(F_COSP_D, stringsAsFactors = FALSE, dec = ",")
+for (col in c("qty_total_i", "passes_compensar_i", "COSP_i", "quota", "COSP_ij")) {
+  if (col %in% names(cosp_detail_raw)) cosp_detail_raw[[col]] <- as.numeric(gsub(",", ".", cosp_detail_raw[[col]]))
+}
+passes_comp_mes  <- sum(unique(cosp_detail_raw[, c("ticket_code", "passes_compensar_i")])$passes_compensar_i, na.rm = TRUE)
+
+# ---- Auto-atualização de receitas_anteriores.csv -----------------------------
+rac_file <- file.path(LISTS_DIR, "receitas_anteriores.csv")
+rac <- read.csv2(rac_file, stringsAsFactors = FALSE, dec = ",", check.names = FALSE)
+rac <- rac[, !grepl("^X|;$|^$", names(rac))]
+
+ja_existe_mes <- any(rac$ano == ANO & rac$mes == MES & rac$Tipo == "Passageiros")
+
+if (!ja_existe_mes) {
+  # Carregar passageiros atuais
+  pt_data <- read.csv2(F_PT, stringsAsFactors = FALSE, dec = ".")
+  pt_data$pt_operador <- as.numeric(pt_data$pt_operador)
+  pt_agg <- pt_data %>% group_by(operador) %>% summarise(pt = sum(pt_operador, na.rm=TRUE))
+
+  op_map_rac <- c(
+    CP = "CP", FT = "FT", TT = "TT", SL = "SL", ML = "ML", MS = "MTS",
+    CA = "Carris", TB = "TCB", CAP = "AT Cascais", CM = "AT TML - CM", BQ = "BT Oeste"
+  )
+
+  # 1. Linha Passageiros
+  row_pax <- data.frame(
+    ano = ANO, mes = MES, Tipo = "Passageiros",
+    TOTAL = format(sum(pt_agg$pt), big.mark = " "),
+    stringsAsFactors = FALSE, check.names = FALSE
+  )
+  for (code in names(op_map_rac)) {
+    col_nm <- op_map_rac[code]
+    val <- pt_agg$pt[pt_agg$operador == code]
+    row_pax[[col_nm]] <- if (length(val) > 0) format(round(val), big.mark = " ") else "0"
+  }
+
+  # 2. Linha Receitas
+  cong_data <- read.csv2(F_CONGELAMENTO, stringsAsFactors = FALSE, dec = ",")
+  cong_data$receita_B <- as.numeric(gsub(",", ".", cong_data$receita_B))
+  tot_rec_b <- sum(cong_data$receita_B, na.rm = TRUE)
+
+  row_rec <- data.frame(
+    ano = ANO, mes = MES, Tipo = "Receitas",
+    TOTAL = format(round(tot_rec_b, 2), nsmall = 2, decimal.mark = ",", big.mark = ""),
+    stringsAsFactors = FALSE, check.names = FALSE
+  )
+  for (code in names(op_map_rac)) {
+    col_nm <- op_map_rac[code]
+    if (code == "SL") {
+      row_rec[[col_nm]] <- "0,000"
+    } else if (code == "TT") {
+      val_tt <- sum(cong_data$receita_B[cong_data$operador %in% c("TT", "SL")], na.rm = TRUE)
+      row_rec[[col_nm]] <- format(round(val_tt, 3), nsmall = 3, decimal.mark = ",", big.mark = "")
+    } else {
+      val <- cong_data$receita_B[cong_data$operador == code]
+      row_rec[[col_nm]] <- if (length(val) > 0) format(round(val, 3), nsmall = 3, decimal.mark = ",", big.mark = "") else "0,000"
+    }
+  }
+
+  # 3. Linha Receitas perct
+  row_pct <- data.frame(
+    ano = ANO, mes = MES, Tipo = "Receitas perct",
+    TOTAL = "1,00",
+    stringsAsFactors = FALSE, check.names = FALSE
+  )
+  for (code in names(op_map_rac)) {
+    col_nm <- op_map_rac[code]
+    if (code == "SL") {
+      row_pct[[col_nm]] <- "0,00000"
+    } else if (code == "TT") {
+      val_tt <- sum(cong_data$receita_B[cong_data$operador %in% c("TT", "SL")], na.rm = TRUE)
+      p <- if (tot_rec_b > 0) val_tt / tot_rec_b else 0
+      row_pct[[col_nm]] <- format(round(p, 5), nsmall = 5, decimal.mark = ",", big.mark = "")
+    } else {
+      val <- cong_data$receita_B[cong_data$operador == code]
+      p <- if (length(val) > 0 && tot_rec_b > 0) val / tot_rec_b else 0
+      row_pct[[col_nm]] <- format(round(p, 5), nsmall = 5, decimal.mark = ",", big.mark = "")
+    }
+  }
+
+  rac <- bind_rows(rac, row_pax, row_rec, row_pct)
+  write.table(rac, rac_file, sep = ";", dec = ",", row.names = FALSE, na = "")
+  message("✓ Novo mês adicionado a receitas_anteriores.csv")
+}
+```
+
+::::: {style="font-size: 0.7em;"}
+
+:::: {layout-ncol=2}
+
+::: {}
+<!-- **De:**\
+`r de_pessoa1_nome`\
+`r de_pessoa1_cargo`\
+`r de_pessoa2_nome`\
+`r de_pessoa2_cargo`\
+`r de_divisao` -->
+:::
+
+::: {}
+<!-- **Para:**\ -->
+<!-- `r para_pessoa_nome`\
+`r para_cargo`\
+`r para_divisao` -->
+Exmos. Senhores
+Operadores de transporte público que disponibilizam o título Intermodal Navegante
+ 
+CC/ Autoridades de Transporte: Secretaria de Estado da Mobilidade, Instituto da Mobilidade e dos Transportes, Câmara Municipal do Barreiro, Câmara Municipal de Lisboa, Câmara Municipal de Cascais, CIM Oeste e Área Metropolitana de Lisboa
+:::
+
+::::
+
+:::::
+
+```{=typst}
+#align(left)[
+  #heading(level: 3, numbering: none)[
+    #text(size: 11pt)[N/Ref.ª - `r numero_oficio`]
+    #text(size: 11pt)[Estudos e Planeamento `r data_documento`]
+  ]
+]
+#v(0.8cm)
+```
+
+_Forma de envio:_
+Correio eletrónico
+
+
+```{=typst}
+#par(hanging-indent: 52pt)[
+    #set text(weight: "bold")
+Assunto: Apuramento provisório do mês de `r mes_nome` de `r ANO` e cálculo dos montantes a transferir aos operadores de transporte público ou às autoridades de transporte, em `r mes_transf_nome` de `r ano_transf`, no âmbito do Regulamento n.º 278-A/2019 da AML, na sua redação atual
+]
+```
+
+```{=typst}
+#v(1cm)
+```
+
+Foi publicado no dia 27 de dezembro de 2023, o Regulamento n.º 1362-C/2023, que procede à 6.ª alteração ao Regulamento n.º 278-A/2019.
+Com a referida alteração, ficou definida, no Anexo V, uma metodologia que fixa novas regras relativas à titularidade das receitas tarifárias e às compensações financeiras devidas aos Operadores de serviço público de transporte regular de passageiros da área metropolitana de Lisboa, pelo cumprimento das OSP tarifárias inerentes ao sistema tarifário metropolitano, pela disponibilização dos passes Navegante a preços acessíveis.
+
+No âmbito das competências delegadas e subdelegadas pela Área Metropolitana de Lisboa (“AML”) na TML – Transportes Metropolitanos de Lisboa, E.M.T., S.A. (“TML”) ao abrigo do Contrato Interadministrativo de Delegação e Subdelegação de Competências e respetivo Aditamento em vigor, vimos pelo presente informar que o Conselho de Administração da TML, nos termos do Regulamento n.º 278-A/2019 da AML, na sua versão atual, e com base na metodologia e pressupostos apresentados no “Anexo – Metodologia_5_2026”, aprovou:
+
+1)	As quotas de repartição de receitas e de compensações financeiras determinadas com dados de passageiros.km de maio de 2026, conforme Tabela 1 do ficheiro “Anexo_Calculos_5_2026”;
+
+1)	Os valores provisórios de receita e compensações pela obrigação de serviço público tarifária pela disponibilização dos passes Navegante, de cada Operador, em maio de 2026, conforme Tabela 4 e Tabela 5 do ficheiro “Anexo_Calculos_5_2026”;
+
+1)	Os valores das transferências (F5) e de estimativas de pagamentos por conta de compensação pelo congelamento dos preços dos passes Navegante (CongNavB5), previstos nos pontos 13 e 23.2 do Anexo V, respetivamente, definidos para agosto de 2026, calculados com base nos dados provisórios de maio de 2026 e distribuídos pelos Operadores conforme @tbl-1 do ofício:
+
+```{r}
+#| label: tbl-1
+#| tbl-cap: !expr paste0("Montantes a transferir aos Operadores em ", mes_transf_nome, " de ", ano_transf, ", referentes ao apuramento provisório de ", mes_nome, " de ", ANO)
+
+tab5 <- tabela_global %>%
+  mutate(
+    f_fmt        = fmt_eur(F_transferencia),
+    cong_fmt     = fmt_eur(congelamento),
+    soma_f_cong  = fmt_eur(total_transferir),
+    transf_ops   = ifelse(is.na(transf_entre_ops), "", fmt_eur(transf_entre_ops)),
+    total_tml_f  = fmt_eur(total_tml),
+    pct_fmt      = ifelse(nome_tab == "TOTAL", "100%", fmt_pct3(pct))
+  ) %>%
+  select(
+    `Operador` = nome_tab,
+    `Transferência [F]` = f_fmt,
+    `Congelamento Passes Navegante` = cong_fmt,
+    `[F] + [CongNav[B]]` = soma_f_cong,
+    `Transferência entre operadores (€)` = transf_ops,
+    `TOTAL a transferir pela TML (€)` = total_tml_f,
+    `% do montante total a transferir a cada Operador(1)` = pct_fmt
+  )
+
+names(tab5)[2] <- paste0("Transferência\n[F", MES, "]")
+names(tab5)[3] <- paste0("Congelamento\nPasses\nNavegante\n[CongNav[B", MES, "]]")
+names(tab5)[4] <- paste0("[F", MES, "] +\n[CongNav[B", MES, "]]")
+names(tab5)[5] <- "Transferência\nentre\noperadores"
+names(tab5)[6] <- "TOTAL a\ntransferir\npela TML"
+names(tab5)[7] <- "% do montante\ntotal a\ntransferir\na cada\nOperador"
+
+tab5$Operador <- gsub("AT TML - CM", "AT\u00a0TML\u00a0\u2011\u00a0CM", tab5$Operador) # não permite a quebra depois do hifen
+
+tml_table(tab5, fontsize = 0.72, align = c("l", "r", "r", "r", "r", "r", "r"),
+ notes = list(a = list(i = 0, j = 7,
+text = "As percentagens apresentam-se com três casas decimais, porém o cálculo é realizado sem o arredondamento prévio da proporção.")))
+```
+
+
+  a.	Valor total de 20.121.710,17 € (vinte milhões cento e vinte e um mil setecentos e dez euros e dezassete cêntimos), – resultante da compensação tarifária (COSP), do congelamento do valor dos títulos navegante e da receita das vendas em canais de receita partilhada – a transferir pela TML aos Operadores e a faturar de forma parcelar (dado que a verba do Fundo Ambiental relativa ao Incentiva +TP referente ao mês de agosto de 2026 não foi disponibilizada), conforme ponto 13.6 do Anexo V:
+    i.	Solicitar aos operadores, de imediato, as faturas da parcela correspondente à receita de passes Navegante obtida através dos canais de receita partilhada (ATM e portal viva), num total de 7.111.441,69 € (sete milhões cento e onze mil quatrocentos e quarenta e um euros e sessenta e nove cêntimos), conforme Tabela 2:
+
+Tabela 2 – Valores autorizados para faturação de imediato, referentes às transferências de agosto de 2026
+	Valores autorizados para faturação (€) 
+agosto de 2026
+
+	
+CP- Comboios de Portugal	470 489,17 €
+Fertagus	476 699,83 €
+Transtejo Soflusa	266 250,25 €
+Metropolitano de Lisboa	274 031,48 €
+Carris	1 567 779,72 €
+Transportes Colectivos do Barreiro	135 077,99 €
+AT TML – Carris Metropolitana	3 911 162,37 €
+Barraqueiro Transportes	9 950,88 €
+TOTAL 	7 111 441,69 €
+Nota: este valor não inclui o montante relativo à AT Cascais.
+
+-	 CP – Comboios de Portugal, E.P.E.: 470.489,17€ (quatrocentos e setenta mil quatrocentos e oitenta e nove euros e dezassete cêntimos);
+-	Fertagus – Travessia do Tejo, Transportes S.A.: 476.699,83 € (quatrocentos e setenta e seis mil, seiscentos e noventa e nove euros e oitenta e três cêntimos);
+-	Transtejo Soflusa, S.A.: 266.250,25 € (duzentos e sessenta e seis mil duzentos e cinquenta euros e vinte e cinco cêntimos);
+-	Metropolitano de Lisboa, E.P.E.: 274.031,48€ (duzentos e setenta e quatro mil e trinta e um euros e quarenta e oito cêntimos);
+-	Carris – Companhia Carris de Ferro de Lisboa, E.M. S.A.: 1.567.779,72€ (um milhão quinhentos e sessenta e sete mil setecentos e setenta e nove euros e setenta e dois cêntimos); 
+-	Serviços Municipalizados de Transportes Coletivos do Barreiro: 135.077,99€ (cento e trinta e cinco mil e setenta e sete euros e noventa e nove cêntimos);
+-	Transportes Metropolitanos de Lisboa, E.M.T., S.A. – Contratos Carris Metropolitana Áreas 1, 2, 3 e 4: 3.911.162,37 € (três milhões novecentos e onze mil cento e sessenta e dois euros e trinta e sete cêntimos);
+-	Barraqueiro Transportes, S.A.: 9.950,88 € (nove mil novecentos e cinquenta euros e oitenta e oito cêntimos).
+
+1)	Solicitar ao operador Metro Transportes do Sul (MTS) a transferência de receitas excedentes para o operador Fertagus num valor total de 112.570,78€ (cento e doze mil quinhentos e setenta euros e setenta e oito cêntimos);
+
+1)	Reter a transferência determinada para a AT Cascais, ao abrigo do n.º 26 do Anexo V do Regulamento.
+Os pagamentos serão realizados pela TML após a receção das respetivas faturas, para o endereço de correio eletrónico `compras@tmlmobilidade.pt` nos termos indicados anteriormente.
+
+De acordo com o n.º 3 do artigo 18.º do Regulamento n.º 278-A/2019, é obrigação dos operadores submeter documento a autorizar a consulta da situação tributária e da situação contributiva perante a segurança social, ou enviar as respetivas certidões de não dívida, devendo ainda ser comprovado o registo central do beneficiário efetivo, quando aplicável. Sem a receção destes documentos não é possível proceder aos pagamentos.
+
+A TML reserva-se o direito de não proceder a pagamentos no caso de não envio de informação prevista no Regulamento n.º 278-A/2019.
+
+```{=typst}
+#v(0.8cm)
+```
+
+<!-- `r data_documento` -->
+
+```{=typst}
+#v(0.3cm)
+```
+
+**`r de_pessoa3_nome`**\
+`r de_pessoa1_cargo`
+
+**`r de_pessoa3_nome`**\
+`r de_pessoa2_cargo`
+Ao abrigo do Despacho de subdelegação de competências do PCA de 13/03/2026
