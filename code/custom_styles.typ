@@ -31,7 +31,7 @@
 // 3. Parágrafos e Texto normal
 // Garantir tamanho 10pt e peso de forma global
 #set text(
-  font: "Lexend",
+  font: ("Greycliff CF", "Lexend"), // primeiro usa a Graycliff CF, se não existir usa a Graycliff, se não existe usa a Lexend (open source font)
   size: 10pt,
   weight: "light", // ou "extralight"
 )
