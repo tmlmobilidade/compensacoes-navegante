@@ -233,7 +233,7 @@ if (!ja_existe_mes) {
     #text(size: 14pt)[Anexo Metodologia `r mes_nome` `r ANO`]
   ]
 ]
-#v(2cm)
+#v(0.5cm)
 ```
 
 # Enquadramento
