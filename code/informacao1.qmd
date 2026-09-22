@@ -14,7 +14,7 @@ format:
     include-in-header:
       - custom_styles.typ
 #   docx:
-#     reference-doc: "../docs/TML_template.docx"
+#     reference-doc: "templates/TML_template.docx"
 filters:
   - linebreaks.lua
 number-sections: true
@@ -381,7 +381,7 @@ Com a implementação do Passe gratuito Jovem Estudante, foram criados dois tít
 
 Em janeiro de 2025, com a entrada em vigor do Circula.pt, foram criadas duas modalidades de Navegante +65 – Navegante +65 cPT A e Navegante +65 cPT B. Enquanto forem utilizadas as distâncias médias de outubro e agosto de 2021, aplicam-se a estes novos títulos as mesmas distâncias médias do passe Navegante +65.
 
-Na Tabela 1 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`”, podem ser consultadas as quotas de repartição por título e por Operador, assim como os dados base que estiveram na origem do seu cálculo.
+Na Tabela 1 do ficheiro “`r paste0("Anexo_Calculos_", SUFIXO, ".xlsx")`”, podem ser consultadas as quotas de repartição por título e por Operador, assim como os dados base que estiveram na origem do seu cálculo.
 
 ## Receitas de passes Navegante de `r mes_nome` de `r ANO`
 
@@ -391,7 +391,7 @@ O número de passes vendidos foi determinado cumprindo as regras previstas no po
 
 ### Receitas de passes Navegante na posse de cada Operador \[A`r MES`\] e nos canais de receita partilhada \[K`r MES`\] em `r mes_nome` de `r ANO` {#sec-receitasak}
 
-Na Tabela 2 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`”, é apresentada a distribuição de vendas e receitas de passes Navegante no mês de `r mes_nome` de `r ANO`, por título, pelos diferentes canais de venda.
+Na Tabela 2 do ficheiro “`r paste0("Anexo_Calculos_", SUFIXO, ".xlsx")`”, é apresentada a distribuição de vendas e receitas de passes Navegante no mês de `r mes_nome` de `r ANO`, por título, pelos diferentes canais de venda.
 
 As receitas nos canais próprios de cada Operador \[A\] ficam na posse de cada um e as vendas nos canais de receita partilhada \[K\] ficam na posse da TML, como autoridade gestora desses canais.
 
@@ -401,7 +401,7 @@ Em `r mes_nome` de `r ANO`, a receita na posse dos operadores totaliza um valor 
 
 A receita devida a cada Operador foi determinada aplicando a quota de repartição definida em -@sec-quota-reparticao. às receitas do sistema apresentadas no ponto -@sec-receitasak.
 
-A Tabela 4 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`” resume as receitas de passes Navegante devidas a cada Operador, relativas ao mês de `r mes_nome` de `r ANO`.
+A Tabela 4 do ficheiro “`r paste0("Anexo_Calculos_", SUFIXO, ".xlsx")`” resume as receitas de passes Navegante devidas a cada Operador, relativas ao mês de `r mes_nome` de `r ANO`.
 
 ### Saldo de receita em cada Operador \[C`r MES`\] em `r mes_nome` de `r ANO`
 
@@ -442,7 +442,7 @@ Para determinar os pagamentos por conta da COSP tarifária foi necessário defin
 
 Conforme previsto no Regulamento (ponto 5.1.3. do Anexo V), o Valor Máximo de Compensação anual (“VMC”) foi atualizado com a TAT de 2024, de 6,43%, com a TAT de 2025, de 2,02% e com a TAT de 2026 de 2,28%, pelo que em `r ANO`, o VMC corresponde a `r fmt_eur(VMC_ano)` e, consequentemente, a compensação por passe vendido é de `r fmt_eur(valor_medio_passe)`.
 
-A @tbl-2 resume o procedimento descrito e a Tabela 5 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`” resume o valor de pagamentos por conta da COSP tarifária por título para cada Operador.
+A @tbl-2 resume o procedimento descrito e a Tabela 5 do ficheiro “`r paste0("Anexo_Calculos_", SUFIXO, ".xlsx")`” resume o valor de pagamentos por conta da COSP tarifária por título para cada Operador.
 
 Note-se que, conforme previsto no Regulamento (ponto 12.3 do Anexo V), procedeu-se à retenção de 2,5% do valor estimado de pagamento por conta da COSP tarifária.
 
@@ -548,7 +548,7 @@ Esta compensação deve ser calculada sobre a receita devida a cada Operador, ma
 
 Neste procedimento, apenas se apuram os valores de compensação pelo congelamento dos preços dos passes Navegante referentes à receita de passes devida \[B\], remetendo os restantes valores para os procedimentos de cálculo de cada uma das compensações dos respetivos títulos bonificados.
 
-A @tbl-4 resume o procedimento de cálculo da compensação por congelamento dos preços dos passes Navegante aplicada às respetivas receitas. Na Tabela 4 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`” é apresentado o valor de compensação por conta do congelamento dos passes Navegante, por título e por operador.
+A @tbl-4 resume o procedimento de cálculo da compensação por congelamento dos preços dos passes Navegante aplicada às respetivas receitas. Na Tabela 4 do ficheiro “`r paste0("Anexo_Calculos_", SUFIXO, ".xlsx")`” é apresentado o valor de compensação por conta do congelamento dos passes Navegante, por título e por operador.
 
 ```{r}
 #| label: tbl-4
@@ -854,9 +854,9 @@ tab7
 
 Ao abrigo do contrato de delegação e subdelegação de competências da Área Metropolitana de Lisboa na TML – Transportes Metropolitanos de Lisboa, E.M.T., S.A. e do disposto no Regulamento n.º 278-A/2019, na sua versão atual, coloca-se à consideração do Conselho de Administração da TML:
 
-1)  **Aprovar as quotas de repartição** de receitas e de compensações determinadas com os dados de passageiros.km de `r mes_nome` de `r ANO`, conforme Tabela 1 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`”;
+1)  **Aprovar as quotas de repartição** de receitas e de compensações determinadas com os dados de passageiros.km de `r mes_nome` de `r ANO`, conforme Tabela 1 do ficheiro “`r paste0("Anexo_Calculos_", SUFIXO, ".xlsx")`”;
 
-1)  **Aprovar os valores provisórios de receita e compensações pela obrigação de serviço público tarifária pela disponibilização dos passes Navegante**, de cada operador, em `r mes_nome` de `r ANO`, conforme Tabelas 4 e 5 do ficheiro “`r paste0("Anexo_calculos_", SUFIXO, ".xlsx")`”;
+1)  **Aprovar os valores provisórios de receita e compensações pela obrigação de serviço público tarifária pela disponibilização dos passes Navegante**, de cada operador, em `r mes_nome` de `r ANO`, conforme Tabelas 4 e 5 do ficheiro “`r paste0("Anexo_Calculos_", SUFIXO, ".xlsx")`”;
 
 1)  **Aprovar os valores das transferências \[F`r MES`\] e de pagamentos por conta de compensação pelo congelamento dos preços dos passes Navegante (CongNav\[B`r MES`\])**, previstos no ponto 13 e 23.2 do Anexo V do Regulamento, respetivamente, a transferir pela TML para os Operadores no mês de `r mes_transf_nome` de `r ano_transf`, calculados com base nos dados provisórios de `r mes_nome` de `r ANO`, de acordo com a metodologia descrita na presente informação, num valor total de **`r fmt_eur(total_transferir)`** (`r numero_por_extenso(total_transferir)`), distribuído pelos Operadores conforme Tabela 5 da presente informação;
 
