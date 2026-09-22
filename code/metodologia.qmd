@@ -26,48 +26,6 @@ execute:
 ---
 
 ```{r}
-#| label: params
-
-# =============================================================================
-# PARÂMETROS ESPECÍFICOS DESTE DOCUMENTO
-# (ajustar aqui o que for relativo a esta emissão da Informação)
-# =============================================================================
-
-# Datas de disponibilização dos dados de bilhética (DITS e ITS)
-data_dados_dits   <- "31 de julho de 2026" # maio26
-data_dados_its    <- "7 de agosto de 2026" # maio26
-# data_dados_dits   <- "24 de agosto de 2026" # junho26
-# data_dados_its    <- "24 de agosto de 2026" # junho26 tambem
-
-# Versão do processamento de distâncias Carris Metropolitana (Trino)
-load_version      <- 27 # maio26
-# load_version      <- 31 # junho26
-
-# ---- Financiamento / Faturação ----------------------------------------------
-# TRUE  = Verba do Fundo Ambiental (Incentiva +TP) ainda NÃO transferida à data -> faturação parcelar
-# FALSE = Verba do FA já disponibilizada -> faturação total imediata
-incentiva_tp_pendente <- TRUE
-
-
-# ---- Referência e Datas -----------------------------------------------------
-numero_informacao <- "TML-XXXX-XXXX-INF-XXXX-DEP"
-data_documento    <- format(Sys.Date(), "%d/%m/%Y")
-
-# ---- Identificação e Autoria ------------------------------------------------
-de_pessoa1_nome  <- "Ana Isabel Capote Fernandes Rosado"
-de_pessoa1_cargo <- "Técnica Superior"
-
-de_pessoa2_nome  <- "Luísa Salomé Freixo Lopes de Castro Nogueira"
-de_pessoa2_cargo <- "Técnica Superior"
-
-de_divisao       <- "Estudos e Planeamento - Sistemas de Transportes"
-
-para_pessoa_nome <- "Helena Catarina Mota Ferreira Tavares Marcelino"
-para_cargo       <- "Coordenadora"
-para_divisao     <- "Estudos e Planeamento - Sistemas de Transportes"
-```
-
-```{r}
 #| label: setup
 
 # =============================================================================
