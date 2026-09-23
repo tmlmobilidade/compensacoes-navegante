@@ -38,8 +38,10 @@ data_dados_its    <- "7 de agosto de 2026" # maio26
 # data_dados_its    <- "24 de agosto de 2026" # junho26 tambem
 
 # Versão do processamento de distâncias Carris Metropolitana (Trino)
-load_version      <- 27 # maio26
-# load_version      <- 31 # junho26
+load_versions_df  <- read.csv(here::here("lists", "load_versions.csv"), sep = ";")
+load_version      <- load_versions_df$load_version[
+  load_versions_df$mes == MES & load_versions_df$ano == ANO
+]
 
 # ---- Financiamento / Faturação ----------------------------------------------
 # TRUE  = Verba do Fundo Ambiental (Incentiva +TP) ainda NÃO transferida à data -> faturação parcelar
