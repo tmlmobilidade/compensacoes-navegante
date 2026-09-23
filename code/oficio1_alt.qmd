@@ -191,19 +191,19 @@ No âmbito das competências delegadas e subdelegadas pela Área Metropolitana d
 
         i.  Solicitar aos operadores, de imediato, as faturas da parcela correspondente à receita de passes Navegante obtida através dos canais de receita partilhada (ATM e portal viva), num total de **`r fmt_eur(total_imediato)`** (`r numero_por_extenso(total_imediato)`), conforme @tbl-2:
 
-            - **CP – Comboios de Portugal, E.P.E.**: **`r fmt_eur(ppart_cp)`** (`r numero_por_extenso(ppart_cp)`);
+            - **CP - Comboios de Portugal, E.P.E.**: **`r fmt_eur(ppart_cp)`** (`r numero_por_extenso(ppart_cp)`);
 
-            - **Fertagus – Travessia do Tejo, Transportes S.A.**: **`r fmt_eur(ppart_ft)`** (`r numero_por_extenso(ppart_ft)`);
+            - **Fertagus - Travessia do Tejo, Transportes S.A.**: **`r fmt_eur(ppart_ft)`** (`r numero_por_extenso(ppart_ft)`);
 
             - **Transtejo Soflusa, S.A.**: **`r fmt_eur(ppart_tt)`** (`r numero_por_extenso(ppart_tt)`);
 
             - **Metropolitano de Lisboa, E.P.E.**: **`r fmt_eur(ppart_ml)`** (`r numero_por_extenso(ppart_ml)`);
 
-            - **Carris – Companhia Carris de Ferro de Lisboa, E.M. S.A.**: **`r fmt_eur(ppart_ca)`** (`r numero_por_extenso(ppart_ca)`);
+            - **Carris - Companhia Carris de Ferro de Lisboa, E.M. S.A.**: **`r fmt_eur(ppart_ca)`** (`r numero_por_extenso(ppart_ca)`);
 
             - **Serviços Municipalizados de Transportes Coletivos do Barreiro**: **`r fmt_eur(ppart_tcb)`** (`r numero_por_extenso(ppart_tcb)`);
 
-            - **Transportes Metropolitanos de Lisboa, E.M.T., S.A. – Contratos Carris Metropolitana Áreas 1, 2, 3 e 4**: **`r fmt_eur(ppart_cm)`** (`r numero_por_extenso(ppart_cm)`);
+            - **Transportes Metropolitanos de Lisboa, E.M.T., S.A. - Contratos Carris Metropolitana Áreas 1, 2, 3 e 4**: **`r fmt_eur(ppart_cm)`** (`r numero_por_extenso(ppart_cm)`);
             
             - **Barraqueiro Transportes, S.A.**: **`r fmt_eur(ppart_bt)`** (`r numero_por_extenso(ppart_bt)`).
 
@@ -281,7 +281,7 @@ tml_table(
 )
 ```
 
-Os pagamentos serão realizados pela TML após a receção das respetivas faturas, para o endereço de correio eletrónico [**compras@tmlmobilidade.pt**](mailto:compras@tmlmobilidade.pt) nos termos indicados anteriormente.
+Os pagamentos serão realizados pela TML após a receção das respetivas faturas, para o endereço de correio eletrónico [**compras@tmlmobilidade.pt**](mailto:compras@tmlmobilidade.pt), nos termos indicados anteriormente.
 
 De acordo com o n.º 3 do artigo 18.º do Regulamento n.º 278-A/2019, é obrigação dos operadores submeter documento a autorizar a consulta da situação tributária e da situação contributiva perante a segurança social, ou enviar as respetivas certidões de não dívida, devendo ainda ser comprovado o registo central do beneficiário efetivo, quando aplicável. Sem a receção destes documentos não é possível proceder aos pagamentos.
 
