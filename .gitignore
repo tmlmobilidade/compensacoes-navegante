@@ -53,6 +53,7 @@ rsconnect/
 06_jun_2026*/
 code/*.pdf
 code/*.docx
+lists/receitas_anteriores.csv
 
 /.quarto/
 **/*.quarto_ipynb

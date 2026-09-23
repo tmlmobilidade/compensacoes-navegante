@@ -746,9 +746,9 @@ rac_pax_filtro$Métrica <- ifelse(seq_len(nrow(rac_pax_filtro)) == 1, "Passageir
 
 tab7_pax <- rac_pax_filtro %>% select(Métrica, Mes, all_of(ops_cols))
 
-# Espaços não quebráveis nos números de passageiros
+# Formatar números de passageiros com separador de milhares (espaço não quebrável)
 for (op in ops_cols) {
-  tab7_pax[[op]] <- gsub(" ", "\u00a0", tab7_pax[[op]])
+  tab7_pax[[op]] <- fmt_int(as.numeric(gsub("[^0-9]", "", tab7_pax[[op]])))
 }
 
 # Calcular linha de variação homóloga (ano corrente vs ano anterior)
