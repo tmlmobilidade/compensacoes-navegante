@@ -38,10 +38,7 @@ data_dados_its    <- "7 de agosto de 2026" # maio26
 # data_dados_its    <- "24 de agosto de 2026" # junho26 tambem
 
 # Versão do processamento de distâncias Carris Metropolitana (Trino)
-load_versions_df  <- read.csv(here::here("lists", "load_versions.csv"), sep = ";")
-load_version      <- load_versions_df$load_version[
-  load_versions_df$mes == MES & load_versions_df$ano == ANO
-]
+# (lookup feito no chunk setup, após source(config.R), onde MES e ANO estão disponíveis)
 
 # ---- Financiamento / Faturação ----------------------------------------------
 # TRUE  = Verba do Fundo Ambiental (Incentiva +TP) ainda NÃO transferida à data -> faturação parcelar
@@ -76,6 +73,11 @@ para_divisao     <- "Estudos e Planeamento - Sistemas de Transportes"
 
 source(here::here("code", "config.R"))
 
+# Versão do processamento de distâncias Carris Metropolitana (Trino)
+load_versions_df  <- read.csv(here::here("lists", "load_versions.csv"), sep = ";")
+load_version      <- load_versions_df$load_version[
+  load_versions_df$mes == MES & load_versions_df$ano == ANO
+]
 suppressPackageStartupMessages({
   library(dplyr)
   library(tidyr)
