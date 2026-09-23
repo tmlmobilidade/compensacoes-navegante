@@ -19,17 +19,22 @@ code/
 ├── 05_reparticao_B.R         # Distribui receita B + Congelamento TAT
 ├── 06_cosp_D.R               # Calcula COSP (D)
 ├── 07_transferencias_F.R     # Calcula transferências finais F
-├── 08_tables.R               # Exporta tabela de transferências em Excel (xlsx)
-├── 10_documentos.R           # Renderiza relatórios e ofícios (Typst PDF) em output/docs/
-├── 99_run_all.R              # Script mestre — corre tudo em sequência (incluindo docs)
-├── informacao1.qmd           # Template Quarto da Informação 1 (documento interno)
-├── metodologia.qmd           # Template Quarto do Anexo Metodologia (documento externo)
-├── oficio1.qmd               # Template Quarto do Ofício 1 (documento externo)
-├── render_informacao1.R      # Script rápido para renderizar a Informação 1 isoladamente
-├── utils_tables.R            # Funções de formatação de tabelas com tinytable para Typst
+├── 08_tables.R               # Exporta workbook Excel consolidado (Anexo_Calculos)
+├── 10_documentos.R           # Renderiza todos os documentos Quarto (PDF + DOCX opcionalmente)
+├── 99_run_all.R              # Script mestre — corre os 9 passos em sequência
+│
+├── informacao1.qmd           # Informação 1 — nota interna de apresentação dos resultados
+├── metodologia.qmd           # Anexo Metodologia — documento externo com papel timbrado
+├── oficio1.qmd               # Ofício 1 — comunicação formal de pagamentos imediatos
+├── oficio1_alt.qmd           # Ofício 1 (variante) — tabelas no fim dos itens numerados
+├── oficio2.qmd               # Ofício 2 — comunicação formal relativa ao Incentiva +TP
+│
+├── render_informacao1.R      # Script rápido para renderizar só a Informação 1
+├── utils_tables.R            # Funções de formatação de tabelas com tinytable (Typst)
 ├── utils_extenso.R           # Funções auxiliares para montantes por extenso em euros
-├── custom_styles.typ         # Estilos customizados Typst (regras de cabeçalhos e fundos)
-├── linebreaks.lua            # Filtro Pandoc: quebras de linha e deteção de doc-tipo: externo
+│
+├── custom_styles.typ         # Estilos Typst: cabeçalhos, fundos e papel timbrado
+├── linebreaks.lua            # Filtro Pandoc: quebras de linha e deteção de doc-tipo externo
 ├── query_SL_TT.sql           # Query Oracle para separação TT/SL (Query 2b)
 ├── query_CM_fiscaismoveis.sql# Query Oracle para fiscais móveis CM (Query 2c)
 └── templates/                # Modelos e recursos visuais oficiais (versionados no Git)
@@ -85,12 +90,18 @@ As variáveis `F_*` em `config.R` centralizam todos os caminhos.
 | `F_CONGELAMENTO` | `4_receitaB_congelamento_{SUFIXO}.csv` | `05_reparticao_B.R` | Receita B devida + Congelamento Navegante (TAT) por operador |
 | `F_COSP_D` | `5a_cosp_{SUFIXO}.csv` | `06_cosp_D.R` | COSP detalhe por título × operador |
 | `F_D_OPERADOR` | `5_cosp_operador_{SUFIXO}.csv` | `06_cosp_D.R` | COSP total (D) por operador |
-| `F_TRANSFERENCIAS` | `6_transferencias_{SUFIXO}.csv` | `07_transferencias_F.R` | **Tabela final**: A, B, D, Congelamento, F, Total |
-| `F_TABELA_XLSX` | `Anexo_calculos_{SUFIXO}.xlsx` | `08_tables.R` | **Workbook Excel**: 6 folhas (0 - Global, 1 - Quotas, 2 - Vendas AK, 4 - Receita B e CongNav B, 5 - Pag Conta COSP D, 6 - Transferencias F) |
-| `F_DOC_INFO1_PDF` | `docs/informacao1_{SUFIXO}.pdf` | `10_documentos.R` | **Relatório da Informação 1** em formato Typst (PDF, documento interno) |
-| `F_DOC_METODOLOGIA_PDF` | `docs/metodologia_{SUFIXO}.pdf` | `10_documentos.R` | **Anexo Metodologia** em formato Typst (PDF, documento externo com papel timbrado) |
-| `F_DOC_OFICIO1_PDF`| `docs/oficio1_{SUFIXO}.pdf` | `10_documentos.R` | **Ofício 1** (pagamento imediato, em preparação) |
-| `F_DOC_OFICIO2_PDF`| `docs/oficio2_{SUFIXO}.pdf` | `10_documentos.R` | **Ofício 2** (pagamento Incentiva, em preparação) |
+| `F_TRANSFERENCIAS` | `6_transferencias_{SUFIXO}.csv` | `07_transferencias_F.R` | **Tabela final CSV**: A, B, D, Congelamento, F, Total por operador |
+| `F_TABELA_XLSX` | `docs/Anexo_Calculos_{SUFIXO}.xlsx` | `08_tables.R` | **Workbook Excel consolidado** (em `docs/`): 6 folhas (0 - Global, 1 - Quotas, 2 - Vendas AK, 4 - Receita B e CongNav B, 5 - Pag Conta COSP D, 6 - Transferencias F) |
+| `F_DOC_INFO1_PDF` | `docs/Informacao_{SUFIXO}.pdf` | `10_documentos.R` | **Informação 1** — nota interna com síntese dos resultados mensais |
+| `F_DOC_INFO1_DOCX` | `docs/Informacao_{SUFIXO}.docx` | `10_documentos.R` | Versão Word da Informação 1 (se `RENDER_DOCX = TRUE`) |
+| `F_DOC_METODOLOGIA_PDF` | `docs/Anexo_Metodologia_{SUFIXO}.pdf` | `10_documentos.R` | **Anexo Metodologia** — documento externo com papel timbrado e fórmulas regulamentares |
+| `F_DOC_METODOLOGIA_DOCX` | `docs/Anexo_Metodologia_{SUFIXO}.docx` | `10_documentos.R` | Versão Word do Anexo Metodologia (se `RENDER_DOCX = TRUE`) |
+| `F_DOC_OFICIO1_PDF` | `docs/Oficio1_{SUFIXO}.pdf` | `10_documentos.R` | **Ofício 1** — comunicação formal de pagamentos imediatos a cada operador |
+| `F_DOC_OFICIO1_DOCX` | `docs/Oficio1_{SUFIXO}.docx` | `10_documentos.R` | Versão Word do Ofício 1 (se `RENDER_DOCX = TRUE`) |
+| `F_DOC_OFICIO1ALT_PDF` | `docs/Oficio1_alt_{SUFIXO}.pdf` | `10_documentos.R` | **Ofício 1 (variante)** — tabelas no fim dos itens numerados |
+| `F_DOC_OFICIO2_PDF` | `docs/Oficio2_{SUFIXO}.pdf` | `10_documentos.R` | **Ofício 2** — comunicação formal relativa às verbas do Incentiva +TP |
+| `F_DOC_OFICIO2_DOCX` | `docs/Oficio2_{SUFIXO}.docx` | `10_documentos.R` | Versão Word do Ofício 2 (se `RENDER_DOCX = TRUE`) |
+
 
 ---
 

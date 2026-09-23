@@ -35,10 +35,10 @@ Colocar em `{MES}_{mes_abrev}_{ANO}/Recibos B/`:
 Executar as seguintes consultas na base de dados Oracle e exportar os CSVs (separador `;`) para `{MES}_{mes_abrev}_{ANO}_replicate/input/`:
 
 
-| Ficheiro a gravar em `input/`                        | Consulta / Script                                                                                                        | Objetivo                                                                                        |
+| Ficheiro a gravar em`input/`                        | Consulta / Script                                                                                                        | Objetivo                                                                                        |
 | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | `V_REG_AVERAGE_DISTANCE_FINAL_ALL_*(timestamp).csv` | `SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = <MES> AND distribution_year = <ANO>;` | Distâncias médias dinâmicas APEX para Carris Metropolitana (`75`) e Cascais Próxima (`22`). |
-| `tt_sl_*(timestamp).csv`                            | [`code/query_SL_TT.sql`](code/query_SL_TT.sql) (Query 2b)                                                                | Rácios de georreferenciação por `RUN_CODE` para separar Transtejo (`TT`) de Soflusa (`SL`).   |
+| `tt_sl_*(timestamp).csv`                            | [`code/query_SL_TT.sql`](code/query_SL_TT.sql) (Query 2b)                                                                | Rácios de georreferenciação por`RUN_CODE` para separar Transtejo (`TT`) de Soflusa (`SL`).   |
 | `entity23_*(timestamp).csv`                         | [`code/query_CM_fiscaismoveis.sql`](code/query_CM_fiscaismoveis.sql) (Query 2c)                                          | Validações em terminais móveis dos fiscais da Carris Metropolitana (`ENTITY_ID = 23`).       |
 
 > **Dica de versionamento de ficheiros:**
@@ -61,8 +61,8 @@ MES <- 5       # 5 = Maio, 6 = Junho, etc.
 # Controlo de Documentos (Quarto / Typst)
 RENDER_INFORMACAO1 <- TRUE   # Gerar Informação 1 (PDF)
 RENDER_METODOLOGIA <- TRUE   # Gerar Anexo Metodologia (PDF com timbrado externo)
-RENDER_OFICIO1     <- FALSE  # Gerar Ofício 1 (em preparação)
-RENDER_OFICIO2     <- FALSE  # Gerar Ofício 2 (em preparação)
+RENDER_OFICIO1     <- FALSE  # Gerar Ofício 1 (pagamento receitas partilhadas)
+RENDER_OFICIO2     <- FALSE  # Gerar Ofício 2 (pagamento incentiva)
 RENDER_DOCX        <- FALSE  # TRUE converte PDF para Word (DOCX) via PDF24 Toolbox
 DOCX_MODE          <- "asposeFlow" # "asposeFlow" (fluxo contínuo) ou "asposeBlocks" (blocos)
 ```
@@ -94,9 +94,11 @@ O pipeline executa os cálculos (passos 01 a 08) em ~3 segundos e compila os doc
 Os relatórios técnicos usam **Quarto** com o backend **Typst** e o pacote **`tinytable`**, produzindo ficheiros PDF de elevada qualidade gráfica com paginação profissional, totais em negrito e notas ajustadas.
 
 ### Opção A: No Pipeline Geral (Recomendado)
+
 Ao executar `Rscript code/99_run_all.R`, o script mestre executa automaticamente o passo `code/10_documentos.R` caso `RENDER_INFORMACAO1` (ou dos ofícios) esteja como `TRUE` em `code/config.R`.
 
 ### Opção B: Renderização Isolada (Rápida)
+
 Se os cálculos já tiverem sido executados e quiseres apenas recompilar a Informação 1 (por exemplo, após rever o texto ou os parâmetros no documento):
 
 ```bash
@@ -108,6 +110,7 @@ Rscript code/render_informacao1.R
 ```
 
 Para gerar também a versão Word (DOCX) via PDF24 Toolbox na linha de comandos:
+
 ```powershell
 # Gerar PDF e converter para Word (modo flow):
 $env:RENDER_DOCX="TRUE"; Rscript code/10_documentos.R
@@ -117,16 +120,26 @@ $env:RENDER_DOCX="TRUE"; $env:DOCX_MODE="asposeBlocks"; Rscript code/10_document
 ```
 
 ### Personalização da Emissão
+
 No cabeçalho de [`code/informacao1.qmd`](code/informacao1.qmd), podes ajustar os parâmetros específicos da emissão do mês:
+
 - `data_dados_dits` e `data_dados_its`: datas de receção dos dados de bilhética;
 - `load_version`: versão do cálculo de distâncias Trino/APEX;
 - `incentiva_tp_pendente`: `TRUE` se o Fundo Ambiental ainda não tiver transferido a dotação (recomenda faturação parcelar), ou `FALSE` se o montante já estiver disponível;
 - `numero_informacao` e intervenientes técnicos.
 
-Os documentos gerados são gravados diretamente na subpasta:
-- PDF Informação 1: `{MES}_{mes_abrev}_{ANO}_replicate/output/docs/informacao1_{SUFIXO}.pdf`
-- PDF Metodologia: `{MES}_{mes_abrev}_{ANO}_replicate/output/docs/metodologia_{SUFIXO}.pdf`
-- DOCX: `{MES}_{mes_abrev}_{ANO}_replicate/output/docs/informacao1_{SUFIXO}.docx` (quando ativado)
+Os documentos gerados são gravados em `{MES}_{mes_abrev}_{ANO}_replicate/output/docs/`:
+
+| Documento | Ficheiro |
+| --- | --- |
+| Informação 1 (PDF) | `Informacao_{SUFIXO}.pdf` |
+| Informação 1 (Word) | `Informacao_{SUFIXO}.docx` |
+| Anexo Metodologia (PDF) | `Anexo_Metodologia_{SUFIXO}.pdf` |
+| Ofício 1 (PDF) | `Oficio1_{SUFIXO}.pdf` |
+| Ofício 1 variante (PDF) | `Oficio1_alt_{SUFIXO}.pdf` |
+| Ofício 2 (PDF) | `Oficio2_{SUFIXO}.pdf` |
+| Cálculos Excel (XLSX) | `Anexo_Calculos_{SUFIXO}.xlsx` |
+
 
 ---
 
@@ -134,26 +147,31 @@ Os documentos gerados são gravados diretamente na subpasta:
 
 Os resultados são gerados na pasta `{MES}_{mes_abrev}_{ANO}_replicate/output/` com o sufixo do mês (ex: `mai26`):
 
+
 | Ficheiro | Descrição |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **`docs/informacao1_{SUFIXO}.pdf`**                 | **Relatório Oficial da Informação 1 (PDF via Typst)**: Documento técnico interno com narrativa formal, fórmulas, quadros explicativos e Tabelas 1 a 8 formatadas com `tinytable`. |
-| **`docs/metodologia_{SUFIXO}.pdf`**                 | **Anexo da Metodologia de Apuramento (PDF com timbrado oficial)**: Documento formal externo com cabeçalho timbrado na folha de rosto (`templates/folha_1.pdf`) e folhas seguintes (`templates/folha_restantes.pdf`). |
-| **`docs/informacao1_{SUFIXO}.docx`**                | **Versão Word (DOCX via PDF24)**: Documento convertido a partir do PDF (modo *flow* ou *blocks*), gerado quando `RENDER_DOCX <- TRUE`. |
-| **`Anexo_calculos_{SUFIXO}.xlsx`**                  | **Workbook Excel oficial consolidado**: <br>• `0 - Global`: Quadro oficial de 14 colunas com apuramento TML, acerto entre operadores (MTS $\rightarrow$ FT), rateio dos canais partilhados ($K$) e dotação Incentiva +TP.<br>• `1 - Quotas`: Matriz de quotas de repartição por título e operador.<br>• `2 - Vendas AK`: Resumo de bilheteiras (A) e canais externos (K).<br>• `4 - Receita B e CongNav B`: Síntese de receita devida e congelamento.<br>• `5 - Pag Conta COSP D`: Parâmetros regulamentares COSP e pagamentos.<br>• `6 - Transferencias F`: Formato longo por métrica. |
-| **`6_transferencias_{SUFIXO}.csv`**                | **Tabela final de compensações (CSV)**: receitas na posse (`receita_A`), receitas devidas (`receita_B`), saldo (`saldo_C`), COSP (`cosp_D`), saldo global (`SG`), transferências (`F_transferencia`), congelamento (`congelamento_B`) e total a transferir por operador. |
-| `1a_PT_{SUFIXO}.csv`                                | Passageiros transportados (validações) agregados por título e operador.                                                                                               |
-| `1b_PT_CM_{SUFIXO}.csv`                             | Agregação explícita das áreas A1 a A4 + fiscais móveis da Carris Metropolitana.                                                                                      |
-| `1c_receitas_titulo_{SUFIXO}.csv`                   | Quantidade e receita de vendas de títulos por operador (Recibos B).                                                                                                   |
-| `1d_validacoes_{SUFIXO}.csv`                        | Quantidades de títulos gratuitos sem carregamento prévio (VaT).                                                                                                      |
-| `1e_distancias_{SUFIXO}.csv`                        | Distâncias médias (km) utilizadas por operador e título.                                                                                                              |
-| `1_quotas_{SUFIXO}.csv`                             | Passageiro-Quilómetro (PKM) e quotas de repartição regulamentares (0 a 1).                                                                                            |
-| `2_vendas_A_{SUFIXO}.csv`                           | Receita e quantidades na posse de cada operador através de bilheteiras/canais próprios (Canais A).                                                                    |
-| `2_vendas_K_{SUFIXO}.csv`                           | Vendas e receitas dos canais de receita partilhada TML (Portal VIVA e rede Multibanco/SIBS).                                                                         |
-| `4a_receita_titulo_distribuir_{SUFIXO}.csv`         | Receita global do sistema a distribuir por título ($A + K$) e quantidades totais de títulos vendidos.                                                                 |
-| `4b_reparticao_B_{SUFIXO}.csv`                      | Detalhe da receita bilheteira devida ($B$) e congelamento TAT por título e operador.                                                                                  |
-| `4_receitaB_congelamento_{SUFIXO}.csv`              | Resumo por operador da receita devida (`receita_B`) e do congelamento tarifário (`congelamento_B`).                                                                   |
-| `5a_cosp_{SUFIXO}.csv`                              | Compensação por OSP (COSP tarifária $D$) detalhada por título e operador.                                                                                             |
-| `5_cosp_operador_{SUFIXO}.csv`                      | Compensação COSP total devida por operador (`cosp_D`).                                                                                                                |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`docs/Informacao_{SUFIXO}.pdf`**                   | **Informação 1 (PDF)**: Nota interna de apresentação dos resultados mensais, com narrativa formal, fórmulas e Tabelas 1 a 8 formatadas. |
+| **`docs/Informacao_{SUFIXO}.docx`**                  | Versão Word da Informação 1 (gerada quando `RENDER_DOCX = TRUE`). |
+| **`docs/Anexo_Metodologia_{SUFIXO}.pdf`**            | **Anexo Metodologia (PDF com papel timbrado externo)**: Documento formal com cabeçalho timbrado (`templates/folha_1.pdf` / `folha_restantes.pdf`) e fórmulas regulamentares detalhadas. |
+| **`docs/Oficio1_{SUFIXO}.pdf`**                      | **Ofício 1**: Comunicação formal de pagamentos imediatos a cada operador (receitas partilhadas Canal K). |
+| **`docs/Oficio1_alt_{SUFIXO}.pdf`**                  | **Ofício 1 (variante)**: Idem, mas com tabelas no fim dos itens numerados. |
+| **`docs/Oficio2_{SUFIXO}.pdf`**                      | **Ofício 2**: Comunicação formal relativa às verbas do Incentiva +TP. |
+| **`docs/Anexo_Calculos_{SUFIXO}.xlsx`**              | **Workbook Excel consolidado**: <br>• `0 - Global`: Quadro de 14 colunas com apuramento TML, acerto MTS→FT, rateio K e dotação Incentiva +TP.<br>• `1 - Quotas`: Matriz de quotas por título e operador.<br>• `2 - Vendas AK`: Resumo de bilheteiras (A) e canais externos (K).<br>• `4 - Receita B e CongNav B`: Síntese de receita devida e congelamento.<br>• `5 - Pag Conta COSP D`: Parâmetros regulamentares COSP.<br>• `6 - Transferencias F`: Formato longo por métrica. |
+| **`6_transferencias_{SUFIXO}.csv`**                  | **Tabela final de compensações (CSV)**: colunas `receita_A`, `receita_B`, `saldo_C`, `cosp_D`, `SG`, `F_transferencia`, `congelamento_B`, total a transferir por operador. |
+| `1a_PT_{SUFIXO}.csv`                                 | Passageiros transportados (validações) por título e operador. |
+| `1b_PT_CM_{SUFIXO}.csv`                              | Agregação A1+A2+A3+A4 + fiscais móveis da Carris Metropolitana. |
+| `1c_receitas_titulo_{SUFIXO}.csv`                    | Quantidade e receita de vendas de títulos por operador (Recibos B). |
+| `1d_validacoes_{SUFIXO}.csv`                         | Quantidades de títulos gratuitos sem carregamento prévio (VaT). |
+| `1e_distancias_{SUFIXO}.csv`                         | Distâncias médias (km) por operador e título. |
+| `1_quotas_{SUFIXO}.csv`                              | PKM e quotas de repartição regulamentares (0 a 1). |
+| `2_vendas_A_{SUFIXO}.csv`                            | Receita e quantidades na posse de cada operador (Canais A — bilheteiras próprias). |
+| `2_vendas_K_{SUFIXO}.csv`                            | Vendas e receitas dos canais partilhados TML (Portal VIVA e Multibanco/SIBS). |
+| `4a_receita_titulo_distribuir_{SUFIXO}.csv`          | Receita global do sistema a distribuir por título ($A + K$). |
+| `4b_reparticao_B_{SUFIXO}.csv`                       | Detalhe da receita devida ($B$) e congelamento TAT por título e operador. |
+| `4_receitaB_congelamento_{SUFIXO}.csv`               | Resumo por operador: `receita_B` e `congelamento_B`. |
+| `5a_cosp_{SUFIXO}.csv`                               | COSP tarifária ($D$) detalhada por título e operador. |
+| `5_cosp_operador_{SUFIXO}.csv`                       | COSP total devida por operador (`cosp_D`). |
+
 
 ---
 
@@ -163,7 +181,7 @@ Os resultados são gerados na pasta `{MES}_{mes_abrev}_{ANO}_replicate/output/` 
 Compensacoes/
 ├── code/
 │   ├── config.R                  # Configuração global de caminhos, parâmetros e flags de documentos
-│   ├── 00_setup.R                # Gestão e instalação de dependências R (tidyverse, tinytable, etc.)
+│   ├── 00_setup.R                # Gestão e instalação de dependências R
 │   ├── 01_recibos_b.R            # Agregação dos Recibos B e reconciliação Oracle
 │   ├── 02_distancias.R           # Distâncias médias (APEX dinâmicas e estáticas)
 │   ├── 03_quotas.R               # Cálculo de PKM e quotas de distribuição
@@ -171,22 +189,26 @@ Compensacoes/
 │   ├── 05_reparticao_B.R         # Distribuição de receita B e congelamento TAT
 │   ├── 06_cosp_D.R               # Cálculo da compensação COSP (D)
 │   ├── 07_transferencias_F.R     # Apuramento das transferências finais (F)
-│   ├── 08_tables.R               # Exportação do relatório consolidado em Excel (xlsx)
-│   ├── 10_documentos.R           # Renderização e exportação de relatórios/ofícios (Typst PDF)
-│   ├── 99_run_all.R              # Script mestre de execução sequencial de todo o pipeline
-│   ├── informacao1.qmd           # Template Quarto para a Informação 1 (documento interno)
-│   ├── metodologia.qmd           # Template Quarto para o Anexo Metodologia (documento externo)
-│   ├── oficio1.qmd               # Template Quarto para o Ofício 1 (documento externo)
-│   ├── render_informacao1.R      # Script de conveniência para renderizar apenas a Informação 1
-│   ├── utils_tables.R            # Funções de formatação de tabelas (tinytable) para Typst
+│   ├── 08_tables.R               # Exportação do workbook Excel consolidado
+│   ├── 10_documentos.R           # Renderização de todos os documentos Quarto (PDF + DOCX)
+│   ├── 99_run_all.R              # Script mestre de execução sequencial (9 passos)
+│   │
+│   ├── informacao1.qmd           # Informação 1 — nota interna de resultados mensais
+│   ├── metodologia.qmd           # Anexo Metodologia — documento externo com papel timbrado
+│   ├── oficio1.qmd               # Ofício 1 — comunicação formal de pagamentos imediatos
+│   ├── oficio1_alt.qmd           # Ofício 1 (variante) — tabelas no fim dos itens numerados
+│   ├── oficio2.qmd               # Ofício 2 — comunicação formal Incentiva +TP
+│   │
+│   ├── render_informacao1.R      # Script de conveniência para renderizar só a Informação 1
+│   ├── utils_tables.R            # Funções de formatação de tabelas (tinytable / Typst)
 │   ├── utils_extenso.R           # Funções auxiliares para montantes por extenso em euros
-│   ├── custom_styles.typ         # Regras tipográficas e estilos customizados para Typst
-│   ├── linebreaks.lua            # Filtro Pandoc (quebras de linha e deteção de doc-tipo: externo)
+│   ├── custom_styles.typ         # Estilos Typst: cabeçalhos, fundos e papel timbrado
+│   ├── linebreaks.lua            # Filtro Pandoc (quebras de linha e deteção de doc-tipo externo)
 │   ├── query_SL_TT.sql           # Query Oracle para separação TT / SL (Query 2b)
 │   ├── query_CM_fiscaismoveis.sql# Query Oracle para validações fiscais CM (Query 2c)
 │   └── templates/                # Modelos e recursos visuais institucionais (versionados no Git)
-│       ├── folha_1.pdf           # Papel timbrado oficial TML (1.ª página vetorial)
-│       ├── folha_restantes.pdf   # Papel timbrado oficial TML (páginas seguintes vetorial)
+│       ├── folha_1.pdf           # Papel timbrado oficial TML (1.ª página, vetorial)
+│       ├── folha_restantes.pdf   # Papel timbrado oficial TML (páginas seguintes, vetorial)
 │       ├── logo_tml.svg          # Logótipo vetorial institucional TML
 │       └── TML_template.docx     # Modelo de referência Word
 ├── lists/                        # Tabelas estáticas e regulamentares de referência
