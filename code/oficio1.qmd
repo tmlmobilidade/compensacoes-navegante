@@ -74,31 +74,21 @@ para_divisao     <- "Estudos e Planeamento - Sistemas de Transportes"
 #| label: setup
 
 # =============================================================================
-# CARREGAMENTO DE DADOS E CÁLCULOS DO RELATÓRIO
+# CARREGAMENTO DE DADOS E CONFIGURAÇÃO DO OFÍCIO
 # =============================================================================
 
 source(here::here("code", "config.R"))
 
 suppressPackageStartupMessages({
   library(dplyr)
-  library(tidyr)
   library(scales)
   library(knitr)
-  library(ggplot2)
   library(tinytable)
 })
 
 # ---- Funções Auxiliares de Formatação ----------------------------------------
 fmt_eur <- function(x) {
-  ifelse(is.na(x), "", scales::number(x, accuracy = 0.01, big.mark = "\u00a0", decimal.mark = ",", suffix = "\u00a0€")) # não quebra o espaço antes do € nas tabelas
-}
-
-fmt_int <- function(x) {
-  ifelse(is.na(x), "", scales::number(round(x), accuracy = 1, big.mark = "\u00a0"))
-}
-
-fmt_pct <- function(x, acc = 0.1) {
-  ifelse(is.na(x), "", scales::percent(x, accuracy = acc, decimal.mark = ","))
+  ifelse(is.na(x), "", scales::number(x, accuracy = 0.01, big.mark = "\u00a0", decimal.mark = ",", suffix = "\u00a0€"))
 }
 
 fmt_pct3 <- function(x) {
@@ -110,33 +100,12 @@ source(here::here("code", "utils_tables.R"))
 source(here::here("code", "utils_extenso.R"))
 
 # ---- Mês e Ano de Transferência (M + 3) --------------------------------------
-# No relatório textual, os nomes dos meses são apresentados em minúsculas (ex: "maio", "agosto")
 mes_nome        <- tolower(mes_nome)
 mes_transf_num  <- ((MES - 1 + 3) %% 12) + 1
 ano_transf      <- ANO + ((MES + 3 - 1) %/% 12)
 mes_transf_nome <- tolower(meses_pt_nome[mes_transf_num])
 
-# ---- Carregar Outputs das Fases Anteriores -----------------------------------
-rtd_raw <- read.csv2(F_RTD, stringsAsFactors = FALSE, dec = ",")
-num_cols_rtd <- c("pvp", "receita_A_total", "qty_A_total", "qty_K", "receita_K", "qty_vat", "qty_total", "receita_distribuir")
-for (col in intersect(num_cols_rtd, names(rtd_raw))) {
-  rtd_raw[[col]] <- as.numeric(gsub(",", ".", rtd_raw[[col]]))
-}
-
-# total_K_val: soma das receitas nos canais partilhados (K) — idem ao 08_tables.R l.127
-# Definido aqui para o QMD ser auto-suficiente quando renderizado standalone
-if (!exists("total_K_val")) {
-  total_K_val <- sum(rtd_raw$receita_K, na.rm = TRUE)
-}
-
-# Nomes de operadores com TT e SL agregados (10 operadores)
-ordem_ops_merged <- c("CP", "FT", "TT + SL", "ML", "MTS", "Carris", "TCB", "AT Cascais", "AT TML - CM", "BT Oeste")
-
 # ---- Carregar tabela global pré-calculada por 08_tables.R -------------------
-# A reconciliação de cêntimos e todos os cálculos de parcela_partilhada /
-# parcela_incentiva são feitos em 08_tables.R e exportados para F_TABELA_GLOBAL.
-# O relatório lê esse ficheiro directamente, sem recalcular nada,
-# garantindo consistência total com o XLSX exportado.
 if (!file.exists(F_TABELA_GLOBAL)) {
   message("ℹ Ficheiro da tabela global não encontrado. A executar 08_tables.R...")
   source(here::here("code", "08_tables.R"))
@@ -151,28 +120,18 @@ for (col in intersect(num_cols_tg, names(tabela_global))) {
   tabela_global[[col]] <- as.numeric(gsub(",", ".", tabela_global[[col]]))
 }
 
-# Linha TOTAL (última linha do CSV)
+# Linha TOTAL e montante total a transferir
 total_row_g      <- tabela_global[tabela_global$nome_tab == "TOTAL", ]
-transf_g_display <- tabela_global[tabela_global$nome_tab != "TOTAL", ]
+total_transferir <- total_row_g$total_tml
 
-
-# Valores escalares globais
-receita_A_total     <- total_row_g$receita_A
-receita_K_total     <- total_K_val
-receita_B_total     <- total_row_g$receita_B
-cosp_total_mes      <- total_row_g$cosp_D
-congelamento_total  <- total_row_g$congelamento
-total_transferir    <- total_row_g$total_tml
-
-# excedente_mts: excedente de receitas na posse do MTS a transferir ao FT (se > 0)
-# idem ao 08_tables.R l.269 — derivado aqui da tabela_global para render standalone
+# Excedente MTS: se MTS tiver valor a transferir negativo, transfere excedente para FT
 if (!exists("excedente_mts")) {
   mts_row_g <- tabela_global[tabela_global$nome_tab == "MTS", ]
   excedente_mts <- if (nrow(mts_row_g) > 0 && !is.na(mts_row_g$total_transferir) &&
                          mts_row_g$total_transferir < 0) abs(mts_row_g$total_transferir) else 0
 }
 
-# Mapeamento de nomes de operadores para Tabela 2 e nomes legais (Ofício)
+# Mapeamento de nomes de operadores para Tabela 2
 nomes_tab2 <- c(
   "CP"          = "CP – Comboios de Portugal",
   "FT"          = "Fertagus",
@@ -186,28 +145,17 @@ nomes_tab2 <- c(
   "BT Oeste"    = "Barraqueiro Transportes"
 )
 
-nomes_legais <- c(
-  "CP"          = "CP – Comboios de Portugal, E.P.E.",
-  "FT"          = "Fertagus – Travessia do Tejo, Transportes S.A.",
-  "TT + SL"     = "Transtejo Soflusa, S.A.",
-  "ML"          = "Metropolitano de Lisboa, E.P.E.",
-  "Carris"      = "Carris – Companhia Carris de Ferro de Lisboa, E.M. S.A.",
-  "TCB"         = "Serviços Municipalizados de Transportes Coletivos do Barreiro",
-  "AT TML - CM" = "Transportes Metropolitanos de Lisboa, E.M.T., S.A. – Contratos Carris Metropolitana Áreas 1, 2, 3 e 4",
-  "BT Oeste"    = "Barraqueiro Transportes, S.A."
-)
-
 # Faturação de imediato (parcela partilhada, excluindo AT Cascais e operadores com valor 0)
 tab2_dados     <- tabela_global %>%
   filter(!nome_tab %in% c("TOTAL", "AT Cascais"), parcela_partilhada > 0)
 total_imediato <- sum(tab2_dados$parcela_partilhada, na.rm = TRUE)
 
-# valor a reter da AT Cascais (transferência apurada na Tabela 1)
+# Valor a reter da AT Cascais (transferência apurada na Tabela 1)
 reter_cascais <- tabela_global %>%
   filter(nome_tab == "AT Cascais") %>%
   pull(total_tml)
 
-# Valores de faturação imediata por operador (ppart_ para evitar conflito com val_tt do bloco if abaixo)
+# Valores de faturação imediata por operador (para a lista de faturação)
 tg_pp    <- function(op) tabela_global$parcela_partilhada[tabela_global$nome_tab == op]
 ppart_cp  <- tg_pp("CP")
 ppart_ft  <- tg_pp("FT")
@@ -217,106 +165,6 @@ ppart_ca  <- tg_pp("Carris")
 ppart_tcb <- tg_pp("TCB")
 ppart_cm  <- tg_pp("AT TML - CM")
 ppart_bt  <- tg_pp("BT Oeste")
-
-# Parâmetros COSP e Sazonalidade
-saz_df <- read.csv2(file.path(LISTS_DIR, "sazonalidade.csv"), stringsAsFactors = FALSE, dec = ".")
-tat_df <- read.csv2(TAT_FILE, stringsAsFactors = FALSE, dec = ".")
-tat_df$tat <- as.numeric(tat_df$tat)
-fator_tat_vmc <- prod(1 + tat_df$tat[tat_df$ano <= ANO])
-VMC_ano       <- round(VMC_2023 * fator_tat_vmc, 2)
-valor_medio_passe <- VMC_ano / N_PASSES_COMPENSAR
-
-saz_df$sazonalidade <- as.numeric(saz_df$sazonalidade)
-saz_mes <- as.numeric(saz_df$sazonalidade[saz_df$mes == MES])
-
-qty_total_mes <- sum(rtd_raw$qty_total, na.rm = TRUE)
-estimativa_passes_anuais <- qty_total_mes / saz_mes
-pct_compensar <- min(1, N_PASSES_COMPENSAR / estimativa_passes_anuais)
-
-cosp_detail_raw <- read.csv2(F_COSP_D, stringsAsFactors = FALSE, dec = ",")
-for (col in c("qty_total_i", "passes_compensar_i", "COSP_i", "quota", "COSP_ij")) {
-  if (col %in% names(cosp_detail_raw)) cosp_detail_raw[[col]] <- as.numeric(gsub(",", ".", cosp_detail_raw[[col]]))
-}
-passes_comp_mes  <- sum(unique(cosp_detail_raw[, c("ticket_code", "passes_compensar_i")])$passes_compensar_i, na.rm = TRUE)
-
-# ---- Auto-atualização de receitas_anteriores.csv -----------------------------
-rac_file <- file.path(LISTS_DIR, "receitas_anteriores.csv")
-rac <- read.csv2(rac_file, stringsAsFactors = FALSE, dec = ",", check.names = FALSE)
-rac <- rac[, !grepl("^X|;$|^$", names(rac))]
-
-ja_existe_mes <- any(rac$ano == ANO & rac$mes == MES & rac$Tipo == "Passageiros")
-
-if (!ja_existe_mes) {
-  # Carregar passageiros atuais
-  pt_data <- read.csv2(F_PT, stringsAsFactors = FALSE, dec = ".")
-  pt_data$pt_operador <- as.numeric(pt_data$pt_operador)
-  pt_agg <- pt_data %>% group_by(operador) %>% summarise(pt = sum(pt_operador, na.rm=TRUE))
-
-  op_map_rac <- c(
-    CP = "CP", FT = "FT", TT = "TT", SL = "SL", ML = "ML", MS = "MTS",
-    CA = "Carris", TB = "TCB", CAP = "AT Cascais", CM = "AT TML - CM", BQ = "BT Oeste"
-  )
-
-  # 1. Linha Passageiros
-  row_pax <- data.frame(
-    ano = ANO, mes = MES, Tipo = "Passageiros",
-    TOTAL = format(sum(pt_agg$pt), big.mark = " "),
-    stringsAsFactors = FALSE, check.names = FALSE
-  )
-  for (code in names(op_map_rac)) {
-    col_nm <- op_map_rac[code]
-    val <- pt_agg$pt[pt_agg$operador == code]
-    row_pax[[col_nm]] <- if (length(val) > 0) format(round(val), big.mark = " ") else "0"
-  }
-
-  # 2. Linha Receitas
-  cong_data <- read.csv2(F_CONGELAMENTO, stringsAsFactors = FALSE, dec = ",")
-  cong_data$receita_B <- as.numeric(gsub(",", ".", cong_data$receita_B))
-  tot_rec_b <- sum(cong_data$receita_B, na.rm = TRUE)
-
-  row_rec <- data.frame(
-    ano = ANO, mes = MES, Tipo = "Receitas",
-    TOTAL = format(round(tot_rec_b, 2), nsmall = 2, decimal.mark = ",", big.mark = ""),
-    stringsAsFactors = FALSE, check.names = FALSE
-  )
-  for (code in names(op_map_rac)) {
-    col_nm <- op_map_rac[code]
-    if (code == "SL") {
-      row_rec[[col_nm]] <- "0,000"
-    } else if (code == "TT") {
-      val_tt <- sum(cong_data$receita_B[cong_data$operador %in% c("TT", "SL")], na.rm = TRUE)
-      row_rec[[col_nm]] <- format(round(val_tt, 3), nsmall = 3, decimal.mark = ",", big.mark = "")
-    } else {
-      val <- cong_data$receita_B[cong_data$operador == code]
-      row_rec[[col_nm]] <- if (length(val) > 0) format(round(val, 3), nsmall = 3, decimal.mark = ",", big.mark = "") else "0,000"
-    }
-  }
-
-  # 3. Linha Receitas perct
-  row_pct <- data.frame(
-    ano = ANO, mes = MES, Tipo = "Receitas perct",
-    TOTAL = "1,00",
-    stringsAsFactors = FALSE, check.names = FALSE
-  )
-  for (code in names(op_map_rac)) {
-    col_nm <- op_map_rac[code]
-    if (code == "SL") {
-      row_pct[[col_nm]] <- "0,00000"
-    } else if (code == "TT") {
-      val_tt <- sum(cong_data$receita_B[cong_data$operador %in% c("TT", "SL")], na.rm = TRUE)
-      p <- if (tot_rec_b > 0) val_tt / tot_rec_b else 0
-      row_pct[[col_nm]] <- format(round(p, 5), nsmall = 5, decimal.mark = ",", big.mark = "")
-    } else {
-      val <- cong_data$receita_B[cong_data$operador == code]
-      p <- if (length(val) > 0 && tot_rec_b > 0) val / tot_rec_b else 0
-      row_pct[[col_nm]] <- format(round(p, 5), nsmall = 5, decimal.mark = ",", big.mark = "")
-    }
-  }
-
-  rac <- bind_rows(rac, row_pax, row_rec, row_pct)
-  write.table(rac, rac_file, sep = ";", dec = ",", row.names = FALSE, na = "")
-  message("✓ Novo mês adicionado a receitas_anteriores.csv")
-}
 ```
 
 :::::: {style="font-size: 0.7em;"}
