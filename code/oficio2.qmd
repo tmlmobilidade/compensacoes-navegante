@@ -1,0 +1,261 @@
+---
+lang: pt
+doc-tipo: externo
+format:
+  typst:
+    papersize: a4
+    linestretch: 1.5
+    # mainfont: "Lexend" # não parece sério
+    numbering: "I"
+    margin:
+      x: 3.0cm
+      y: 3.0cm
+      top: 4.0cm
+      bottom: 3.0cm
+    include-in-header:
+      - custom_styles.typ
+filters:
+  - linebreaks.lua
+number-sections: true
+section-numbering: 1.1.1.
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: params
+
+# =============================================================================
+# PARÂMETROS ESPECÍFICOS DESTE DOCUMENTO
+# (ajustar aqui o que for relativo a esta emissão da Informação)
+# =============================================================================
+
+# ---- Referência e Datas -----------------------------------------------------
+numero_informacao <- "TML-XXXX-XXXX-INF-XXXX-DEP"
+data_documento    <- format(Sys.Date(), "%d/%m/%Y")
+numero_oficio     <- "TML-XXXX-XXXX-OF-XXXX-DEP"
+numero_oficio2    <- "TML-YYYY-YYYY-OF-YYYY-DEP"
+
+# ---- Identificação e Autoria ------------------------------------------------
+de_pessoa3_nome  <- "António Sérgio Vaz Rei Manso Pinheiro"
+de_pessoa3_cargo <- "Diretor do Departamento de Estudos e Planeamento"
+```
+
+```{r}
+#| label: setup
+
+# =============================================================================
+# CARREGAMENTO DE DADOS E CONFIGURAÇÃO DO OFÍCIO
+# =============================================================================
+
+source(here::here("code", "config.R"))
+
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(scales)
+  library(knitr)
+  library(tinytable)
+})
+
+# ---- Funções Auxiliares de Formatação ----------------------------------------
+fmt_eur <- function(x) {
+  ifelse(is.na(x), "", scales::number(x, accuracy = 0.01, big.mark = "\u00a0", decimal.mark = ",", suffix = "\u00a0€"))
+}
+
+fmt_pct3 <- function(x) {
+  ifelse(is.na(x), "", scales::percent(x, accuracy = 0.001, decimal.mark = ","))
+}
+
+# Funções auxiliares de tabelas (tinytable) e montantes por extenso
+source(here::here("code", "utils_tables.R"))
+source(here::here("code", "utils_extenso.R"))
+
+# ---- Mês e Ano de Transferência (M + 3) --------------------------------------
+mes_nome        <- tolower(mes_nome)
+mes_transf_num  <- ((MES - 1 + 3) %% 12) + 1
+ano_transf      <- ANO + ((MES + 3 - 1) %/% 12)
+mes_transf_nome <- tolower(meses_pt_nome[mes_transf_num])
+mes_transf_abrev <- tolower(meses_pt[mes_transf_num])
+ano_transf_abrev <- substr(as.character(ano_transf), 3, 4)
+rotulo_mes_ano   <- paste0(mes_transf_abrev, "/", ano_transf_abrev)
+
+# ---- Carregar tabela global pré-calculada por 08_tables.R -------------------
+if (!file.exists(F_TABELA_GLOBAL)) {
+  message("ℹ Ficheiro da tabela global não encontrado. A executar 08_tables.R...")
+  source(here::here("code", "08_tables.R"))
+}
+tabela_global <- read.csv2(F_TABELA_GLOBAL, stringsAsFactors = FALSE, dec = ",")
+
+num_cols_tg <- c("receita_A", "receita_B", "C", "cosp_D", "SG",
+                 "F_transferencia", "congelamento", "total_transferir",
+                 "transf_entre_ops", "total_tml", "pct",
+                 "parcela_partilhada", "parcela_incentiva")
+for (col in intersect(num_cols_tg, names(tabela_global))) {
+  tabela_global[[col]] <- as.numeric(gsub(",", ".", tabela_global[[col]]))
+}
+
+# Linha TOTAL e montante total a transferir
+total_row_g      <- tabela_global[tabela_global$nome_tab == "TOTAL", ]
+total_transferir <- total_row_g$total_tml
+
+# Excedente MTS: se MTS tiver valor a transferir negativo, transfere excedente para FT
+if (!exists("excedente_mts")) {
+  mts_row_g <- tabela_global[tabela_global$nome_tab == "MTS", ]
+  excedente_mts <- if (nrow(mts_row_g) > 0 && !is.na(mts_row_g$total_transferir) &&
+                         mts_row_g$total_transferir < 0) abs(mts_row_g$total_transferir) else 0
+}
+
+# Dados para Tabela 1 do Ofício 2 (excluindo TOTAL e MTS que é 0)
+tab_of2_dados <- tabela_global %>%
+  filter(!nome_tab %in% c("TOTAL", "MTS"))
+
+# Totais excluindo AT Cascais (já que a transferência da AT Cascais está retida)
+total_transferido  <- sum(tab_of2_dados$parcela_partilhada[tab_of2_dados$nome_tab != "AT Cascais"], na.rm = TRUE)
+total_remanescente <- sum(tab_of2_dados$parcela_incentiva[tab_of2_dados$nome_tab != "AT Cascais"], na.rm = TRUE)
+
+# Valores de faturação de segunda parcela por operador (para a lista de faturação)
+tg_pi    <- function(op) tabela_global$parcela_incentiva[tabela_global$nome_tab == op]
+pincent_cp  <- tg_pi("CP")
+pincent_ft  <- tg_pi("FT")
+pincent_tt  <- tg_pi("TT + SL")
+pincent_ml  <- tg_pi("ML")
+pincent_ca  <- tg_pi("Carris")
+pincent_tcb <- tg_pi("TCB")
+pincent_cm  <- tg_pi("AT TML - CM")
+pincent_bt  <- tg_pi("BT Oeste")
+```
+
+:::::: {style="font-size: 0.7em;"}
+::::: {layout-ncol="2"}
+::: {}
+<!-- blank -->
+:::
+
+::: {}
+Exmos. Senhores\
+Operadores de transporte público que disponibilizam o título Intermodal Navegante
+
+CC/ Autoridades de Transporte: Secretaria de Estado da Mobilidade, Instituto da Mobilidade e dos Transportes, Câmara Municipal do Barreiro, Câmara Municipal de Lisboa, Câmara Municipal de Cascais, CIM Oeste e AML
+:::
+:::::
+::::::
+
+```{=typst}
+#align(left)[
+  #heading(level: 3, numbering: none)[
+    #text(size: 10pt)[N/Ref.ª - `r numero_oficio2`]\
+    #text(size: 10pt)[Estudos e Planeamento `r data_documento`]
+  ]
+]
+#v(0.8cm)
+```
+ <!-- italic not working in typst -->
+_Forma de envio:_\
+Correio eletrónico
+
+```{=typst}
+#par(hanging-indent: 46pt)[
+    #set text(weight: "bold")
+Assunto: Pagamento da 2.ª parcela dos montantes a transferir em `r mes_transf_nome` de `r ano_transf` aos operadores de transporte público de passageiros da área metropolitana de Lisboa que disponibilizam o título intermodal Navegante, no âmbito do Regulamento n.º 278-A/2019 da AML
+]
+```
+```{=typst}
+#v(1cm)
+#set list(marker: [–])
+```
+No âmbito das competências delegadas e subdelegadas pela Área Metropolitana de Lisboa (“AML”) na TML – Transportes Metropolitanos de Lisboa, E.M.T., S.A. (“TML”) ao abrigo do Contrato Interadministrativo de Delegação e Subdelegação de Competências e respetivo Aditamento em vigor, a TML comunicou aos operadores de transporte público que disponibilizam o título intermodal Navegante, os **montantes a transferir em `r mes_transf_nome` de `r ano_transf`**, no âmbito do Regulamento n.º 278-A/2019 da AML, através do ofício n.º `r numero_oficio`.
+
+Dado que à data da referida comunicação não tinha sido disponibilizada à TML a verba proveniente do Programa «Incentiva +TP», foi aprovado pelo Conselho de Administração da TML autorizar a faturação da parcela correspondente às vendas em canais de receita partilhada, ficando o remanescente para faturar somente após o recebimento da verba referente ao montante financiado pelo Fundo Ambiental. 
+
+Assim, no seguimento da transferência do Fundo Ambiental para a TML da verba de Incentiva +TP referente ao duodécimo de `r mes_transf_nome` de `r ano_transf`, vimos pelo presente informar que estão reunidas as condições para se proceder à emissão das faturas correspondentes aos valores remanescentes das transferências aprovadas para esse mês que correspondem a um total de **`r fmt_eur(total_remanescente)`** (`r numero_por_extenso(total_remanescente)`), conforme a deliberação à data do Conselho de Administração da TML, nos termos do Regulamento n.º 278-A/2019 da AML, na sua versão atual, e que se distribui pelos operadores/ autoridades de transporte, conforme @tbl-1:
+
+- **CP - Comboios de Portugal, E.P.E.**: **`r fmt_eur(pincent_cp)`** (`r numero_por_extenso(pincent_cp)`);
+
+- **Fertagus - Travessia do Tejo, Transportes S.A.**: **`r fmt_eur(pincent_ft)`** (`r numero_por_extenso(pincent_ft)`);
+
+- **Transtejo Soflusa, S.A.**: **`r fmt_eur(pincent_tt)`** (`r numero_por_extenso(pincent_tt)`);
+
+- **Metropolitano de Lisboa, E.P.E.**: **`r fmt_eur(pincent_ml)`** (`r numero_por_extenso(pincent_ml)`);
+
+- **Carris - Companhia Carris de Ferro de Lisboa, E.M. S.A.**: **`r fmt_eur(pincent_ca)`** (`r numero_por_extenso(pincent_ca)`);
+
+- **Serviços Municipalizados de Transportes Coletivos do Barreiro**: **`r fmt_eur(pincent_tcb)`** (`r numero_por_extenso(pincent_tcb)`);
+
+- **Transportes Metropolitanos de Lisboa, E.M.T., S.A. - Contratos Carris Metropolitana Áreas 1, 2, 3 e 4**: **`r fmt_eur(pincent_cm)`** (`r numero_por_extenso(pincent_cm)`);
+
+- **Barraqueiro Transportes, S.A.**: **`r fmt_eur(pincent_bt)`** (`r numero_por_extenso(pincent_bt)`).
+
+
+```{r}
+#| label: tbl-1
+#| tbl-cap: !expr paste0("Montantes transferidos e montantes a faturar, relativos às transferências mensais aprovadas para o mês de ", mes_transf_nome, " de ", ano_transf, " (resultado do apuramento provisório de ", mes_nome, " de ", ANO, ")")
+
+tab_of2_display <- tab_of2_dados %>%
+  mutate(
+    op_label = nome_tab,
+    aprovada_fmt    = fmt_eur(total_tml),
+    transferido_fmt = ifelse(nome_tab == "AT Cascais", "", fmt_eur(parcela_partilhada)),
+    faturar_fmt     = ifelse(nome_tab == "AT Cascais", "", fmt_eur(parcela_incentiva))
+  ) %>%
+  select(
+    `Operador` = op_label,
+    aprovada_fmt,
+    transferido_fmt,
+    faturar_fmt
+  )
+
+col_aprovada    <- paste0("Transferência mensal aprovada\n(", rotulo_mes_ano, ")\n[a]")
+col_transferido <- paste0("Montante transferido\n(", rotulo_mes_ano, ")\n[b]")
+col_faturar     <- paste0("Montante a faturar\n(", rotulo_mes_ano, ")\n[c] = [a] - [b]")
+
+names(tab_of2_display)[2] <- col_aprovada
+names(tab_of2_display)[3] <- col_transferido
+names(tab_of2_display)[4] <- col_faturar
+
+tab_of2_display <- bind_rows(
+  tab_of2_display,
+  tibble(
+    `Operador` = "TOTAL",
+    !!col_aprovada    := fmt_eur(total_transferir),
+    !!col_transferido := fmt_eur(total_transferido),
+    !!col_faturar     := fmt_eur(total_remanescente)
+  )
+)
+
+tab_of2_display$Operador <- gsub("AT TML - CM", "AT\u00a0TML\u00a0\u2011\u00a0CM", tab_of2_display$Operador)
+
+tml_table(
+  tab_of2_display,
+  align = c("l", "r", "r", "r"),
+  notes = list(
+    "1" = list(i = 0, j = c(2, 3), text = paste0("Ofício n.º ", numero_oficio, ".")),
+    "2" = list(i = 7, j = 1, text = "Retido ao abrigo do n.º 26 do Anexo V do Regulamento.")
+    )
+  )
+
+```
+
+A TML reserva-se o direito de não proceder a pagamentos no caso de não envio de informação prevista no Regulamento n.º 278-A/2019.
+
+Os pagamentos serão realizados pela TML após a receção das respetivas faturas, para o endereço de correio eletrónico [**compras@tmlmobilidade.pt**](mailto:compras@tmlmobilidade.pt), nos termos indicados anteriormente.
+
+De acordo com o n.º 3 do artigo 18.º do Regulamento n.º 278-A/2019, é obrigação dos operadores submeter documento a autorizar a consulta da situação tributária e da situação contributiva perante a segurança social, ou enviar as respetivas certidões de não dívida, devendo ainda ser comprovado o registo central do beneficiário efetivo, quando aplicável. Sem a receção destes documentos não é possível proceder aos pagamentos.
+
+Colocamo-nos à disposição para qualquer esclarecimento que entendam necessário, através do endereço de correio eletrónico [transportes@tmlmobilidade.pt](mailto:transportes@tmlmobilidade.pt).
+
+```{=typst}
+#v(0.5cm)
+```
+Com os melhores cumprimentos,
+
+```{=typst}
+#v(1.5cm)
+#pad(left: 200pt)[
+  #set text(size: 9pt)
+  *`r de_pessoa3_nome`*\
+  *`r de_pessoa3_cargo`*\
+  Ao abrigo do Despacho de subdelegação de competências do PCA de 13/03/2026
+]
+```
