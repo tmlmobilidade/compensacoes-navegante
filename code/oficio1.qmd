@@ -396,8 +396,10 @@ tml_table(tab5, fontsize = 0.72, align = c("l", "r", "r", "r", "r", "r", "r"),
 text = "As percentagens apresentam-se com três casas decimais, porém o cálculo é realizado sem o arredondamento prévio da proporção.")))
 ```
 
-    a.  Valor total de **`r fmt_eur(total_transferir)`** (`r numero_por_extenso(total_transferir)`), – resultante da compensação tarifária (COSP), do congelamento do valor dos títulos navegante e da receita das vendas em canais de receita partilhada – a transferir pela TML aos Operadores e a faturar de forma parcelar (dado que a verba do Fundo Ambiental relativa ao Incentiva +TP referente ao mês de `r mes_transf_nome` de `r ano_transf` não foi disponibilizada), conforme ponto 13.6 do Anexo V:
-
+```{=typst}
+#set enum(numbering: "a.", indent: 1cm)
+Valor total de **`r fmt_eur(total_transferir)`** (`r numero_por_extenso(total_transferir)`), – resultante da compensação tarifária (COSP), do congelamento do valor dos títulos navegante e da receita das vendas em canais de receita partilhada – a transferir pela TML aos Operadores e a faturar de forma parcelar (dado que a verba do Fundo Ambiental relativa ao Incentiva +TP referente ao mês de `r mes_transf_nome` de `r ano_transf` não foi disponibilizada), conforme ponto 13.6 do Anexo V:
+```
         i.  Solicitar aos operadores, de imediato, as faturas da parcela correspondente à receita de passes Navegante obtida através dos canais de receita partilhada (ATM e portal viva), num total de **`r fmt_eur(total_imediato)`** (`r numero_por_extenso(total_imediato)`), conforme @tbl-2:
 
 ```{r}
@@ -436,7 +438,7 @@ tml_table(
 
 ```{=typst}
 #[
-#set list(marker: [–])
+#set list(marker: [–], indent: 1.5cm)
 ```
 
 - **CP – Comboios de Portugal, E.P.E.: `r fmt_eur(ppart_cp)`** (`r numero_por_extenso(ppart_cp)`);
