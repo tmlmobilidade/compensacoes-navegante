@@ -294,7 +294,7 @@ tml_table(
 
 - **CP - Comboios de Portugal, E.P.E.: `r fmt_eur(ppart_cp)`** (`r numero_por_extenso(ppart_cp)`);
 
-- **Fertagus - Travessia do Tejo, Transportes S.A.: `r fmt_eur(ppart_ft)`** ` (`r numero_por_extenso(ppart_ft)`);
+- **Fertagus - Travessia do Tejo, Transportes S.A.: `r fmt_eur(ppart_ft)`** (`r numero_por_extenso(ppart_ft)`);
 
 - **Transtejo Soflusa, S.A.: `r fmt_eur(ppart_tt)`** (`r numero_por_extenso(ppart_tt)`);
 
@@ -316,7 +316,7 @@ tml_table(
 ```
 
 <!-- regra se houver excedente no MST -->
-`r if (excedente_mts > 0) paste0("4)  Solicitar ao operador **Metro Transportes do Sul (MTS) a transferência de receitas excedentes para o operador Fertagus num valor total de ", fmt_eur(excedente_mts), "** (", numero_por_extenso(excedente_mts), ");\n\n5)  **Reter a transferência determinada para a AT Cascais**, no valor de `r fmt_eur(reter_cascais)` (`r numero_por_extenso(reter_cascais)`), ao abrigo do n.º 26 do Anexo V do Regulamento.") else paste0("4)  **Reter a transferência determinada para a AT Cascais**, no valor de `r fmt_eur(reter_cascais)` (`r numero_por_extenso(reter_cascais)`), ao abrigo do n.º 26 do Anexo V do Regulamento.")`
+`r if (excedente_mts > 0) paste0("4)  Solicitar ao operador **Metro Transportes do Sul (MTS) a transferência de receitas excedentes para o operador Fertagus num valor total de ", fmt_eur(excedente_mts), "** (", numero_por_extenso(excedente_mts), ");\n\n5)  **Reter a transferência determinada para a AT Cascais**, no valor de ", fmt_eur(reter_cascais), " (", numero_por_extenso(reter_cascais), "), ao abrigo do n.º 26 do Anexo V do Regulamento.") else paste0("4)  **Reter a transferência determinada para a AT Cascais**, no valor de ", fmt_eur(reter_cascais), " (", numero_por_extenso(reter_cascais), "), ao abrigo do n.º 26 do Anexo V do Regulamento.")`
 
 Os pagamentos serão realizados pela TML após a receção das respetivas faturas, para o endereço de correio eletrónico [**compras@tmlmobilidade.pt**](mailto:compras@tmlmobilidade.pt), nos termos indicados anteriormente.
 

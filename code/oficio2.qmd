@@ -230,8 +230,8 @@ tml_table(
   tab_of2_display,
   align = c("l", "r", "r", "r"),
   notes = list(
-    "1" = list(i = 0, j = c(2, 3), text = paste0("Ofício n.º ", numero_oficio, ".")),
-    "2" = list(i = 7, j = 1, text = "Retido ao abrigo do n.º 26 do Anexo V do Regulamento.")
+    "1)" = list(i = 0, j = c(2, 3), text = paste0("Ofício n.º ", numero_oficio, ".")),
+    "2)" = list(i = 7, j = 1, text = "Retido ao abrigo do n.º 26 do Anexo V do Regulamento.")
     )
   )
 
