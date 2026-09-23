@@ -12,7 +12,7 @@ MES <- if (!is.na(Sys.getenv("MES", unset = NA))) as.integer(Sys.getenv("MES")) 
 # e guardados na pasta de destino (output/docs/)
 RENDER_INFORMACAO1 <- if (!is.na(Sys.getenv("RENDER_INFORMACAO1", unset = NA))) as.logical(Sys.getenv("RENDER_INFORMACAO1")) else TRUE
 RENDER_METODOLOGIA <- if (!is.na(Sys.getenv("RENDER_METODOLOGIA", unset = NA))) as.logical(Sys.getenv("RENDER_METODOLOGIA")) else TRUE
-RENDER_OFICIO1     <- if (!is.na(Sys.getenv("RENDER_OFICIO1", unset = NA))) as.logical(Sys.getenv("RENDER_OFICIO1")) else FALSE
+RENDER_OFICIO1     <- if (!is.na(Sys.getenv("RENDER_OFICIO1", unset = NA))) as.logical(Sys.getenv("RENDER_OFICIO1")) else TRUE
 RENDER_OFICIO2     <- if (!is.na(Sys.getenv("RENDER_OFICIO2", unset = NA))) as.logical(Sys.getenv("RENDER_OFICIO2")) else FALSE
 RENDER_DOCX        <- if (!is.na(Sys.getenv("RENDER_DOCX", unset = NA))) as.logical(Sys.getenv("RENDER_DOCX")) else TRUE   # Converte PDF para Word (DOCX) via PDF24 Toolbox
 DOCX_MODE          <- if (!is.na(Sys.getenv("DOCX_MODE", unset = NA))) Sys.getenv("DOCX_MODE") else "asposeFlow"            # Modo PDF24: "asposeFlow" (fluxo contínuo) ou "asposeBlocks" (blocos)
@@ -74,6 +74,8 @@ F_DOC_METODOLOGIA_PDF <- file.path(DOCS_DIR, paste0("Anexo_Metodologia_",  SUFIX
 F_DOC_METODOLOGIA_DOCX<- file.path(DOCS_DIR, paste0("Anexo_Metodologia_",  SUFIXO, ".docx"))
 F_DOC_OFICIO1_PDF     <- file.path(DOCS_DIR, paste0("Oficio1_",      SUFIXO, ".pdf"))
 F_DOC_OFICIO1_DOCX    <- file.path(DOCS_DIR, paste0("Oficio1_",      SUFIXO, ".docx"))
+F_DOC_OFICIO1ALT_PDF  <- file.path(DOCS_DIR, paste0("Oficio1_alt_",   SUFIXO, ".pdf"))
+F_DOC_OFICIO1ALT_DOCX <- file.path(DOCS_DIR, paste0("Oficio1_alt_",   SUFIXO, ".docx"))
 F_DOC_OFICIO2_PDF     <- file.path(DOCS_DIR, paste0("Oficio2_",      SUFIXO, ".pdf"))
 F_DOC_OFICIO2_DOCX    <- file.path(DOCS_DIR, paste0("Oficio2_",      SUFIXO, ".docx"))
 
