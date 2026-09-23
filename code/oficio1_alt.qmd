@@ -208,8 +208,7 @@ No âmbito das competências delegadas e subdelegadas pela Área Metropolitana d
             - **Barraqueiro Transportes, S.A.**: **`r fmt_eur(ppart_bt)`** (`r numero_por_extenso(ppart_bt)`).
 
 `r if (excedente_mts > 0) paste0("1)  Solicitar ao operador **Metro Transportes do Sul (MTS) a transferência de receitas excedentes para o operador Fertagus num valor total de ", fmt_eur(excedente_mts), "** (", numero_por_extenso(excedente_mts), ");\n\n") else ""`
-1)  **Reter a transferência determinada para a AT Cascais**, ao abrigo do n.º 26 do Anexo V do Regulamento.
-<!-- , no valor de `r fmt_eur(reter_cascais)` (`r numero_por_extenso(reter_cascais)`) -->
+1)  **Reter a transferência determinada para a AT Cascais**, no valor de `r fmt_eur(reter_cascais)` (`r numero_por_extenso(reter_cascais)`), ao abrigo do n.º 26 do Anexo V do Regulamento.
 
 ```{r}
 #| label: tbl-1
