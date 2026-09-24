@@ -87,43 +87,27 @@ RENDER_DOCX        <- FALSE   # TRUE gera também versão Word (requer PDF24 ins
 DOCX_MODE          <- "asposeFlow"  # "asposeFlow" (fluxo) ou "asposeBlocks" (blocos)
 ```
 
-### 5. Atualizar os parâmetros de emissão nos documentos `.qmd`
+### 5. Atualizar os parâmetros de emissão em `code/doc_params.R`
 
-Cada documento tem um bloco `# PARÂMETROS ESPECÍFICOS DESTE DOCUMENTO` no início que deve ser revisto para a emissão do novo mês.
-
-#### [`code/informacao1.qmd`](code/informacao1.qmd)
+Todos os parâmetros de emissão estão centralizados num único ficheiro — editar apenas [`code/doc_params.R`](code/doc_params.R):
 
 ```r
 # Datas de receção dos dados de bilhética:
-data_dados_dits   <- "XX de setembro de 2026"   # data em que o DITS enviou os dados
-data_dados_its    <- "XX de setembro de 2026"   # data em que o ITS enviou os dados
+data_dados_dits <- "XX de setembro de 2026"
+data_dados_its  <- "XX de setembro de 2026"
 
 # Financiamento do Fundo Ambiental (Incentiva +TP):
 # TRUE  = verba ainda NÃO transferida → faturação parcelar
 # FALSE = verba já disponível → faturação imediata total
 incentiva_tp_pendente <- TRUE
 
-# Número de referência e data:
-numero_informacao <- "TML-XXXX-XXXX-INF-XXXX-DEP"
-data_documento    <- format(Sys.Date(), "%d/%m/%Y")  # ou definir manualmente
-```
-
-> A `load_version` é lida automaticamente de [`lists/load_versions.csv`](lists/load_versions.csv) (ver passo 3).
-
-#### [`code/oficio1.qmd`](code/oficio1.qmd) e [`code/oficio1_alt.qmd`](code/oficio1_alt.qmd)
-
-```r
-numero_informacao <- "TML-XXXX-XXXX-INF-XXXX-DEP"
-numero_oficio     <- "TML-XXXX-XXXX-OF-XXXX-DEP"
-```
-
-#### [`code/oficio2.qmd`](code/oficio2.qmd)
-
-```r
+# Números de referência:
 numero_informacao <- "TML-XXXX-XXXX-INF-XXXX-DEP"
 numero_oficio     <- "TML-XXXX-XXXX-OF-XXXX-DEP"
 numero_oficio2    <- "TML-YYYY-YYYY-OF-YYYY-DEP"
 ```
+
+> A `load_version` é lida automaticamente de [`lists/load_versions.csv`](lists/load_versions.csv) (ver passo 3). Os campos de autoria (`de_pessoa1_nome`, etc.) raramente mudam — só atualizar se houver alteração de intervenientes.
 
 ### 6. Verificar pré-requisitos do sistema (apenas uma vez por máquina)
 
@@ -251,6 +235,7 @@ Compensacoes/
 │   ├── oficio2.qmd               # Ofício 2 — comunicação formal Incentiva +TP
 │   │
 │   ├── render_informacao1.R      # Script de conveniência para renderizar só a Informação 1
+│   ├── doc_params.R              # ← Parâmetros de emissão mensais (datas, refs, autores)
 │   ├── utils_tables.R            # Funções de formatação de tabelas (tinytable / Typst)
 │   ├── utils_extenso.R           # Funções auxiliares para montantes por extenso em euros
 │   ├── custom_styles.typ         # Estilos Typst: cabeçalhos, fundos e papel timbrado

@@ -27,31 +27,8 @@ execute:
 ```{r}
 #| label: params
 
-# =============================================================================
-# PARÂMETROS ESPECÍFICOS DESTE DOCUMENTO
-# (ajustar aqui o que for relativo a esta emissão da Informação)
-# =============================================================================
-
-# ---- Referência e Datas -----------------------------------------------------
-numero_informacao <- "TML-XXXX-XXXX-INF-XXXX-DEP"
-data_documento    <- format(Sys.Date(), "%d/%m/%Y")
-numero_oficio     <- "TML-XXXX-XXXX-OF-XXXX-DEP"
-
-# ---- Identificação e Autoria ------------------------------------------------
-de_pessoa1_nome  <- "Ana Isabel Capote Fernandes Rosado"
-de_pessoa1_cargo <- "Técnica Superior"
-
-de_pessoa2_nome  <- "Luísa Salomé Freixo Lopes de Castro Nogueira"
-de_pessoa2_cargo <- "Técnica Superior"
-
-de_pessoa3_nome  <- "António Sérgio Vaz Rei Manso Pinheiro"
-de_pessoa3_cargo <- "Diretor do Departamento de Estudos e Planeamento"
-
-de_divisao       <- "Estudos e Planeamento - Sistemas de Transportes"
-
-para_pessoa_nome <- "Helena Catarina Mota Ferreira Tavares Marcelino"
-para_cargo       <- "Coordenadora"
-para_divisao     <- "Estudos e Planeamento - Sistemas de Transportes"
+# Parâmetros de emissão centralizados — editar code/doc_params.R
+source(here::here("code", "doc_params.R"))
 ```
 
 ```{r}

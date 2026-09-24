@@ -27,20 +27,8 @@ execute:
 ```{r}
 #| label: params
 
-# =============================================================================
-# PARÂMETROS ESPECÍFICOS DESTE DOCUMENTO
-# (ajustar aqui o que for relativo a esta emissão da Informação)
-# =============================================================================
-
-# ---- Referência e Datas -----------------------------------------------------
-numero_informacao <- "TML-XXXX-XXXX-INF-XXXX-DEP"
-data_documento    <- format(Sys.Date(), "%d/%m/%Y")
-numero_oficio     <- "TML-XXXX-XXXX-OF-XXXX-DEP"
-numero_oficio2    <- "TML-YYYY-YYYY-OF-YYYY-DEP"
-
-# ---- Identificação e Autoria ------------------------------------------------
-de_pessoa3_nome  <- "António Sérgio Vaz Rei Manso Pinheiro"
-de_pessoa3_cargo <- "Diretor do Departamento de Estudos e Planeamento"
+# Parâmetros de emissão centralizados — editar code/doc_params.R
+source(here::here("code", "doc_params.R"))
 ```
 
 ```{r}

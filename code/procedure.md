@@ -30,6 +30,7 @@ code/
 ├── oficio2.qmd               # Ofício 2 — comunicação formal relativa ao Incentiva +TP
 │
 ├── render_informacao1.R      # Script rápido para renderizar só a Informação 1
+├── doc_params.R              # ← Parâmetros de emissão mensais: datas, refs, autores (editar a cada mês)
 ├── utils_tables.R            # Funções de formatação de tabelas com tinytable (Typst)
 ├── utils_extenso.R           # Funções auxiliares para montantes por extenso em euros
 │
