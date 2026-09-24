@@ -48,6 +48,122 @@ Executar as seguintes consultas na base de dados Oracle e exportar os CSVs (sepa
 
 ---
 
+## 🗓️ Como Preparar um Novo Mês (ex: Agosto de 2026)
+
+Antes de correr o pipeline pela primeira vez para um novo mês, há um conjunto de passos de preparação obrigatórios. Segue-os **por esta ordem**.
+
+### 1. Criar a pasta de dados do mês
+
+Cria a pasta `08_ago_2026/` na raiz do projecto (por analogia com `05_mai_2026/`, `06_jun_2026/`). Dentro desta pasta, cria a sub-pasta `Recibos B/`.
+
+### 2. Recolher e colocar os ficheiros de dados
+
+#### 2a. Recibos B dos operadores
+
+Descompactar as pastas dos Recibos B de cada operador para `08_ago_2026/Recibos B/`:
+
+```
+08_ago_2026/Recibos B/
+├── reg_CP_reciboB_082026_<DATA>/
+├── reg_ML_reciboB_082026_<DATA>/
+├── reg_Carris_reciboB_082026_<DATA>/
+├── ...
+└── ReciboB_082026_Separa_receita_PV_e_ATM.xlsx   ← ficheiro Excel de separação PV/ATM
+```
+
+O ficheiro `ReciboB_082026_Separa_receita_PV_e_ATM.xlsx` é fornecido pelo Dept. ITS / SIBS e **é obrigatório** para separar as receitas do Portal VIVA (PV) das do Multibanco (ATM).
+
+#### 2b. Exportações Oracle (inputs do cálculo)
+
+Executar as queries e guardar os CSV (separador `;`) em `08_ago_2026_replicate/input/`:
+
+| Ficheiro | Query / Script |
+| --- | --- |
+| `V_REG_AVERAGE_DISTANCE_FINAL_ALL_<timestamp>.csv` | `SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = 8 AND distribution_year = 2026;` |
+| `tt_sl_<timestamp>.csv` | [`code/query_SL_TT.sql`](code/query_SL_TT.sql) |
+| `entity23_<timestamp>.csv` | [`code/query_CM_fiscaismoveis.sql`](code/query_CM_fiscaismoveis.sql) |
+
+> [!TIP]
+> Para substituir um ficheiro de input já existente sem apagar o anterior, basta renomear o novo com o sufixo `_update` (ex: `tt_sl_202608151400_update.csv`). Os ficheiros `_update` têm prioridade automática sobre os demais.
+
+### 3. Registar a `load_version` do mês em `lists/load_versions.csv`
+
+A `load_version` identifica a versão do processamento de distâncias da Carris Metropolitana (Trino/APEX). É fornecida pelo Dept. ITS e **tem de ser registada antes de renderizar qualquer documento**.
+
+Abrir [`lists/load_versions.csv`](lists/load_versions.csv) e adicionar uma linha para o novo mês:
+
+```csv
+mes;ano;load_version
+...
+6;2026;31
+8;2026;XX    ← adicionar esta linha (substituir XX pelo número correto)
+```
+
+> [!IMPORTANT]
+> Se esta linha não existir, a Informação 1 não irá encontrar a versão de processamento e o documento terá um campo em branco ou com erro.
+
+### 4. Atualizar `code/config.R`
+
+Editar [`code/config.R`](code/config.R) e alterar:
+
+```r
+ANO <- 2026
+MES <- 8       # ← alterar para o mês pretendido
+
+# Ativar/desativar os documentos a gerar:
+RENDER_INFORMACAO1 <- TRUE
+RENDER_METODOLOGIA <- TRUE
+RENDER_OFICIO1     <- TRUE
+RENDER_OFICIO2     <- TRUE
+RENDER_DOCX        <- FALSE   # TRUE gera também versão Word (requer PDF24 instalado)
+```
+
+### 5. Atualizar os parâmetros específicos da emissão nos documentos
+
+Cada documento `.qmd` tem um bloco `# PARÂMETROS ESPECÍFICOS DESTE DOCUMENTO` no início que deve ser revisto para a emissão do novo mês.
+
+#### [`code/informacao1.qmd`](code/informacao1.qmd)
+
+```r
+# Datas de receção dos dados de bilhética:
+data_dados_dits   <- "XX de setembro de 2026"   # data em que o DITS enviou os dados
+data_dados_its    <- "XX de setembro de 2026"   # data em que o ITS enviou os dados
+
+# Financiamento do Fundo Ambiental (Incentiva +TP):
+# TRUE  = verba ainda NÃO transferida → faturação parcelar
+# FALSE = verba já disponível → faturação imediata total
+incentiva_tp_pendente <- TRUE
+
+# Número de referência da informação:
+numero_informacao <- "TML-XXXX-XXXX-INF-XXXX-DEP"
+```
+
+> A `load_version` é lida automaticamente de [`lists/load_versions.csv`](lists/load_versions.csv) (ver passo 3).
+
+#### [`code/oficio1.qmd`](code/oficio1.qmd) e [`code/oficio1_alt.qmd`](code/oficio1_alt.qmd)
+
+```r
+numero_informacao <- "TML-XXXX-XXXX-INF-XXXX-DEP"
+numero_oficio     <- "TML-XXXX-XXXX-OF-XXXX-DEP"
+```
+
+#### [`code/oficio2.qmd`](code/oficio2.qmd)
+
+```r
+numero_informacao <- "TML-XXXX-XXXX-INF-XXXX-DEP"
+numero_oficio     <- "TML-XXXX-XXXX-OF-XXXX-DEP"
+numero_oficio2    <- "TML-YYYY-YYYY-OF-YYYY-DEP"
+```
+
+### 6. Verificar pré-requisitos do sistema (apenas uma vez por máquina)
+
+- **R** ≥ 4.3 instalado.
+- **Quarto CLI** ([quarto.org](https://quarto.org)) instalado e acessível na linha de comandos (`quarto --version`).
+- Pacotes R instalados: `Rscript code/00_setup.R`
+- (Opcional) **PDF24 Toolbox** instalado em `C:/Program Files/PDF24/` para conversão PDF → Word.
+
+---
+
 ## 🚀 Como Executar
 
 ### Passo 1: Configuração do Mês/Ano e Opções
