@@ -18,8 +18,9 @@
 # Output files from R CMD check
 /*.Rcheck/
 
-# RStudio files
+# RStudio and VS Code files
 .Rproj.user/
+.vscode/
 
 # produced vignettes
 vignettes/*.html
@@ -42,6 +43,10 @@ vignettes/*.pdf
 # pkgdown site
 docs/
 
+# quarto rendering 
+.quarto/
+**/*.quarto_ipynb
+
 # translation temp files
 po/*~
 
@@ -55,5 +60,3 @@ code/*.pdf
 code/*.docx
 lists/receitas_anteriores.csv
 
-/.quarto/
-**/*.quarto_ipynb
