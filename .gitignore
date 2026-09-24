@@ -60,3 +60,5 @@ code/*.pdf
 code/*.docx
 lists/receitas_anteriores.csv
 
+# tests
+scratch/
