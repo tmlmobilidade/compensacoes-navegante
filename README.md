@@ -254,7 +254,8 @@ Compensacoes/
 │   ├── distanciasref_out21_incompleto.csv # Distâncias estáticas (meses de inverno/restantes)
 │   ├── distanciasref_ago21_incompleto.csv # Distâncias estáticas (meses de verão: jun, jul, ago)
 │   ├── tat.csv                   # Taxa de Atualização Tarifária anual (TAT)
-│   └── sazonalidade_cosp.csv     # Coeficientes mensais de sazonalidade COSP
+│   ├── sazonalidade_cosp.csv     # Coeficientes mensais de sazonalidade COSP
+│   └── receitas_anteriores.csv   # Receitas históricas por operador (gitignored — não versionado)
 └── README.md
 ```
 
