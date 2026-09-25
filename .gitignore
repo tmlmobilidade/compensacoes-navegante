@@ -43,7 +43,7 @@ vignettes/*.pdf
 # pkgdown site
 docs/
 
-# quarto rendering 
+# quarto rendering
 .quarto/
 **/*.quarto_ipynb
 
@@ -62,3 +62,4 @@ lists/receitas_anteriores.csv
 
 # tests
 scratch/
+/.luarc.json
