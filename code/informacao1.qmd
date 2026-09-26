@@ -70,6 +70,14 @@ fmt_pct3 <- function(x) {
   ifelse(is.na(x), "", scales::percent(x, accuracy = 0.001, decimal.mark = ","))
 }
 
+parse_num_pt <- function(x) {
+  if (is.null(x)) return(NA_real_)
+  if (is.numeric(x)) return(as.numeric(x))
+  s <- gsub("[ \u00a0]", "", as.character(x))
+  s <- gsub(",", ".", s)
+  as.numeric(s)
+}
+
 # Funções auxiliares de tabelas (tinytable) e montantes por extenso
 source(here::here("code", "utils_tables.R"))
 source(here::here("code", "utils_extenso.R"))
@@ -82,6 +90,11 @@ ano_transf      <- ANO + ((MES + 3 - 1) %/% 12)
 mes_transf_nome <- tolower(meses_pt_nome[mes_transf_num])
 
 # ---- Carregar Outputs das Fases Anteriores -----------------------------------
+if (!file.exists(F_TABELA_GLOBAL) || !file.exists(F_RTD)) {
+  message("ℹ Ficheiros de output não encontrados. A executar 08_tables.R...")
+  source(here::here("code", "08_tables.R"))
+}
+
 rtd_raw <- read.csv2(F_RTD, stringsAsFactors = FALSE, dec = ",")
 num_cols_rtd <- c("pvp", "receita_A_total", "qty_A_total", "qty_K", "receita_K", "qty_vat", "qty_total", "receita_distribuir")
 for (col in intersect(num_cols_rtd, names(rtd_raw))) {
@@ -97,15 +110,6 @@ if (!exists("total_K_val")) {
 # Nomes de operadores com TT e SL agregados (10 operadores)
 ordem_ops_merged <- c("CP", "FT", "TT + SL", "ML", "MTS", "Carris", "TCB", "AT Cascais", "AT TML - CM", "BT Oeste")
 
-# ---- Carregar tabela global pré-calculada por 08_tables.R -------------------
-# A reconciliação de cêntimos e todos os cálculos de parcela_partilhada /
-# parcela_incentiva são feitos em 08_tables.R e exportados para F_TABELA_GLOBAL.
-# O relatório lê esse ficheiro directamente, sem recalcular nada,
-# garantindo consistência total com o XLSX exportado.
-if (!file.exists(F_TABELA_GLOBAL)) {
-  message("ℹ Ficheiro da tabela global não encontrado. A executar 08_tables.R...")
-  source(here::here("code", "08_tables.R"))
-}
 tabela_global <- read.csv2(F_TABELA_GLOBAL, stringsAsFactors = FALSE, dec = ",")
 
 num_cols_tg <- c("receita_A", "receita_B", "C", "cosp_D", "SG",
@@ -160,7 +164,18 @@ passes_comp_mes  <- sum(unique(cosp_detail_raw[, c("ticket_code", "passes_compen
 
 # ---- Auto-atualização de receitas_anteriores.csv -----------------------------
 rac_file <- file.path(LISTS_DIR, "receitas_anteriores.csv")
-rac <- read.csv2(rac_file, stringsAsFactors = FALSE, dec = ",", check.names = FALSE)
+if (file.exists(rac_file)) {
+  rac <- read.csv2(rac_file, stringsAsFactors = FALSE, dec = ",", check.names = FALSE)
+  rac <- rac[, !grepl("^X|;$|^$", names(rac))]
+} else {
+  rac <- data.frame(
+    ano = integer(), mes = integer(), Tipo = character(), TOTAL = character(),
+    CP = character(), FT = character(), TT = character(), SL = character(),
+    ML = character(), MS = character(), Carris = character(), TCB = character(),
+    `AT Cascais` = character(), `AT TML - CM` = character(), `BT Oeste` = character(),
+    stringsAsFactors = FALSE, check.names = FALSE
+  )
+}
 rac <- rac[, !grepl("^X|;$|^$", names(rac))]
 
 ja_existe_mes <- any(rac$ano == ANO & rac$mes == MES & rac$Tipo == "Passageiros")
@@ -623,7 +638,7 @@ pax_df <- rac %>% filter(Tipo == "Passageiros") %>%
   mutate(
     ano = as.integer(ano),
     mes = as.integer(mes),
-    pax_val = as.numeric(gsub("[^0-9]", "", TOTAL)),
+    pax_val = parse_num_pt(TOTAL),
     data = as.Date(sprintf("%d-%02d-01", ano, mes))
   )
 
@@ -631,7 +646,7 @@ rec_df <- rac %>% filter(Tipo == "Receitas") %>%
   mutate(
     ano = as.integer(ano),
     mes = as.integer(mes),
-    rec_val = as.numeric(gsub("[^0-9,]", "", TOTAL) |> gsub(",", ".", x = _)),
+    rec_val = parse_num_pt(TOTAL),
     data = as.Date(sprintf("%d-%02d-01", ano, mes))
   )
 
@@ -718,7 +733,7 @@ tab7_pax <- rac_pax_filtro %>% select(Métrica, Mes, all_of(ops_cols))
 
 # Formatar números de passageiros com separador de milhares (espaço não quebrável)
 for (op in ops_cols) {
-  tab7_pax[[op]] <- fmt_int(as.numeric(gsub("[^0-9]", "", tab7_pax[[op]])))
+  tab7_pax[[op]] <- fmt_int(parse_num_pt(tab7_pax[[op]]))
 }
 
 # Calcular linha de variação homóloga (ano corrente vs ano anterior)
@@ -733,8 +748,8 @@ if (nrow(mes_atual_pax) > 0 && nrow(mes_ant_pax) > 0) {
     stringsAsFactors = FALSE
   )
   for (op in ops_cols) {
-    v_cur <- as.numeric(gsub("[^0-9]", "", mes_atual_pax[[op]]))
-    v_ant <- as.numeric(gsub("[^0-9]", "", mes_ant_pax[[op]]))
+    v_cur <- parse_num_pt(mes_atual_pax[[op]])
+    v_ant <- parse_num_pt(mes_ant_pax[[op]])
     tx <- if (!is.na(v_cur) && !is.na(v_ant) && v_ant > 0) (v_cur - v_ant) / v_ant else NA_real_
     var_row[[op]] <- fmt_pct(tx)
   }
@@ -760,10 +775,10 @@ rac_rec_filtro$Métrica <- ifelse(seq_len(nrow(rac_rec_filtro)) == 1, "Receitas"
 # Formatar TOTAL como moeda e operadores como percentagem
 tab7_rec <- rac_rec_filtro %>% select(Métrica, Mes, all_of(ops_cols))
 for (i in seq_len(nrow(tab7_rec))) {
-  val_tot <- as.numeric(gsub("[^0-9,]", "", rac_rec_totais$TOTAL[i]) |> gsub(",", ".", x = _))
+  val_tot <- parse_num_pt(rac_rec_totais$TOTAL[i])
   tab7_rec$TOTAL[i] <- fmt_eur(val_tot)
   for (op in setdiff(ops_cols, "TOTAL")) {
-    p_num <- as.numeric(gsub(",", ".", tab7_rec[[op]][i]))
+    p_num <- parse_num_pt(tab7_rec[[op]][i])
     tab7_rec[[op]][i] <- if (is.na(p_num) || p_num == 0) "" else fmt_pct(p_num)
   }
 }

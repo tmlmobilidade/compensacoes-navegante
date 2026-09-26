@@ -71,6 +71,11 @@ ano_transf      <- ANO + ((MES + 3 - 1) %/% 12)
 mes_transf_nome <- tolower(meses_pt_nome[mes_transf_num])
 
 # ---- Carregar Outputs das Fases Anteriores -----------------------------------
+if (!file.exists(F_TABELA_GLOBAL) || !file.exists(F_RTD)) {
+  message("ℹ Ficheiros de output não encontrados. A executar 08_tables.R...")
+  source(here::here("code", "08_tables.R"))
+}
+
 rtd_raw <- read.csv2(F_RTD, stringsAsFactors = FALSE, dec = ",")
 num_cols_rtd <- c("pvp", "receita_A_total", "qty_A_total", "qty_K", "receita_K", "qty_vat", "qty_total", "receita_distribuir")
 for (col in intersect(num_cols_rtd, names(rtd_raw))) {
@@ -86,15 +91,6 @@ if (!exists("total_K_val")) {
 # Nomes de operadores com TT e SL agregados (10 operadores)
 ordem_ops_merged <- c("CP", "FT", "TT + SL", "ML", "MTS", "Carris", "TCB", "AT Cascais", "AT TML - CM", "BT Oeste")
 
-# ---- Carregar tabela global pré-calculada por 08_tables.R -------------------
-# A reconciliação de cêntimos e todos os cálculos de parcela_partilhada /
-# parcela_incentiva são feitos em 08_tables.R e exportados para F_TABELA_GLOBAL.
-# O relatório lê esse ficheiro directamente, sem recalcular nada,
-# garantindo consistência total com o XLSX exportado.
-if (!file.exists(F_TABELA_GLOBAL)) {
-  message("ℹ Ficheiro da tabela global não encontrado. A executar 08_tables.R...")
-  source(here::here("code", "08_tables.R"))
-}
 tabela_global <- read.csv2(F_TABELA_GLOBAL, stringsAsFactors = FALSE, dec = ",")
 
 num_cols_tg <- c("receita_A", "receita_B", "C", "cosp_D", "SG",
@@ -149,7 +145,18 @@ passes_comp_mes  <- sum(unique(cosp_detail_raw[, c("ticket_code", "passes_compen
 
 # ---- Auto-atualização de receitas_anteriores.csv -----------------------------
 rac_file <- file.path(LISTS_DIR, "receitas_anteriores.csv")
-rac <- read.csv2(rac_file, stringsAsFactors = FALSE, dec = ",", check.names = FALSE)
+if (file.exists(rac_file)) {
+  rac <- read.csv2(rac_file, stringsAsFactors = FALSE, dec = ",", check.names = FALSE)
+  rac <- rac[, !grepl("^X|;$|^$", names(rac))]
+} else {
+  rac <- data.frame(
+    ano = integer(), mes = integer(), Tipo = character(), TOTAL = character(),
+    CP = character(), FT = character(), TT = character(), SL = character(),
+    ML = character(), MS = character(), Carris = character(), TCB = character(),
+    `AT Cascais` = character(), `AT TML - CM` = character(), `BT Oeste` = character(),
+    stringsAsFactors = FALSE, check.names = FALSE
+  )
+}
 rac <- rac[, !grepl("^X|;$|^$", names(rac))]
 
 ja_existe_mes <- any(rac$ano == ANO & rac$mes == MES & rac$Tipo == "Passageiros")
