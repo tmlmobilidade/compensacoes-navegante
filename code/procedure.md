@@ -606,6 +606,7 @@ Há um valor máximo de compensação (VMC), atualizado à TAT todos os anos, qu
 ### Fórmulas de cálculo:
 
 1. **Quantidade total de passes do mês**:
+
 $$
 \text{Qty Total Mês} = \sum_i (\text{qty}_{A,i} + \text{qty}_{K,i} + \text{qty}_{\text{VaT},i})
 $$
