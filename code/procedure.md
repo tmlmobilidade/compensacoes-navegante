@@ -1,8 +1,127 @@
 # Distribuição de Receitas Navegante — Procedimento e Documentação
 
-> **Implementação em R**: `code/99_run_all.R`  
-> Alterar `ANO` e `MES` em `code/config.R` e correr `Rscript code/99_run_all.R`.  
+> **Implementação em R**: `code/99_run_all.R`
+> Alterar `ANO` e `MES` em `code/config.R` e correr `Rscript code/99_run_all.R`.
 > Os outputs ficam em `{MES_ANO}_replicate/` com sufixo `{SUFIXO}` (ex: `mai26`, `jun26`).
+
+---
+
+## Fluxograma Metodológico
+
+O fluxograma seguinte sintetiza o encadeamento metodológico e operacional do apuramento de compensações e distribuição de receitas Navegante (ao abrigo do Regulamento n.º 1362-C/2023), mapeando as fontes de dados de entrada, os scripts de processamento em R, as fórmulas regulamentares de cálculo e os produtos finais gerados:
+
+```mermaid
+flowchart TD
+    %% -------------------------------------------------------------------------
+    %% 1. FONTES DE DADOS E ENTRADAS
+    %% -------------------------------------------------------------------------
+    subgraph IN["1. Fontes de Dados e Entradas"]
+        direction TB
+        IN_RECIBOS["Recibos B dos Operadores\n- Validações de passageiros (PT)\n- Vendas de bilheteira (Canais A)\n- Títulos sem carregamento prévio (VaT)"]
+        IN_ORACLE["Extrações Oracle PDBDWPROD\n- Distâncias médias APEX (CM e CAP)\n- Rateio TT / SL por RUN_CODE (Query 2b)\n- Fiscais móveis CM / Portal VIVA (Query 2c)"]
+        IN_K["Canais Partilhados TML (K)\n- Ficheiro de separação PV e ATM\n(Portal VIVA e SIBS / Multibanco)"]
+        IN_LISTS["Tabelas Regulamentares (lists/)\n- Distâncias de referência (ago21 / out21)\n- Pesos operacionais PKM por operador\n- TAT anual, Sazonalidade COSP e VMC"]
+    end
+
+    %% -------------------------------------------------------------------------
+    %% 2. PASSAGEIROS, DISTÂNCIAS E QUOTAS
+    %% -------------------------------------------------------------------------
+    subgraph QUOTAS_STEP["2. Quotas de Repartição Dinâmica"]
+        direction TB
+        P01["01_recibos_b.R\n- Limpeza e filtros regulamentares\n- Separação TT vs. SL por RUN_CODE\n- Integração fiscais móveis CM (A1 a A4)\n→ Gera PT_ij e Validações VaT_i"]
+        P02["02_distancias.R\n- Hierarquia regulamentar de distâncias:\n  1. APEX dinâmicas (CM e CAP)\n  2. Distâncias ref estáticas (verão/outros)\n→ Gera Distância Média d_ij"]
+        P03["03_quotas.R\n- PKM_ij = PT_ij × d_ij\n- Quota Raw_ij = Peso_j × PKM_ij\n- Quota_ij = Raw_ij / ∑ Raw_ik\n(com fallback para Quota Global se PKM = 0)\n→ Gera Quota Dinâmica Quota_ij"]
+      
+        P01 --> P03
+        P02 --> P03
+    end
+
+    %% -------------------------------------------------------------------------
+    %% 3. VENDAS E RECEITAS GLOBAIS
+    %% -------------------------------------------------------------------------
+    subgraph VENDAS_STEP["3. Vendas e Receitas a Distribuir"]
+        direction TB
+        P04["04_vendas_AK.R\n- Receita na posse de cada operador: A_j\n- Receita nos canais partilhados TML: K (PV + ATM)\n- Receita global do sistema por título: R_i = A_i + K_i\n- Volume global mensal de passes: Q_total = ∑ (Q_A + Q_K + Q_VaT)"]
+    end
+
+    %% -------------------------------------------------------------------------
+    %% 4. REPARTIÇÃO DE RECEITAS E CONGELAMENTO
+    %% -------------------------------------------------------------------------
+    subgraph REPART_STEP["4. Repartição B e Congelamento TAT"]
+        direction TB
+        P05["05_reparticao_B.R\n- Receita bilheteira devida por título e operador:\n  B_ij = Quota_ij × R_i  →  B_j = ∑ B_ij\n- Saldo provisório de bilheteira: C_j = A_j - B_j\n- Compensação por Congelamento Tarifário TAT:\n  CongNav[B]_j = B_j × [∏(1 + TAT) - 1]"]
+    end
+
+    %% -------------------------------------------------------------------------
+    %% 5. COMPENSAÇÃO COSP TARIFÁRIA
+    %% -------------------------------------------------------------------------
+    subgraph COSP_STEP["5. Compensação COSP Tarifária (D)"]
+        direction TB
+        P06["06_cosp_D.R\n- Estimativa anual de passes = Q_total / Sazonalidade_mês\n- Pct de passes a compensar: min(1, N_máx / Anual)\n- Passes a compensar por título: Passes_i = round(Pct × Q_i)\n- COSP_i = Passes_i × (VMC_ano / N_máx) × (1 - 2,5% retenção)\n- Repartição COSP por operador: D_ij = Quota_ij × COSP_i → D_j = ∑ D_ij"]
+    end
+
+    %% -------------------------------------------------------------------------
+    %% 6. TRANSFERÊNCIAS FINAIS E LIQUIDAÇÃO
+    %% -------------------------------------------------------------------------
+    subgraph TRANSF_STEP["6. Apuramento de Transferências Finais (F)"]
+        direction TB
+        P07["07_transferencias_F.R & 08_tables.R\n- Saldo Global: SG_j = C_j - D_j = A_j - B_j - D_j\n- Transferência líquida: F_j = -SG_j = B_j + D_j - A_j\n- Total a transferir: Total_j = F_j + CongNav[B]_j\n- Reconciliação de saldos excedentes (MTS para Fertagus)\n- Ajuste pelo Método dos Maiores Restos (Total K exato)"]
+      
+        SPLIT{"Segregação das Vias de Liquidação"}
+      
+        PAY_IMEDIATO["Pagamento Imediato (Posse TML)\n- Parcela financiada pelas receitas dos canais K\n(Portal VIVA e SIBS / Multibanco)\n→ Ofício 1"]
+        PAY_INCENTIVA["Pagamento Diferido (Incentiva +TP)\n- Parcela financiada pelo Fundo Ambiental\n(Compensação COSP D + Congelamento Navegante)\n→ Ofício 2"]
+      
+        P07 --> SPLIT
+        SPLIT --> PAY_IMEDIATO
+        SPLIT --> PAY_INCENTIVA
+    end
+
+    %% -------------------------------------------------------------------------
+    %% 7. OUTPUTS E DOCUMENTAÇÃO
+    %% -------------------------------------------------------------------------
+    subgraph OUT_STEP["7. Documentação e Relatórios Finais"]
+        direction TB
+        OUT_EXCEL["Workbook Excel Consolidado\nAnexo_Calculos_{SUFIXO}.xlsx\n(Folhas: 0 - Global, 1 - Quotas, 2 - Vendas AK,\n4 - Receita B, 5 - COSP D, 6 - Transferencias F)"]
+        OUT_REPORTS["Documentos Oficiais (Quarto / Typst / DOCX)\n- Informacao_{SUFIXO}.pdf (Nota técnica interna)\n- Anexo_Metodologia_{SUFIXO}.pdf (Documento timbrado oficial)\n- Oficio1_{SUFIXO}.pdf & Oficio2_{SUFIXO}.pdf\n- Versões Word .docx (via PDF24)"]
+    end
+
+    %% Ligações entre etapas
+    IN_RECIBOS --> P01
+    IN_RECIBOS --> P04
+    IN_ORACLE --> P01
+    IN_ORACLE --> P02
+    IN_K --> P04
+    IN_LISTS --> P02
+    IN_LISTS --> P03
+    IN_LISTS --> P05
+    IN_LISTS --> P06
+
+    P03 --> P05
+    P03 --> P06
+    P04 --> P05
+    P04 --> P06
+
+    P05 --> P07
+    P06 --> P07
+
+    P07 --> OUT_EXCEL
+    P07 --> OUT_REPORTS
+```
+
+### Síntese das Fases Metodológicas
+
+
+| Fase                                 | Script(s)                            | Designação Regulamentar                                                                                                                               | Entradas Principais                                                                                | Saídas Principais                                                                                |
+| -------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **1. Validações e Passageiros**    | `01_recibos_b.R`                     | Passageiros Transportados ($PT$) e Reconciliação                                                                                                      | Recibos B (`PTconsideredByProduct`), Oracle (`query_SL_TT.sql`, `query_CM_fiscaismoveis.sql`)      | `1a_PT_{SUFIXO}.csv`, `1b_PT_CM_{SUFIXO}.csv`, `1d_validacoes_{SUFIXO}.csv` (VaT)                 |
+| **2. Distâncias Médias**           | `02_distancias.R`                    | Distâncias Médias Percorridas ($\bar{d}_{i,j}$)                                                                                                       | Oracle APEX (`AVERAGE_DISTANCE`), tabelas de referência sazonal (`distanciasref_*.csv`)           | `1e_distancias_{SUFIXO}.csv`                                                                      |
+| **3. Quotas de Repartição**        | `03_quotas.R`                        | Quota de Repartição Dinâmica ($\text{Quota}_{i,j}$) | Passageiros Transportados ($PT$), Distâncias Médias ($\bar{d}$), Pesos PKM (`pesos_pkm.csv`) | `1_quotas_{SUFIXO}.csv` (PKM, Quotas por título)                                                  |                                                                                                   |
+| **4. Vendas A e K**                  | `04_vendas_AK.R`                     | Apuramento de Vendas e Volume Global                                                                                                                    | Recibos B (`transactionsOperatorSystem`), Separação PV/ATM (`ReciboB_*_Separação_PV_ATM.xlsx`) | `2_vendas_A_{SUFIXO}.csv`, `2_vendas_K_{SUFIXO}.csv`, `4a_receita_titulo_distribuir_{SUFIXO}.csv` |
+| **5. Repartição B e Congelamento** | `05_reparticao_B.R`                  | Receita Devida ($B$) e Congelamento Navegante | Quotas dinâmicas, Receita a distribuir ($R_i$), Taxa de Atualização Tarifária (`tat.csv`)           | `4b_reparticao_B_{SUFIXO}.csv`, `4_receitaB_congelamento_{SUFIXO}.csv`                             |                                                                                                   |
+| **6. Compensação COSP**            | `06_cosp_D.R`                        | Pagamento por Conta da COSP Tarifária ($D$) | Volume total de passes ($Q$), Sazonalidade mensal (`sazonalidade.csv`), VMC regulado                     | `5a_cosp_{SUFIXO}.csv`, `5_cosp_operador_{SUFIXO}.csv`                                             |                                                                                                   |
+| **7. Transferências Finais**        | `07_transferencias_F.R``08_tables.R` | Apuramento de Transferências ($F$) e Relatório Excel                                                                                                  | Receitas$A$, $B$, $D$, Congelamento TAT, canais partilhados $K$                                    | `6_transferencias_{SUFIXO}.csv`, `Anexo_Calculos_{SUFIXO}.xlsx` (6 folhas)                        |
+| **8. Documentos Oficiais**           | `10_documentos.R`                    | Informação Técnica e Ofícios de Liquidação                                                                                                        | Tabelas consolidadas, parâmetros de emissão (`doc_params.R`), templates Typst                    | `Informacao_{SUFIXO}.pdf`, `Anexo_Metodologia_{SUFIXO}.pdf`, `Oficio1/2_{SUFIXO}.pdf`             |
 
 ---
 
@@ -47,62 +166,63 @@ code/
 
 ## Variáveis principais em `config.R`
 
-| Variável | Exemplo | Descrição |
-|---|---|---|
-| `ANO` | `2026` | Ano de distribuição |
-| `MES` | `5` | Mês de distribuição (inteiro) |
-| `SUFIXO` | `"mai26"` | Sufixo para nomes de ficheiros: `paste0(mes_abrev, ano_curto)` |
-| `DATA_DIR` | `05_mai_2026/` | Pasta com dados do mês (Recibos B, etc.) |
-| `REPLICATE_DIR` | `05_mai_2026_replicate/` | Pasta de replicação do mês |
-| `INPUT_DIR` | `05_mai_2026_replicate/input/` | Pasta de inputs específicos do mês (ex: APEX distâncias) |
-| `OUT_DIR` | `05_mai_2026_replicate/output/` | Pasta de outputs gerados pelos scripts |
-| `DOCS_DIR` | `05_mai_2026_replicate/output/docs/` | Pasta de destino para relatórios e ofícios gerados |
-| `RENDER_INFORMACAO1` | `TRUE` | Booleano: controla a renderização da Informação 1 |
-| `RENDER_OFICIO1` | `FALSE` | Booleano: controla a renderização do Ofício 1 |
-| `RENDER_OFICIO2` | `FALSE` | Booleano: controla a renderização do Ofício 2 |
-| `RENDER_DOCX` | `FALSE` | Booleano: `TRUE` converte o PDF para Word (DOCX) via PDF24 Toolbox |
-| `DOCX_MODE` | `"asposeFlow"` | Modo de conversão PDF24: `"asposeFlow"` (texto corrido) ou `"asposeBlocks"` (blocos/caixas) |
-| `LISTS_DIR` | `lists/` | Tabelas estáticas de referência |
-| `DIST_REF_FILE` | `distanciasref_out21_incompleto.csv` | Distâncias de referência (verão → `ago21`) |
-| `APEX_ENTITY_IDS` | `c(75, 22)` | Entidades com distâncias dinâmicas (CM, CAP) |
-| `CM_SUBOPS` | `c("A1","A2","A3","A4")` | Sub-operadores da Carris Metropolitana |
-| `VMC_2023` | `112562432.41` | Valor Máximo Compensação COSP regulado |
-| `N_PASSES_COMPENSAR` | `8472279` | Nº máximo passes anuais a compensar (regulamentar) |
-| `RETENCAO_TML` | `0.025` | Retenção TML sobre COSP (2.5%) |
-| `TAT_FILE` | `lists/tat.csv` | Taxa de Atualização Tarifária por ano |
+
+| Variável            | Exemplo                              | Descrição                                                                                 |
+| ---------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `ANO`                | `2026`                               | Ano de distribuição                                                                       |
+| `MES`                | `5`                                  | Mês de distribuição (inteiro)                                                            |
+| `SUFIXO`             | `"mai26"`                            | Sufixo para nomes de ficheiros:`paste0(mes_abrev, ano_curto)`                               |
+| `DATA_DIR`           | `05_mai_2026/`                       | Pasta com dados do mês (Recibos B, etc.)                                                   |
+| `REPLICATE_DIR`      | `05_mai_2026_replicate/`             | Pasta de replicação do mês                                                               |
+| `INPUT_DIR`          | `05_mai_2026_replicate/input/`       | Pasta de inputs específicos do mês (ex: APEX distâncias)                                 |
+| `OUT_DIR`            | `05_mai_2026_replicate/output/`      | Pasta de outputs gerados pelos scripts                                                      |
+| `DOCS_DIR`           | `05_mai_2026_replicate/output/docs/` | Pasta de destino para relatórios e ofícios gerados                                        |
+| `RENDER_INFORMACAO1` | `TRUE`                               | Booleano: controla a renderização da Informação 1                                       |
+| `RENDER_OFICIO1`     | `FALSE`                              | Booleano: controla a renderização do Ofício 1                                            |
+| `RENDER_OFICIO2`     | `FALSE`                              | Booleano: controla a renderização do Ofício 2                                            |
+| `RENDER_DOCX`        | `FALSE`                              | Booleano:`TRUE` converte o PDF para Word (DOCX) via PDF24 Toolbox                           |
+| `DOCX_MODE`          | `"asposeFlow"`                       | Modo de conversão PDF24:`"asposeFlow"` (texto corrido) ou `"asposeBlocks"` (blocos/caixas) |
+| `LISTS_DIR`          | `lists/`                             | Tabelas estáticas de referência                                                           |
+| `DIST_REF_FILE`      | `distanciasref_out21_incompleto.csv` | Distâncias de referência (verão →`ago21`)                                               |
+| `APEX_ENTITY_IDS`    | `c(75, 22)`                          | Entidades com distâncias dinâmicas (CM, CAP)                                              |
+| `CM_SUBOPS`          | `c("A1","A2","A3","A4")`             | Sub-operadores da Carris Metropolitana                                                      |
+| `VMC_2023`           | `112562432.41`                       | Valor Máximo Compensação COSP regulado                                                   |
+| `N_PASSES_COMPENSAR` | `8472279`                            | Nº máximo passes anuais a compensar (regulamentar)                                        |
+| `RETENCAO_TML`       | `0.025`                              | Retenção TML sobre COSP (2.5%)                                                            |
+| `TAT_FILE`           | `lists/tat.csv`                      | Taxa de Atualização Tarifária por ano                                                    |
 
 ## Ficheiros de output (em `OUT_DIR`)
 
 Todos os ficheiros de output usam o sufixo `{SUFIXO}` no nome (ex: `mai26`).
 As variáveis `F_*` em `config.R` centralizam todos os caminhos.
 
-| Variável R | Ficheiro | Produzido em | Conteúdo |
-|---|---|---|---|
-| `F_PT` | `1a_PT_{SUFIXO}.csv` | `01_recibos_b.R` | Passageiros transportados por título × operador |
-| `F_PT_CM` | `1b_PT_CM_{SUFIXO}.csv` | `01_recibos_b.R` | CM = soma de A1+A2+A3+A4 |
-| `F_RECEITAS` | `1c_receitas_titulo_{SUFIXO}.csv` | `01_recibos_b.R` | Receitas de venda por título × operador (qty e €) |
-| `F_VAT` | `1d_validacoes_{SUFIXO}.csv` | `01_recibos_b.R` | Quantidades de títulos gratuitos sem carregamento (VaT) |
-| `F_DISTANCIAS` | `1e_distancias_{SUFIXO}.csv` | `02_distancias.R` | Distância média (km) por título × operador |
-| `F_QUOTAS` | `1_quotas_{SUFIXO}.csv` | `03_quotas.R` | PKM e quota (0–1) por título × operador |
-| `F_VENDAS_A` | `2_vendas_A_{SUFIXO}.csv` | `04_vendas_AK.R` | Receita na posse de cada operador (A) |
-| `F_VENDAS_K` | `2_vendas_K_{SUFIXO}.csv` | `04_vendas_AK.R` | Vendas e receitas dos canais partilhados TML (Portal VIVA e SIBS/ATM) |
-| `F_RTD` | `4a_receita_titulo_distribuir_{SUFIXO}.csv` | `04_vendas_AK.R` | Receita total a distribuir por título (A+K) e qty total |
-| `F_REPARTICAO_B` | `4b_reparticao_B_{SUFIXO}.csv` | `05_reparticao_B.R` | Distribuição B por título × operador + congelamento |
-| `F_CONGELAMENTO` | `4_receitaB_congelamento_{SUFIXO}.csv` | `05_reparticao_B.R` | Receita B devida + Congelamento Navegante (TAT) por operador |
-| `F_COSP_D` | `5a_cosp_{SUFIXO}.csv` | `06_cosp_D.R` | COSP detalhe por título × operador |
-| `F_D_OPERADOR` | `5_cosp_operador_{SUFIXO}.csv` | `06_cosp_D.R` | COSP total (D) por operador |
-| `F_TRANSFERENCIAS` | `6_transferencias_{SUFIXO}.csv` | `07_transferencias_F.R` | **Tabela final CSV**: A, B, D, Congelamento, F, Total por operador |
-| `F_TABELA_XLSX` | `docs/Anexo_Calculos_{SUFIXO}.xlsx` | `08_tables.R` | **Workbook Excel consolidado** (em `docs/`): 6 folhas (0 - Global, 1 - Quotas, 2 - Vendas AK, 4 - Receita B e CongNav B, 5 - Pag Conta COSP D, 6 - Transferencias F) |
-| `F_DOC_INFO1_PDF` | `docs/Informacao_{SUFIXO}.pdf` | `10_documentos.R` | **Informação 1** — nota interna com síntese dos resultados mensais |
-| `F_DOC_INFO1_DOCX` | `docs/Informacao_{SUFIXO}.docx` | `10_documentos.R` | Versão Word da Informação 1 (se `RENDER_DOCX = TRUE`) |
-| `F_DOC_METODOLOGIA_PDF` | `docs/Anexo_Metodologia_{SUFIXO}.pdf` | `10_documentos.R` | **Anexo Metodologia** — documento externo com papel timbrado e fórmulas regulamentares |
-| `F_DOC_METODOLOGIA_DOCX` | `docs/Anexo_Metodologia_{SUFIXO}.docx` | `10_documentos.R` | Versão Word do Anexo Metodologia (se `RENDER_DOCX = TRUE`) |
-| `F_DOC_OFICIO1_PDF` | `docs/Oficio1_{SUFIXO}.pdf` | `10_documentos.R` | **Ofício 1** — comunicação formal de pagamentos imediatos a cada operador |
-| `F_DOC_OFICIO1_DOCX` | `docs/Oficio1_{SUFIXO}.docx` | `10_documentos.R` | Versão Word do Ofício 1 (se `RENDER_DOCX = TRUE`) |
-| `F_DOC_OFICIO1ALT_PDF` | `docs/Oficio1_alt_{SUFIXO}.pdf` | `10_documentos.R` | **Ofício 1 (variante)** — tabelas no fim dos itens numerados |
-| `F_DOC_OFICIO2_PDF` | `docs/Oficio2_{SUFIXO}.pdf` | `10_documentos.R` | **Ofício 2** — comunicação formal relativa às verbas do Incentiva +TP |
-| `F_DOC_OFICIO2_DOCX` | `docs/Oficio2_{SUFIXO}.docx` | `10_documentos.R` | Versão Word do Ofício 2 (se `RENDER_DOCX = TRUE`) |
 
+| Variável R              | Ficheiro                                    | Produzido em            | Conteúdo                                                                                                                                                            |
+| -------------------------- | --------------------------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `F_PT`                   | `1a_PT_{SUFIXO}.csv`                        | `01_recibos_b.R`        | Passageiros transportados por título × operador                                                                                                                    |
+| `F_PT_CM`                | `1b_PT_CM_{SUFIXO}.csv`                     | `01_recibos_b.R`        | CM = soma de A1+A2+A3+A4                                                                                                                                             |
+| `F_RECEITAS`             | `1c_receitas_titulo_{SUFIXO}.csv`           | `01_recibos_b.R`        | Receitas de venda por título × operador (qty e €)                                                                                                                 |
+| `F_VAT`                  | `1d_validacoes_{SUFIXO}.csv`                | `01_recibos_b.R`        | Quantidades de títulos gratuitos sem carregamento (VaT)                                                                                                             |
+| `F_DISTANCIAS`           | `1e_distancias_{SUFIXO}.csv`                | `02_distancias.R`       | Distância média (km) por título × operador                                                                                                                       |
+| `F_QUOTAS`               | `1_quotas_{SUFIXO}.csv`                     | `03_quotas.R`           | PKM e quota (0–1) por título × operador                                                                                                                           |
+| `F_VENDAS_A`             | `2_vendas_A_{SUFIXO}.csv`                   | `04_vendas_AK.R`        | Receita na posse de cada operador (A)                                                                                                                                |
+| `F_VENDAS_K`             | `2_vendas_K_{SUFIXO}.csv`                   | `04_vendas_AK.R`        | Vendas e receitas dos canais partilhados TML (Portal VIVA e SIBS/ATM)                                                                                                |
+| `F_RTD`                  | `4a_receita_titulo_distribuir_{SUFIXO}.csv` | `04_vendas_AK.R`        | Receita total a distribuir por título (A+K) e qty total                                                                                                             |
+| `F_REPARTICAO_B`         | `4b_reparticao_B_{SUFIXO}.csv`              | `05_reparticao_B.R`     | Distribuição B por título × operador + congelamento                                                                                                              |
+| `F_CONGELAMENTO`         | `4_receitaB_congelamento_{SUFIXO}.csv`      | `05_reparticao_B.R`     | Receita B devida + Congelamento Navegante (TAT) por operador                                                                                                         |
+| `F_COSP_D`               | `5a_cosp_{SUFIXO}.csv`                      | `06_cosp_D.R`           | COSP detalhe por título × operador                                                                                                                                 |
+| `F_D_OPERADOR`           | `5_cosp_operador_{SUFIXO}.csv`              | `06_cosp_D.R`           | COSP total (D) por operador                                                                                                                                          |
+| `F_TRANSFERENCIAS`       | `6_transferencias_{SUFIXO}.csv`             | `07_transferencias_F.R` | **Tabela final CSV**: A, B, D, Congelamento, F, Total por operador                                                                                                   |
+| `F_TABELA_XLSX`          | `docs/Anexo_Calculos_{SUFIXO}.xlsx`         | `08_tables.R`           | **Workbook Excel consolidado** (em `docs/`): 6 folhas (0 - Global, 1 - Quotas, 2 - Vendas AK, 4 - Receita B e CongNav B, 5 - Pag Conta COSP D, 6 - Transferencias F) |
+| `F_DOC_INFO1_PDF`        | `docs/Informacao_{SUFIXO}.pdf`              | `10_documentos.R`       | **Informação 1** — nota interna com síntese dos resultados mensais                                                                                               |
+| `F_DOC_INFO1_DOCX`       | `docs/Informacao_{SUFIXO}.docx`             | `10_documentos.R`       | Versão Word da Informação 1 (se`RENDER_DOCX = TRUE`)                                                                                                              |
+| `F_DOC_METODOLOGIA_PDF`  | `docs/Anexo_Metodologia_{SUFIXO}.pdf`       | `10_documentos.R`       | **Anexo Metodologia** — documento externo com papel timbrado e fórmulas regulamentares                                                                             |
+| `F_DOC_METODOLOGIA_DOCX` | `docs/Anexo_Metodologia_{SUFIXO}.docx`      | `10_documentos.R`       | Versão Word do Anexo Metodologia (se`RENDER_DOCX = TRUE`)                                                                                                           |
+| `F_DOC_OFICIO1_PDF`      | `docs/Oficio1_{SUFIXO}.pdf`                 | `10_documentos.R`       | **Ofício 1** — comunicação formal de pagamentos imediatos a cada operador                                                                                        |
+| `F_DOC_OFICIO1_DOCX`     | `docs/Oficio1_{SUFIXO}.docx`                | `10_documentos.R`       | Versão Word do Ofício 1 (se`RENDER_DOCX = TRUE`)                                                                                                                   |
+| `F_DOC_OFICIO1ALT_PDF`   | `docs/Oficio1_alt_{SUFIXO}.pdf`             | `10_documentos.R`       | **Ofício 1 (variante)** — tabelas no fim dos itens numerados                                                                                                       |
+| `F_DOC_OFICIO2_PDF`      | `docs/Oficio2_{SUFIXO}.pdf`                 | `10_documentos.R`       | **Ofício 2** — comunicação formal relativa às verbas do Incentiva +TP                                                                                           |
+| `F_DOC_OFICIO2_DOCX`     | `docs/Oficio2_{SUFIXO}.docx`                | `10_documentos.R`       | Versão Word do Ofício 2 (se`RENDER_DOCX = TRUE`)                                                                                                                   |
 
 ---
 
@@ -128,8 +248,7 @@ Cada operador envia 3 ficheiros, com os nomes maisoumenos assim (tem datas no fi
 - **Lista de validações descartadas**: `reg_[OPERADOR]_reciboB_validationsUnconsidered_*.csv`
   este ficheiro tem a lista de validações incoerentes, de vários tipos, nas máquinas do operador, que não foram consideradas para os ficheiros anteriores. Para este cálculo, este ficheiro é irrelevante.
 
-
-> Nota: o operador CM (Carris Metropolitana) é equivalente à soma dos operadores A1, A2, A3 e A4.  
+> Nota: o operador CM (Carris Metropolitana) é equivalente à soma dos operadores A1, A2, A3 e A4.
 > Ver `lists/operadores.csv` (`ENTITY_ABBREVIATION` e `OPERATOR_NAME_NAVEGANTE`) para correspondências nos caminhos dos ficheiros.
 
 ### Script: `01_recibos_b.R`
@@ -137,11 +256,13 @@ Cada operador envia 3 ficheiros, com os nomes maisoumenos assim (tem datas no fi
 Lê todos os Recibos B de todos os operadores e reconcilia dados da Oracle para TT/SL e CM.
 
 **Outputs:**
+
 - `F_PT_CM` → `PT_CM_agregado_{SUFIXO}.csv`: CM = soma de A1+A2+A3+A4 + fiscais móveis (ficheiro intermédio explícito)
 - `F_PT` → `PT_{SUFIXO}.csv`: passageiros transportados por título e operador (todos), coluna `pt_operador`
 - `F_RECEITAS` → `receitas_titulo_{SUFIXO}.csv`: receitas de venda, colunas `qty_operador` e `receita_operador`
 
 **Filtros aplicados:**
+
 - `SOURCE == "Transaction"` (excluir "Validations as Transactions")
 - `ticket_operator_code == 31` (Navegante)
 - `ticket_code > 0` (excluir linhas de totais)
@@ -170,18 +291,19 @@ Para bater a 100% com as contas oficiais (folha Excel de validação), é necess
 O Recibo B entregue pela Transtejo (**TT**) contém na coluna `OPERADOR_TOTAL` os passageiros **conjuntos de TT + SL** (os dois operadores fluviais partilham o mesmo Recibo B). O Recibo B separado de SL tem valores diferentes e duplicaria o SL se fosse somado.
 
 > [!IMPORTANT]
-> **Armadilha do `ENTITY_ID` na separação TT/SL:**  
-> Ao contrário do que seria intuitivo, **não se deve filtrar por `ENTITY_ID = 5` vs `ENTITY_ID = 8`**! Ambas as entidades têm validações registadas de forma cruzada nos cais.  
-> A metodologia oficial da TML (reproduzida da fórmula Excel da colega) utiliza a **georreferenciação por `RUN_CODE`**:
+> **Armadilha do `ENTITY_ID` na separação TT/SL:**Ao contrário do que seria intuitivo, **não se deve filtrar por `ENTITY_ID = 5` vs `ENTITY_ID = 8`**! Ambas as entidades têm validações registadas de forma cruzada nos cais.A metodologia oficial da TML (reproduzida da fórmula Excel da colega) utiliza a **georreferenciação por `RUN_CODE`**:
+>
 > - **`RUN_CODE = 7` $\rightarrow$ Soflusa (SL)** (ligação fluvial do Barreiro).
 > - **Todos os outros `RUN_CODE` (0, 1, 3, 5, 9) $\rightarrow$ Transtejo (TT)** (Cacilhas, Seixal, Montijo, Trafaria).
-> 
+>
 > Além disso, é obrigatório filtrar:
+>
 > - `VALID_TYPE_ID = 0` (exclui testes / validações de serviço)
 > - `VALBYPROF = 0` (exclui perfis profissionais especiais)
 > - `TICKET_OPERATOR_CODE = 31` (títulos Navegante)
 
 **Query 2b ([`code/query_SL_TT.sql`](file:///c:/GIS/Compensacoes/code/query_SL_TT.sql)):**
+
 ```sql
 SELECT
     DISTRIBUTION_YEAR,
@@ -211,6 +333,7 @@ GROUP BY
     VALBYPROF
 ORDER BY TICKET_CODE, ENTITY_ID, RUN_CODE;
 ```
+
 - **Gravar em `input/` como:** `tt_sl_*(timestamp).csv` (ex: `tt_sl_202609111613.csv`).
 - **Como o script calcula:** O total oficial de TT+SL é ancorado ao Recibo B de TT (`OPERADOR_TOTAL`). Os registos da Oracle fornecem apenas o *rateio percentual* entre TT e SL para cada título, assegurando que `TT + SL = Recibo B de TT` ao passageiro exato.
 
@@ -219,13 +342,18 @@ ORDER BY TICKET_CODE, ENTITY_ID, RUN_CODE;
 #### 2. Validações Fiscais Móveis CM (Portal VIVA, `ENTITY_ID = 23`) — Query 2c
 
 > [!IMPORTANT]
-> **Armadilha das validações em falta na Carris Metropolitana:**  
-> Os Recibos B das 4 áreas operacionais da CM (A1 a A4) não contêm as validações efetuadas nos terminais móveis dos fiscais. Estas validações ficam registadas no Portal VIVA (`ENTITY_ID = 23`).  
+> **Armadilha das validações em falta na Carris Metropolitana:**
+> Os Recibos B das 4 áreas operacionais da CM (A1 a A4) não contêm as validações efetuadas nos terminais móveis dos fiscais. Estas validações ficam registadas no Portal VIVA (`ENTITY_ID = 23`).
 > Se não forem somadas, a CM apresenta uma diferença negativa (ex.: -1.232 PT em maio de 2026).
-> 
+>
 > **Regras essenciais da reconciliação:**
+>
 > 1. As validações móveis são distribuídas pelas 4 sub-áreas da CM através do cálculo:
->    $$\text{Área CM} = \lfloor \text{RUN\_CODE} / 1000 \rfloor + 40$$
+>    $$
+>    \text{Área CM} = \lfloor \text{RUN\_CODE} / 1000 \rfloor + 40
+>
+>    $$
+>
 >    - `1xxx` $\rightarrow$ Código 41 $\rightarrow$ **Área 1 (A1)**
 >    - `2xxx` $\rightarrow$ Código 42 $\rightarrow$ **Área 2 (A2)**
 >    - `3xxx` $\rightarrow$ Código 43 $\rightarrow$ **Área 3 (A3)**
@@ -233,6 +361,7 @@ ORDER BY TICKET_CODE, ENTITY_ID, RUN_CODE;
 > 2. **Apenas são considerados os títulos que já existem no Recibo B da CM**. Títulos não-Navegante (ex: ticket 33592) são automaticamente ignorados.
 
 **Query 2c ([`code/query_CM_fiscaismoveis.sql`](file:///c:/GIS/Compensacoes/code/query_CM_fiscaismoveis.sql)):**
+
 ```sql
 SELECT
     DISTRIBUTION_YEAR,
@@ -262,6 +391,7 @@ GROUP BY
     VALBYPROF
 ORDER BY TICKET_CODE, AREA_CM;
 ```
+
 - **Gravar em `input/` como:** `entity23_*(timestamp).csv` (ex: `entity23_202609111609.csv`).
 
 ---
@@ -269,31 +399,31 @@ ORDER BY TICKET_CODE, AREA_CM;
 #### 3. Cuidados no Oracle SQL Developer e Versionamento
 
 > [!WARNING]
-> **Armadilha do Limite de 200 Linhas no Oracle SQL Developer:**  
-> Por omissão, o SQL Developer limita a busca em grelha a 200 registos. Se uma consulta devolver mais de 200 linhas e for exportada sem fazer scroll até ao fim, **o ficheiro CSV fica truncado em 200 linhas**, corrompendo os dados!  
-> **Como foi resolvido**:
+> **Armadilha do Limite de 200 Linhas no Oracle SQL Developer:**Por omissão, o SQL Developer limita a busca em grelha a 200 registos. Se uma consulta devolver mais de 200 linhas e for exportada sem fazer scroll até ao fim, **o ficheiro CSV fica truncado em 200 linhas**, corrompendo os dados!**Como foi resolvido**:
 > As consultas foram pré-agrupadas e otimizadas no SQL:
+>
 > - `query_SL_TT.sql` devolve apenas ~93 linhas.
-> - `query_CM_fiscaismoveis.sql` devolve apenas ~47 linhas.  
-> Ambas ficam muito abaixo do limite de 200 linhas e podem ser exportadas diretamente em CSV com total segurança.
+> - `query_CM_fiscaismoveis.sql` devolve apenas ~47 linhas.
+>   Ambas ficam muito abaixo do limite de 200 linhas e podem ser exportadas diretamente em CSV com total segurança.
 
 > [!TIP]
 > **Regra de Seleção Automática de Ficheiros:**
 > O script seleciona automaticamente os ficheiros de input em `{MES_ANO}_replicate/input/` segundo a seguinte hierarquia:
+>
 > 1. **Ficheiro mais recente pela data/timestamp no nome** (formato numérico `YYYYMMDD...`);
 > 2. **Se houver mais do que um ficheiro com a mesma data**, usar o que diz `_update` (ou `update`) no nome (ex.: `..._update.csv`);
 > 3. Em caso de empate, desempate pelo timestamp completo mais recente (ou `mtime`).
-> 
+>
 > Esta regra aplica-se de forma uniforme e transversal a:
+>
 > - **Distâncias médias APEX**: qualquer ficheiro com `AVERAGE_DISTANCE` no nome (ex.: `PDBDWPROD_V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv` ou `V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv`; ficheiros como `distancias_dinamicas` são ignorados);
 > - **Tabelas de validações TT / SL**: ficheiros com `tt_sl` no nome (ex.: `tt_sl_*.csv`);
 > - **Tabelas de fiscais móveis CM**: ficheiros com `entity23` no nome (ex.: `entity23_*.csv`).
 
 **Comportamento em Fallback (se os ficheiros não existirem em `input/`):**
+
 - TT/SL: assume TT como TT+SL e ignora SL (emitindo um aviso no console).
 - CM: não adiciona validações do Portal VIVA (emite aviso de ausência do ficheiro).
-
-
 
 ---
 
@@ -333,6 +463,7 @@ where distribution_month = 05 and distribution_year = 2026;  -- Alterar ano e m�
 ```
 
 que, carregando em "Export data" em csv, separado por ;, me dá o resultado em:
+
 - `05_mai_2026_replicate/input/` (ex.: `PDBDWPROD_V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv` ou `V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv`)
 - `06_jun_2026_replicate/input/`
 
@@ -346,6 +477,7 @@ Portanto, para estes casos que já usam APEX, não usar as distâncias de refer�
 ### Script: `02_distancias.R`
 
 **Outputs:**
+
 - `F_DISTANCIAS` → `distancias_{SUFIXO}.csv`: colunas `operador`, `ticket_code`, `distancia_km`, `fonte`
 
 **Campos de `fonte`:** `"APEX"` (CM, CAP) | `"ref_estatica"` (outros) | `"nao_encontrada"` (sem distância)
@@ -381,13 +513,17 @@ $$
 
 Em percentagem. A soma para cada título é 1. Quando não há PKM para um título (distância=0 para todos os operadores ou 0 validações no mês), usa-se a **quota global de PKM** do operador:
 
-$$\text{Quota Global}_j = \frac{\sum_i \text{Quota Raw}_{i,j}}{\sum_j \sum_i \text{Quota Raw}_{i,j}}$$
+$$
+\text{Quota Global}_j = \frac{\sum_i \text{Quota Raw}_{i,j}}{\sum_j \sum_i \text{Quota Raw}_{i,j}}
+
+$$
 
 Esta regra garante que todos os 145 títulos de `titulos.csv` (mesmo os que não tiveram validações no mês, ex.: PACs) têm quotas bem definidas somando 100%, em exata conformidade com a Tabela 1 da folha de validação da TML.
 
 ### Script: `03_quotas.R`
 
 **Outputs:**
+
 - `F_QUOTAS` → `quotas_{SUFIXO}.csv`: colunas `operador`, `ticket_code`, `pt_operador`, `distancia_km`, `peso`, `pkm`, `quota_raw`, `quota`, `quota_fonte`
 
 ---
@@ -403,6 +539,7 @@ As quantidades de títulos do mês dividem-se em 3 componentes:
    - Estes títulos têm receita direta $0\text{ €}$ para os operadores (receita $A = 0$), mas **as suas quantidades somam para a quantidade total de passes vendidos no mês** para efeito da COSP.
 
 Temos:
+
 - `receita_titulo_distribuir` (A+K): soma da receita por título a distribuir aos operadores.
 - `qty_total` por título = `qty_A` + `qty_K` + `qty_vat` (usada no cálculo da COSP).
 - `receita_posse_operador` (A): soma da receita de venda na posse de cada operador.
@@ -410,6 +547,7 @@ Temos:
 ### Script: `04_vendas_AK.R`
 
 **Outputs:**
+
 - `F_VENDAS_A` → `2_vendas_A_{SUFIXO}.csv`: receita A por operador (colunas `operador`, `receita_A`, `qty_A`)
 - `F_VENDAS_K` → `2_vendas_K_{SUFIXO}.csv`: vendas e receita K por título e canal (colunas `ticket_code`, `titulo_nome`, `pvp`, `qty_K_pv`, `receita_K_pv`, `qty_K_atm`, `receita_K_atm`, `qty_K`, `receita_K`)
 - `F_RTD` → `4a_receita_titulo_distribuir_{SUFIXO}.csv`: receita e quantidades totais por título (colunas `ticket_code`, `titulo_nome`, `pvp`, `qty_A_total`, `receita_A_total`, `qty_K`, `receita_K`, `qty_vat`, `qty_total`, `receita_distribuir`)
@@ -452,6 +590,7 @@ $$
 ### Script: `05_reparticao_B.R`
 
 **Outputs:**
+
 - `F_REPARTICAO_B` → `4b_reparticao_B_{SUFIXO}.csv`: colunas `operador`, `ticket_code`, `titulo_nome`, `dist_receita`, `receita_compensar`
 - `F_CONGELAMENTO` → `4_receitaB_congelamento_{SUFIXO}.csv`: colunas `operador`, `receita_B` (receita devida total), `congelamento_B`
 
@@ -473,38 +612,60 @@ Há um valor máximo de compensação (VMC), atualizado à TAT todos os anos, qu
 ### Fórmulas de cálculo:
 
 1. **Quantidade total de passes do mês**:
-   $$\text{Qty Total Mês} = \sum_i (\text{qty\_A}_i + \text{qty\_K}_i + \text{qty\_vat}_i)$$
+   $$
+   \text{Qty Total Mês} = \sum_i (\text{qty\_A}_i + \text{qty\_K}_i + \text{qty\_vat}_i)
+
+   $$
+
    *(Em Maio/2026: $414\,374 + 224\,379 + 436\,335 = \mathbf{1\,075\,088}\text{ passes}$)*
 2. **Estimativa anual de passes**:
-   $$\text{Estimativa Anual} = \frac{\text{Qty Total Mês}}{\text{Sazonalidade Mês}}$$
+   $$
+   \text{Estimativa Anual} = \frac{\text{Qty Total Mês}}{\text{Sazonalidade Mês}}
+
+   $$
+
    *(Em Maio/2026: $1\,075\,088 / 0{,}087 = \mathbf{12\,357\,333}\text{ passes}$)*
 3. **Percentagem de passes a compensar**:
-   $$\text{Pct Compensar} = \min\left(1, \frac{\text{N\_PASSES\_COMPENSAR}}{\text{Estimativa Anual}}\right)$$
+   $$
+   \text{Pct Compensar} = \min\left(1, \frac{\text{N\_PASSES\_COMPENSAR}}{\text{Estimativa Anual}}\right)
+
+   $$
+
    *(Em Maio/2026: $8\,472\,279 / 12\,357\,333 = \mathbf{68{,}5607\%}$)*
 4. **N.º de passes a compensar por título $i$**:
-   $$\text{Passes Compensar}_i = \text{round}(\text{Pct Compensar} \times \text{Qty Total}_i)$$
+   $$
+   \text{Passes Compensar}_i = \text{round}(\text{Pct Compensar} \times \text{Qty Total}_i)
+
+   $$
+
    *(A soma de todos os títulos em Maio/2026 perfaz exatamente **737 085 passes a compensar**)*
 5. **COSP por título $i$**:
-   $$\text{COSP}_i = \text{Passes Compensar}_i \times \text{Valor Médio Passe} \times (1 - \text{Retenção TML})$$
+   $$
+   \text{COSP}_i = \text{Passes Compensar}_i \times \text{Valor Médio Passe} \times (1 - \text{Retenção TML})
+
+   $$
 6. **Distribuição por operador $j$ (D)**:
-   $$\text{COSP}_{i,j} = \text{Quota}_{i,j} \times \text{COSP}_i \quad \Longrightarrow \quad D_j = \sum_i \text{COSP}_{i,j}$$
+   $$
+   \text{COSP}_{i,j} = \text{Quota}_{i,j} \times \text{COSP}_i \quad \Longrightarrow \quad D_j = \sum_i \text{COSP}_{i,j}
+
+   $$
 
 > [!IMPORTANT]
-> **Esclarecimento sobre a quantidade 737 085 vs passes do mês:**  
-> **737 085** é a quantidade total de **passes a compensar no mês** (total da coluna 10 da Tabela 5), após aplicação da percentagem regulamentar de $68{,}5607\%$ sobre o total real de passes do mês (**1 075 088**).  
+> **Esclarecimento sobre a quantidade 737 085 vs passes do mês:**
+> **737 085** é a quantidade total de **passes a compensar no mês** (total da coluna 10 da Tabela 5), após aplicação da percentagem regulamentar de $68{,}5607\%$ sobre o total real de passes do mês (**1 075 088**).
 > Sem a inclusão dos $436\,335$ passes gratuitos/sem carregamento (`Validations as Transactions`), a estimativa anual ficava artificialmente abaixo do teto regulamentar ($7{,}34\text{ M} < 8{,}47\text{ M}$), aplicando erradamente $100\%$ de compensação e desvirtuando os valores de todos os operadores.
 
 > [!NOTE]
-> **Transtejo (TT) e Soflusa (SL) — COSP (D) vs Receita Bilheteira (B):**  
-> Na Tabela 6 (Transferências Finais), TT e SL são apresentadas agregadas como `TT + SL = 351 930,61 €`.  
-> No entanto, no detalhe por operador:
+> **Transtejo (TT) e Soflusa (SL) — COSP (D) vs Receita Bilheteira (B):**Na Tabela 6 (Transferências Finais), TT e SL são apresentadas agregadas como `TT + SL = 351 930,61 €`.No entanto, no detalhe por operador:
+>
 > - **Tabela 4 (Receita B devida):** TT = $300\,021{,}95\text{ €}$, SL = $577\,756{,}13\text{ €}$ (Soma $= 877\,778{,}09\text{ €}$)
-> - **Tabela 5 (COSP D por conta):** TT = $128\,094{,}46\text{ €}$, SL = $223\,836{,}15\text{ €}$ (Soma $= 351\,930{,}61\text{ €}$)  
-> Ao conferir os valores, ter o cuidado de não comparar a COSP (D) com a Receita Bilheteira (B).
+> - **Tabela 5 (COSP D por conta):** TT = $128\,094{,}46\text{ €}$, SL = $223\,836{,}15\text{ €}$ (Soma $= 351\,930{,}61\text{ €}$)
+>   Ao conferir os valores, ter o cuidado de não comparar a COSP (D) com a Receita Bilheteira (B).
 
 ### Script: `06_cosp_D.R`
 
 **Outputs:**
+
 - `F_COSP_D` → `5a_cosp_{SUFIXO}.csv`: detalhe COSP por título × operador (mantém precisão decimal sem arredondamento prematuro)
 - `F_D_OPERADOR` → `5_cosp_operador_{SUFIXO}.csv`: COSP total (D) por operador, coluna `cosp_D`
 
@@ -514,6 +675,7 @@ Há um valor máximo de compensação (VMC), atualizado à TAT todos os anos, qu
 
 > [!IMPORTANT]
 > **Convenções de Precisão e Arredondamento (para bater a 100% com as contas oficiais):**
+>
 > 1. **Pipelines de Cálculo Intermédio (`05_reparticao_B.R` e `06_cosp_D.R`)**:
 >    - Os valores de `receita_B`, `congelamento_B` e `cosp_D` por operador são guardados em CSV com **precisão total** (sem `round(..., 2)` prematuro).
 >    - Isto evita que erros de truncatura se propaguem e acumulem discrepâncias de cêntimos nas somas finais.
@@ -531,7 +693,6 @@ Há um valor máximo de compensação (VMC), atualizado à TAT todos os anos, qu
 >         - **Reconciliação Automática de Cêntimos (Método dos Maiores Restos)**: Caso o somatório dos arredondamentos difira de `Total_Vendas_K` em $\pm k$ cêntimos (típico desvio de 1 ou 2 cêntimos por acumulação de arredondamentos), o algoritmo ajusta automaticamente $0{,}01\text{ €}$ nos operadores com os maiores resíduos de arredondamento. Isto replica de forma determinística e automática os acertos manuais que a colega realizava no Excel.
 >      5. A `parcela_incentiva` é obtida por subtração: $\text{total\_tml} - \text{parcela\_partilhada}$ (ambos já arredondados a 2 casas).
 >      6. A linha **TOTAL** soma as colunas resultantes, garantindo que o total bate certo com os valores visíveis e totaliza **SEMPRE 100% exatamente o montante das Vendas K**.
-
 
 ---
 
@@ -558,6 +719,7 @@ A COSP e o Congelamento são pagos pelo programa "Incentiva". O "Incentiva" é p
 ### Script: `07_transferencias_F.R`
 
 **Outputs:**
+
 - `F_TRANSFERENCIAS` → `6_transferencias_{SUFIXO}.csv`: tabela final por operador com colunas `operador`, `nome_operador`, `receita_A`, `receita_B`, `cosp_D`, `congelamento_B`, `F_transferencia`, `total_transferir`, `nota`, `pagamento_imediato`, `pagamento_incentiva`
 
 ---
@@ -587,20 +749,21 @@ A produção dos relatórios é automatizada com **Quarto** e compilada através
 ### Parâmetros de Configuração
 
 1. **Em [`code/config.R`](config.R):**
+
    - `RENDER_INFORMACAO1 <- TRUE`: Ativa a geração da Informação 1 (documento interno, cabeçalho simples com logo TML).
    - `RENDER_METODOLOGIA <- TRUE`: Ativa a geração do Anexo Metodologia (documento externo com papel timbrado oficial).
    - `RENDER_OFICIO1     <- FALSE`: Ativa a geração do Ofício 1 (pagamento imediato, em preparação).
    - `RENDER_OFICIO2     <- FALSE`: Ativa a geração do Ofício 2 (pagamento Incentiva, em preparação).
    - `RENDER_DOCX        <- FALSE`: Se `TRUE`, converte automaticamente o PDF gerado para Word (`.docx`) através do CLI do **PDF24 Toolbox** instalado na máquina.
    - `DOCX_MODE          <- "asposeFlow"`: Modo de conversão PDF24: `"asposeFlow"` (texto corrido) ou `"asposeBlocks"` (blocos de texto estruturados).
-
 2. **Diferenciação entre Documentos Internos e Externos:**
+
    - **Documentos Internos** (ex: `informacao1.qmd`): utilizam o cabeçalho padrão com o logótipo da TML (`templates/logo_tml.svg`) alinhado à esquerda no topo da página.
    - **Documentos Externos** (ex: `metodologia.qmd`, `oficio1.qmd`, `oficio2.qmd`): definem `doc-tipo: externo` no cabeçalho YAML. O filtro Pandoc ([`linebreaks.lua`](linebreaks.lua)) injeta a etiqueta `<doc-externo>`, e o ficheiro [`code/custom_styles.typ`](custom_styles.typ) aplica automaticamente os modelos vetoriais de papel timbrado oficial da TML (guardados em [`code/templates/`](templates/)):
      - 1.ª página: fundo timbrado com `templates/folha_1.pdf` (logótipo TML, contactos institucionais no rodapé e marcas de furação);
      - Páginas seguintes: fundo timbrado com `templates/folha_restantes.pdf`.
-
 3. **No bloco inicial de parâmetros dos documentos:**
+
    - Em [`code/informacao1.qmd`](informacao1.qmd):
      - `data_dados_dits` e `data_dados_its`: Datas de disponibilização dos dados de bilhética.
      - `load_version`: Versão do processamento de distâncias Carris Metropolitana (Trino/APEX).
@@ -626,7 +789,6 @@ A produção dos relatórios é automatizada com **Quarto** e compilada através
   - `metodologia_{SUFIXO}.pdf` (documento externo com papel timbrado oficial)
   - `informacao1_{SUFIXO}.docx` (quando `RENDER_DOCX <- TRUE`)
 
-
 # Outras notas
 
 `PTs*.xlsx` são Passageiros transportados. Vem de um script. Tem de se excluir os da Scotturb. Tem também de se excluir os validadores móveis dos fiscais (entity 23).
@@ -642,14 +804,15 @@ Seria bom ter alguns testes de comparação, para ver se a coisa está a fazer s
 
 # Tabelas estáticas de referência (`lists/`)
 
-| Ficheiro | Descrição |
-|---|---|
-| `operadores.csv` | Todos os operadores: `ENTITY_ID`, `ENTITY_ABBREVIATION`, `OPERATOR_NAME_NAVEGANTE` |
-| `titulos.csv` | Títulos Navegante: `ticket_code`, `titulo_nome`, `modalidade`, `pvp`, `titulo_nome_base`, `preco_base` |
-| `titulos2.csv` | Versão alternativa/expandida da lista de títulos |
-| `titulos_alternativas.csv` | Mapeamento de alternativas de títulos |
-| `distanciasref_out21_incompleto.csv` | Distâncias médias de referência (Outubro 2021) — formato wide por operador |
-| `distanciasref_ago21_incompleto.csv` | Distâncias médias de referência (Agosto 2021) — para meses de verão |
-| `pesos_pkm.csv` | Pesos por operador (sem header): `operador_nome_navegante;peso` |
-| `sazonalidade.csv` | Sazonalidade mensal (12 meses): `mes;sazonalidade` |
-| `tat.csv` | Taxa de Atualização Tarifária por ano: `ano;tat` |
+
+| Ficheiro                             | Descrição                                                                                            |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `operadores.csv`                     | Todos os operadores:`ENTITY_ID`, `ENTITY_ABBREVIATION`, `OPERATOR_NAME_NAVEGANTE`                      |
+| `titulos.csv`                        | Títulos Navegante:`ticket_code`, `titulo_nome`, `modalidade`, `pvp`, `titulo_nome_base`, `preco_base` |
+| `titulos2.csv`                       | Versão alternativa/expandida da lista de títulos                                                     |
+| `titulos_alternativas.csv`           | Mapeamento de alternativas de títulos                                                                 |
+| `distanciasref_out21_incompleto.csv` | Distâncias médias de referência (Outubro 2021) — formato wide por operador                         |
+| `distanciasref_ago21_incompleto.csv` | Distâncias médias de referência (Agosto 2021) — para meses de verão                               |
+| `pesos_pkm.csv`                      | Pesos por operador (sem header):`operador_nome_navegante;peso`                                         |
+| `sazonalidade.csv`                   | Sazonalidade mensal (12 meses):`mes;sazonalidade`                                                      |
+| `tat.csv`                            | Taxa de Atualização Tarifária por ano:`ano;tat`                                                     |
