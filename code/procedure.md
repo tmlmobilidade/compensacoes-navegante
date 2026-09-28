@@ -348,16 +348,12 @@ ORDER BY TICKET_CODE, ENTITY_ID, RUN_CODE;
 >
 > **Regras essenciais da reconciliação:**
 >
-> 1. As validações móveis são distribuídas pelas 4 sub-áreas da CM através do cálculo:
->
->    $$
->    \text{Área CM} = \lfloor \text{RUN\_CODE} / 1000 \rfloor + 40
->    $$
->
->    - `1xxx` $\rightarrow$ Código 41 $\rightarrow$ **Área 1 (A1)**
->    - `2xxx` $\rightarrow$ Código 42 $\rightarrow$ **Área 2 (A2)**
->    - `3xxx` $\rightarrow$ Código 43 $\rightarrow$ **Área 3 (A3)**
->    - `4xxx` $\rightarrow$ Código 44 $\rightarrow$ **Área 4 (A4)**
+> 1. As validações móveis são distribuídas pelas 4 sub-áreas da CM através do cálculo de `RUN_CODE`:
+>    $$\text{Área CM} = \lfloor \text{RUN} / 1000 \rfloor + 40$$
+>    - `1xxx` → Código 41 → **Área 1 (A1)**
+>    - `2xxx` → Código 42 → **Área 2 (A2)**
+>    - `3xxx` → Código 43 → **Área 3 (A3)**
+>    - `4xxx` → Código 44 → **Área 4 (A4)**
 >
 > 2. **Apenas são considerados os títulos que já existem no Recibo B da CM**. Títulos não-Navegante (ex: ticket 33592) são automaticamente ignorados.
 
@@ -577,10 +573,10 @@ Estes valores estão em `lists/tat.csv` (em número, não em percentagem).
 
 Calculamos a receita a compensar como:
 
-se Valor = dist_receita_operador_titulo (i,j)
+se Valor = `dist_receita_operador_titulo(i, j)`:
 
 $$
-\text{ReceitaCompensar i,j} = \text{Valor} \times \left[ (1 + \text{TAT}_{2024})(1 + \text{TAT}_{2025})(1 + \text{TAT}_{2026}) - 1 \right]
+\text{ReceitaCompensar}_{i,j} = \text{Valor} \times \left[ (1 + \text{TAT}_{2024})(1 + \text{TAT}_{2025})(1 + \text{TAT}_{2026}) - 1 \right]
 $$
 
  A parcela de congelamento por operador j é somada (Congelamento Navegante)
@@ -605,49 +601,43 @@ Há um valor máximo de compensação (VMC), atualizado à TAT todos os anos, qu
 - Sazonalidade mensal (`lists/sazonalidade.csv`), ex: Maio = 0,087 (8,7%)
 - Retenção regulamentar TML = 2,5% (`RETENCAO_TML = 0.025`)
 - VMC atualizado: $\text{VMC}_{\text{ano}} = \text{VMC}_{2023} \times \prod (1 + \text{TAT}_{\text{ano}})$, arredondado ao cêntimo. Para 2026: 125 006 780,46 €
-- Valor médio compensação por passe = $\text{VMC}_{\text{ano}} / \text{N\_PASSES\_COMPENSAR} = 14{,}754800\text{ €}$
+- Valor médio compensação por passe = $\text{VMC}_{\text{ano}} / N_{\text{máx}} = 14{,}754800$ €
 
 ### Fórmulas de cálculo:
 
 1. **Quantidade total de passes do mês**:
-
 $$
-\text{Qty Total Mês} = \sum_i (\text{qty\_A}_i + \text{qty\_K}_i + \text{qty\_vat}_i)
+\text{Qty Total Mês} = \sum_i (\text{qty}_{A,i} + \text{qty}_{K,i} + \text{qty}_{\text{VaT},i})
 $$
 
 2. **Estimativa anual de passes**:
+$$
+\text{Estimativa Anual} = \frac{\text{Qty Total Mês}}{\text{Sazonalidade Mês}}
+$$
 
-   $$
-   \text{Estimativa Anual} = \frac{\text{Qty Total Mês}}{\text{Sazonalidade Mês}}
-
-   $$
 3. **Percentagem de passes a compensar**:
+$$
+\text{Pct Compensar} = \min\left(1, \frac{N_{\text{máx}}}{\text{Estimativa Anual}}\right)
+$$
 
-   $$
-   \text{Pct Compensar} = \min\left(1, \frac{\text{N\_PASSES\_COMPENSAR}}{\text{Estimativa Anual}}\right)
-
-   $$
 4. **N.º de passes a compensar por título $i$**:
+$$
+\text{Passes Compensar}_i = \text{round}(\text{Pct Compensar} \times \text{Qty Total}_i)
+$$
 
-   $$
-   \text{Passes Compensar}_i = \text{round}(\text{Pct Compensar} \times \text{Qty Total}_i)
-
-   $$
 5. **COSP por título $i$**:
+$$
+\text{COSP}_i = \text{Passes Compensar}_i \times \text{Valor Médio Passe} \times (1 - \text{Retenção TML})
+$$
 
-   $$
-   \text{COSP}_i = \text{Passes Compensar}_i \times \text{Valor Médio Passe} \times (1 - \text{Retenção TML})
-
-   $$
 6. **Distribuição por operador $j$ (D)**:
-
-   $$
-   \text{COSP}_{i,j} = \text{Quota}_{i,j} \times \text{COSP}_i \quad \Longrightarrow \quad D_j = \sum_i \text{COSP}_{i,j}
-
-   $$
+$$
+\text{COSP}_{i,j} = \text{Quota}_{i,j} \times \text{COSP}_i \quad \Longrightarrow \quad D_j = \sum_i \text{COSP}_{i,j}
+$$
 
 > [!IMPORTANT]
-> **Esclarecimento metodológico: N.º de passes a compensar vs. volume real de passes do mês:**A quantidade total de **passes a compensar no mês** (total apurado na coluna de passes a compensar da Folha 5 / Tabela 5) **difere do volume real de passes** emitidos ou validados no mês:
+> **Esclarecimento metodológico: N.º de passes a compensar vs. volume real de passes do mês:**  
+> A quantidade total de **passes a compensar no mês** (total apurado na coluna de passes a compensar da Folha 5 / Tabela 5) **difere do volume real de passes** emitidos ou validados no mês:
 >
 > 1. Resulta da aplicação da **percentagem regulamentar de passes a compensar** ($\text{Pct Compensar} \le 100\%$) sobre o total real de passes do mês, sempre que a procura anual estimada (anualização pela sazonalidade mensal) excede o limite máximo regulamentar anual (`N_PASSES_COMPENSAR`, fixado em 8 472 279 passes).
 > 2. **Impacto crítico dos títulos gratuitos sem carregamento prévio (`Validations as Transactions` — VaT):**
@@ -655,7 +645,8 @@ $$
 >    Se estes títulos fossem omitidos do volume mensal, a procura anualizada estimada ficaria artificialmente reduzida (ficando abaixo do teto regulamentar anual), o que levaria o sistema a aplicar erradamente uma taxa de compensação de $100\%$ em vez do rácio proporcional inferior a $100\%$, desvirtuando os montantes regulamentares de compensação devidos a todos os operadores.
 
 > [!NOTE]
-> **Transtejo (TT) e Soflusa (SL) — Agregação vs. Detalhe por Rubrica:**Na Tabela 6 (Transferências Finais), a Transtejo (TT) e a Soflusa (SL) são apresentadas de forma consolidada num único montante conjunto (`TT + SL`).No entanto, no detalhe das etapas anteriores:
+> **Transtejo (TT) e Soflusa (SL) — Agregação vs. Detalhe por Rubrica:**  
+> Na Tabela 6 (Transferências Finais), a Transtejo (TT) e a Soflusa (SL) são apresentadas de forma consolidada num único montante conjunto (`TT + SL`). No entanto, no detalhe das etapas anteriores:
 >
 > - **Tabela 4 (Receita Bilheteira B devida):** TT e SL são apuradas individualmente por operador a partir das respetivas quotas dinâmicas;
 > - **Tabela 5 (COSP D por conta):** TT e SL são igualmente calculadas e discriminadas em separado.
@@ -687,10 +678,10 @@ $$
 >    - **Ordem exata de cálculo das parcelas (reproduzindo as fórmulas Excel da colega)**:
 >      1. `total_transferir` e `total_tml` são arredondados a 2 casas decimais: `round(..., 2)`.
 >      2. `soma_total_tml` é a soma dos `total_tml` já arredondados.
->      3. A percentagem de cada operador é calculada como $\text{pct} = \text{total\_tml} / \text{soma\_total\_tml}$.
+>      3. A percentagem de cada operador é calculada como `pct = total_tml / soma_total_tml`.
 >      4. A `parcela_partilhada` é inicialmente calculada como `=ARRED(pct * Total_Vendas_K; 2)`.
->         - **Reconciliação Automática de Cêntimos (Método dos Maiores Restos)**: Caso o somatório dos arredondamentos difira de `Total_Vendas_K` em $\pm k$ cêntimos (típico desvio de 1 ou 2 cêntimos por acumulação de arredondamentos), o algoritmo ajusta automaticamente $0{,}01\text{ €}$ nos operadores com os maiores resíduos de arredondamento. Isto replica de forma determinística e automática os acertos manuais que a colega realizava no Excel.
->      5. A `parcela_incentiva` é obtida por subtração: $\text{total\_tml} - \text{parcela\_partilhada}$ (ambos já arredondados a 2 casas).
+>         - **Reconciliação Automática de Cêntimos (Método dos Maiores Restos)**: Caso o somatório dos arredondamentos difira de `Total_Vendas_K` em $\pm k$ cêntimos (típico desvio de 1 ou 2 cêntimos por acumulação de arredondamentos), o algoritmo ajusta automaticamente $0{,}01$ € nos operadores com os maiores resíduos de arredondamento. Isto replica de forma determinística e automática os acertos manuais que a colega realizava no Excel.
+>      5. A `parcela_incentiva` é obtida por subtração: `total_tml - parcela_partilhada` (ambos já arredondados a 2 casas).
 >      6. A linha **TOTAL** soma as colunas resultantes, garantindo que o total bate certo com os valores visíveis e totaliza **SEMPRE 100% exatamente o montante das Vendas K**.
 
 ---
