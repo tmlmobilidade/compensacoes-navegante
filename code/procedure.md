@@ -612,26 +612,31 @@ $$
 $$
 
 2. **Estimativa anual de passes**:
+
 $$
 \text{Estimativa Anual} = \frac{\text{Qty Total Mês}}{\text{Sazonalidade Mês}}
 $$
 
 3. **Percentagem de passes a compensar**:
+
 $$
 \text{Pct Compensar} = \min\left(1, \frac{N_{\text{máx}}}{\text{Estimativa Anual}}\right)
 $$
 
 4. **N.º de passes a compensar por título $i$**:
+
 $$
 \text{Passes Compensar}_i = \text{round}(\text{Pct Compensar} \times \text{Qty Total}_i)
 $$
 
 5. **COSP por título $i$**:
+
 $$
 \text{COSP}_i = \text{Passes Compensar}_i \times \text{Valor Médio Passe} \times (1 - \text{Retenção TML})
 $$
 
 6. **Distribuição por operador $j$ (D)**:
+
 $$
 \text{COSP}_{i,j} = \text{Quota}_{i,j} \times \text{COSP}_i \quad \Longrightarrow \quad D_j = \sum_i \text{COSP}_{i,j}
 $$
