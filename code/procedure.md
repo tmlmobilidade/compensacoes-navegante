@@ -344,7 +344,7 @@ ORDER BY TICKET_CODE, ENTITY_ID, RUN_CODE;
 > [!IMPORTANT]
 > **Armadilha das validações em falta na Carris Metropolitana:**
 > Os Recibos B das 4 áreas operacionais da CM (A1 a A4) não contêm as validações efetuadas nos terminais móveis dos fiscais. Estas validações ficam registadas no Portal VIVA (`ENTITY_ID = 23`).
-> Se não forem somadas, a CM apresenta uma diferença negativa (ex.: -1.232 PT em maio de 2026).
+> Se não forem somadas, a CM apresenta uma diferença negativa (ficando com validações em falta face ao total oficial do sistema).
 >
 > **Regras essenciais da reconciliação:**
 >
@@ -614,14 +614,12 @@ $$
 \text{Qty Total Mês} = \sum_i (\text{qty\_A}_i + \text{qty\_K}_i + \text{qty\_vat}_i)
 $$
 
-   *(Em Maio/2026: $414\,374 + 224\,379 + 436\,335 = \mathbf{1\,075\,088}\text{ passes}$)*
 2. **Estimativa anual de passes**:
 
    $$
    \text{Estimativa Anual} = \frac{\text{Qty Total Mês}}{\text{Sazonalidade Mês}}
    $$
 
-   *(Em Maio/2026: $1\,075\,088 / 0{,}087 = \mathbf{12\,357\,333}\text{ passes}$)*
 3. **Percentagem de passes a compensar**:
 
    $$
@@ -629,19 +627,16 @@ $$
 
    $$
 
-   *(Em Maio/2026: $8\,472\,279 / 12\,357\,333 = \mathbf{68{,}5607\%}$)*
 4. **N.º de passes a compensar por título $i$**:
    $$
    \text{Passes Compensar}_i = \text{round}(\text{Pct Compensar} \times \text{Qty Total}_i)
-
    $$
 
-   *(A soma de todos os títulos em Maio/2026 perfaz exatamente **737 085 passes a compensar**)*
 5. **COSP por título $i$**:
    $$
    \text{COSP}_i = \text{Passes Compensar}_i \times \text{Valor Médio Passe} \times (1 - \text{Retenção TML})
-
    $$
+
 6. **Distribuição por operador $j$ (D)**:
    $$
    \text{COSP}_{i,j} = \text{Quota}_{i,j} \times \text{COSP}_i \quad \Longrightarrow \quad D_j = \sum_i \text{COSP}_{i,j}
@@ -649,16 +644,20 @@ $$
    $$
 
 > [!IMPORTANT]
-> **Esclarecimento sobre a quantidade 737 085 vs passes do mês:**
-> **737 085** é a quantidade total de **passes a compensar no mês** (total da coluna 10 da Tabela 5), após aplicação da percentagem regulamentar de $68{,}5607\%$ sobre o total real de passes do mês (**1 075 088**).
-> Sem a inclusão dos $436\,335$ passes gratuitos/sem carregamento (`Validations as Transactions`), a estimativa anual ficava artificialmente abaixo do teto regulamentar ($7{,}34\text{ M} < 8{,}47\text{ M}$), aplicando erradamente $100\%$ de compensação e desvirtuando os valores de todos os operadores.
+> **Esclarecimento metodológico: N.º de passes a compensar vs. volume real de passes do mês:**  
+> A quantidade total de **passes a compensar no mês** (total apurado na coluna de passes a compensar da Folha 5 / Tabela 5) **difere do volume real de passes** emitidos ou validados no mês:
+> 1. Resulta da aplicação da **percentagem regulamentar de passes a compensar** ($\text{Pct Compensar} \le 100\%$) sobre o total real de passes do mês, sempre que a procura anual estimada (anualização pela sazonalidade mensal) excede o limite máximo regulamentar anual (`N_PASSES_COMPENSAR`, fixado em 8 472 279 passes).
+> 2. **Impacto crítico dos títulos gratuitos sem carregamento prévio (`Validations as Transactions` — VaT):**  
+>    Títulos bonificados/gratuitos como Navegante Sub18+TP, Sub23+TP ou Navegante 12 Criança não geram receita de venda direta nas bilheteiras dos operadores ($A = 0$), mas **têm obrigatoriamente de ser somados à quantidade total de passes do mês** para efeito de apuramento da COSP.  
+>    Se estes títulos fossem omitidos do volume mensal, a procura anualizada estimada ficaria artificialmente reduzida (ficando abaixo do teto regulamentar anual), o que levaria o sistema a aplicar erradamente uma taxa de compensação de $100\%$ em vez do rácio proporcional inferior a $100\%$, desvirtuando os montantes regulamentares de compensação devidos a todos os operadores.
 
 > [!NOTE]
-> **Transtejo (TT) e Soflusa (SL) — COSP (D) vs Receita Bilheteira (B):**Na Tabela 6 (Transferências Finais), TT e SL são apresentadas agregadas como `TT + SL = 351 930,61 €`.No entanto, no detalhe por operador:
->
-> - **Tabela 4 (Receita B devida):** TT = $300\,021{,}95\text{ €}$, SL = $577\,756{,}13\text{ €}$ (Soma $= 877\,778{,}09\text{ €}$)
-> - **Tabela 5 (COSP D por conta):** TT = $128\,094{,}46\text{ €}$, SL = $223\,836{,}15\text{ €}$ (Soma $= 351\,930{,}61\text{ €}$)
->   Ao conferir os valores, ter o cuidado de não comparar a COSP (D) com a Receita Bilheteira (B).
+> **Transtejo (TT) e Soflusa (SL) — Agregação vs. Detalhe por Rubrica:**  
+> Na Tabela 6 (Transferências Finais), a Transtejo (TT) e a Soflusa (SL) são apresentadas de forma consolidada num único montante conjunto (`TT + SL`).  
+> No entanto, no detalhe das etapas anteriores:
+> - **Tabela 4 (Receita Bilheteira B devida):** TT e SL são apuradas individualmente por operador a partir das respetivas quotas dinâmicas;
+> - **Tabela 5 (COSP D por conta):** TT e SL são igualmente calculadas e discriminadas em separado.  
+> Ao validar os apuramentos, deve ter-se o cuidado metodológico de não comparar a COSP ($D$) com a Receita Bilheteira ($B$), pois tratam-se de parcelas financeiras de natureza distinta (uma é a repartição da receita tarifária arrecadada e a outra é a compensação de serviço público calculada com base no VMC e quotas).
 
 ### Script: `06_cosp_D.R`
 
@@ -678,7 +677,7 @@ $$
 >    - Os valores de `receita_B`, `congelamento_B` e `cosp_D` por operador são guardados em CSV com **precisão total** (sem `round(..., 2)` prematuro).
 >    - Isto evita que erros de truncatura se propaguem e acumulem discrepâncias de cêntimos nas somas finais.
 > 2. **Folha "5 - Pag Conta COSP D"**:
->    - **Total de Passes a Compensar no Mês**: É calculado como a **soma dos passes arredondados à unidade por título** ($\sum_i \text{round}(\text{passes}_i)$), e não arredondando a soma global. Em Maio/2026 isto fixa exatamente os **737 085 passes** oficiais.
+>    - **Total de Passes a Compensar no Mês**: É calculado como a **soma dos passes arredondados à unidade por título** ($\sum_i \text{round}(\text{passes}_i)$), e não arredondando a soma global. Isto assegura que o total oficial da tabela coincide rigorosamente com o somatório dos passes arredondados de cada título individual.
 >    - **Tabela Resumo por Operador**: Mostra `Operador`, `Nome Completo`, `Pagamento COSP Devido [D] (€)` e `% do COSP Total`.
 >    - **Tabela Detalhada (Abaixo do Resumo)**: Apresenta o detalhe em formato *wide* por título × operador (`COSP_ij`), com as colunas base do título e as colunas de cada operador, totalizando na linha de rodapé.
 > 3. **Folha "0 - Global" (Tabela Síntese de Transferências)**:
@@ -814,3 +813,4 @@ Seria bom ter alguns testes de comparação, para ver se a coisa está a fazer s
 | `pesos_pkm.csv`                      | Pesos por operador (sem header):`operador_nome_navegante;peso`                                         |
 | `sazonalidade.csv`                   | Sazonalidade mensal (12 meses):`mes;sazonalidade`                                                      |
 | `tat.csv`                            | Taxa de Atualização Tarifária por ano:`ano;tat`                                                     |
+| `receitas_anteriores.csv`            | Arquivo das receitas e passageiros de meses anteriores, para produção do gráfico e tabela landscape |
