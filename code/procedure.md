@@ -291,7 +291,7 @@ Para bater a 100% com as contas oficiais (folha Excel de validação), é necess
 O Recibo B entregue pela Transtejo (**TT**) contém na coluna `OPERADOR_TOTAL` os passageiros **conjuntos de TT + SL** (os dois operadores fluviais partilham o mesmo Recibo B). O Recibo B separado de SL tem valores diferentes e duplicaria o SL se fosse somado.
 
 > [!IMPORTANT]
-> **Armadilha do `ENTITY_ID` na separação TT/SL:**Ao contrário do que seria intuitivo, **não se deve filtrar por `ENTITY_ID = 5` vs `ENTITY_ID = 8`**! Ambas as entidades têm validações registadas de forma cruzada nos cais.A metodologia oficial da TML (reproduzida da fórmula Excel da colega) utiliza a **georreferenciação por `RUN_CODE`**:
+> **Armadilha do `ENTITY_ID` na separação TT/SL:**Ao contrário do que seria intuitivo, **não se deve filtrar por `ENTITY_ID = 5` vs `ENTITY_ID = 8`**! Ambas as entidades têm validações registadas de forma cruzada nos cais.A metodologia oficial da TML (reproduzida da fórmula Excel prévio utiliza a **georreferenciação por `RUN_CODE`**:
 >
 > - **`RUN_CODE = 7` $\rightarrow$ Soflusa (SL)** (ligação fluvial do Barreiro).
 > - **Todos os outros `RUN_CODE` (0, 1, 3, 5, 9) $\rightarrow$ Transtejo (TT)** (Cacilhas, Seixal, Montijo, Trafaria).
@@ -681,12 +681,12 @@ $$
 >    - **Tabela Detalhada (Abaixo do Resumo)**: Apresenta o detalhe em formato *wide* por título × operador (`COSP_ij`), com as colunas base do título e as colunas de cada operador, totalizando na linha de rodapé.
 > 3. **Folha "0 - Global" (Tabela Síntese de Transferências)**:
 >    - O arredondamento a 2 casas decimais só é introduzido no `08_tables.R` na fase de fecho da tabela de transferências.
->    - **Ordem exata de cálculo das parcelas (reproduzindo as fórmulas Excel da colega)**:
+>    - **Ordem exata de cálculo das parcelas (reproduzindo as fórmulas Excel prévio)**:
 >      1. `total_transferir` e `total_tml` são arredondados a 2 casas decimais: `round(..., 2)`.
 >      2. `soma_total_tml` é a soma dos `total_tml` já arredondados.
 >      3. A percentagem de cada operador é calculada como `pct = total_tml / soma_total_tml`.
 >      4. A `parcela_partilhada` é inicialmente calculada como `=ARRED(pct * Total_Vendas_K; 2)`.
->         - **Reconciliação Automática de Cêntimos (Método dos Maiores Restos)**: Caso o somatório dos arredondamentos difira de `Total_Vendas_K` em $\pm k$ cêntimos (típico desvio de 1 ou 2 cêntimos por acumulação de arredondamentos), o algoritmo ajusta automaticamente $0{,}01$ € nos operadores com os maiores resíduos de arredondamento. Isto replica de forma determinística e automática os acertos manuais que a colega realizava no Excel.
+>         - **Reconciliação Automática de Cêntimos (Método dos Maiores Restos)**: Caso o somatório dos arredondamentos difira de `Total_Vendas_K` em $\pm k$ cêntimos (típico desvio de 1 ou 2 cêntimos por acumulação de arredondamentos), o algoritmo ajusta automaticamente $0{,}01$ € nos operadores com os maiores resíduos de arredondamento. Isto replica de forma determinística e automática os acertos manuais que se realizavam no Excel previamente.
 >      5. A `parcela_incentiva` é obtida por subtração: `total_tml - parcela_partilhada` (ambos já arredondados a 2 casas).
 >      6. A linha **TOTAL** soma as colunas resultantes, garantindo que o total bate certo com os valores visíveis e totaliza **SEMPRE 100% exatamente o montante das Vendas K**.
 
