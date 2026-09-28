@@ -500,7 +500,6 @@ $$
 \text{Quota}_{i, j} &= \text{Peso}_{i, j} \times \text{PKM}_{i, j} \\[8pt]
 \sum_{j} \text{Quota}_{i, j} &= 1 \quad \forall i
 \end{aligned}
-
 $$
 
 > *Onde:*
@@ -515,7 +514,6 @@ Em percentagem. A soma para cada título é 1. Quando não há PKM para um títu
 
 $$
 \text{Quota Global}_j = \frac{\sum_i \text{Quota Raw}_{i,j}}{\sum_j \sum_i \text{Quota Raw}_{i,j}}
-
 $$
 
 Esta regra garante que todos os 145 títulos de `titulos.csv` (mesmo os que não tiveram validações no mês, ex.: PACs) têm quotas bem definidas somando 100%, em exata conformidade com a Tabela 1 da folha de validação da TML.
@@ -582,7 +580,6 @@ se Valor = dist_receita_operador_titulo (i,j)
 
 $$
 \text{ReceitaCompensar i,j} = \text{Valor} \times \left[ (1 + \text{TAT}_{2024})(1 + \text{TAT}_{2025})(1 + \text{TAT}_{2026}) - 1 \right]
-
 $$
 
  A parcela de congelamento por operador j é somada (Congelamento Navegante)
@@ -612,20 +609,21 @@ Há um valor máximo de compensação (VMC), atualizado à TAT todos os anos, qu
 ### Fórmulas de cálculo:
 
 1. **Quantidade total de passes do mês**:
+
    $$
    \text{Qty Total Mês} = \sum_i (\text{qty\_A}_i + \text{qty\_K}_i + \text{qty\_vat}_i)
-
    $$
 
    *(Em Maio/2026: $414\,374 + 224\,379 + 436\,335 = \mathbf{1\,075\,088}\text{ passes}$)*
 2. **Estimativa anual de passes**:
+
    $$
    \text{Estimativa Anual} = \frac{\text{Qty Total Mês}}{\text{Sazonalidade Mês}}
-
    $$
 
    *(Em Maio/2026: $1\,075\,088 / 0{,}087 = \mathbf{12\,357\,333}\text{ passes}$)*
 3. **Percentagem de passes a compensar**:
+
    $$
    \text{Pct Compensar} = \min\left(1, \frac{\text{N\_PASSES\_COMPENSAR}}{\text{Estimativa Anual}}\right)
 
