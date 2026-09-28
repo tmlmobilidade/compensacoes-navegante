@@ -610,9 +610,9 @@ Há um valor máximo de compensação (VMC), atualizado à TAT todos os anos, qu
 
 1. **Quantidade total de passes do mês**:
 
-   $$
-   \text{Qty Total Mês} = \sum_i (\text{qty\_A}_i + \text{qty\_K}_i + \text{qty\_vat}_i)
-   $$
+$$
+\text{Qty Total Mês} = \sum_i (\text{qty\_A}_i + \text{qty\_K}_i + \text{qty\_vat}_i)
+$$
 
    *(Em Maio/2026: $414\,374 + 224\,379 + 436\,335 = \mathbf{1\,075\,088}\text{ passes}$)*
 2. **Estimativa anual de passes**:
