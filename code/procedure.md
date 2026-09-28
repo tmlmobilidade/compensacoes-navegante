@@ -8,7 +8,7 @@
 
 ## Fluxograma Metodológico
 
-O fluxograma seguinte sintetiza o encadeamento metodológico e operacional do apuramento de compensações e distribuição de receitas Navegante (ao abrigo do Regulamento n.º 1362-C/2023), mapeando as fontes de dados de entrada, os scripts de processamento em R, as fórmulas regulamentares de cálculo e os produtos finais gerados:
+O fluxograma seguinte sintetiza o encadeamento metodológico e operacional do apuramento de compensações e distribuição de receitas Navegante (ao abrigo do [Regulamento n.º 1362-C/2023](https://diariodarepublica.pt/dr/detalhe/regulamento/1362-c-2023-835674356)), mapeando as fontes de dados de entrada, os scripts de processamento em R, as fórmulas regulamentares de cálculo e os produtos finais gerados:
 
 ```mermaid
 flowchart TD
