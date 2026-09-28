@@ -31,7 +31,7 @@ flowchart TD
         P01["01_recibos_b.R\n- Limpeza e filtros regulamentares\n- Separação TT vs. SL por RUN_CODE\n- Integração fiscais móveis CM (A1 a A4)\n→ Gera PT_ij e Validações VaT_i"]
         P02["02_distancias.R\n- Hierarquia regulamentar de distâncias:\n  1. APEX dinâmicas (CM e CAP)\n  2. Distâncias ref estáticas (verão/outros)\n→ Gera Distância Média d_ij"]
         P03["03_quotas.R\n- PKM_ij = PT_ij × d_ij\n- Quota Raw_ij = Peso_j × PKM_ij\n- Quota_ij = Raw_ij / ∑ Raw_ik\n(com fallback para Quota Global se PKM = 0)\n→ Gera Quota Dinâmica Quota_ij"]
-      
+    
         P01 --> P03
         P02 --> P03
     end
@@ -66,12 +66,12 @@ flowchart TD
     subgraph TRANSF_STEP["6. Apuramento de Transferências Finais (F)"]
         direction TB
         P07["07_transferencias_F.R & 08_tables.R\n- Saldo Global: SG_j = C_j - D_j = A_j - B_j - D_j\n- Transferência líquida: F_j = -SG_j = B_j + D_j - A_j\n- Total a transferir: Total_j = F_j + CongNav[B]_j\n- Reconciliação de saldos excedentes (MTS para Fertagus)\n- Ajuste pelo Método dos Maiores Restos (Total K exato)"]
-      
+    
         SPLIT{"Segregação das Vias de Liquidação"}
-      
+    
         PAY_IMEDIATO["Pagamento Imediato (Posse TML)\n- Parcela financiada pelas receitas dos canais K\n(Portal VIVA e SIBS / Multibanco)\n→ Ofício 1"]
         PAY_INCENTIVA["Pagamento Diferido (Incentiva +TP)\n- Parcela financiada pelo Fundo Ambiental\n(Compensação COSP D + Congelamento Navegante)\n→ Ofício 2"]
-      
+    
         P07 --> SPLIT
         SPLIT --> PAY_IMEDIATO
         SPLIT --> PAY_INCENTIVA
@@ -112,16 +112,16 @@ flowchart TD
 ### Síntese das Fases Metodológicas
 
 
-| Fase                                 | Script(s)                            | Designação Regulamentar                                                                                                                               | Entradas Principais                                                                                | Saídas Principais                                                                                |
-| -------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| **1. Validações e Passageiros**    | `01_recibos_b.R`                     | Passageiros Transportados ($PT$) e Reconciliação                                                                                                      | Recibos B (`PTconsideredByProduct`), Oracle (`query_SL_TT.sql`, `query_CM_fiscaismoveis.sql`)      | `1a_PT_{SUFIXO}.csv`, `1b_PT_CM_{SUFIXO}.csv`, `1d_validacoes_{SUFIXO}.csv` (VaT)                 |
-| **2. Distâncias Médias**           | `02_distancias.R`                    | Distâncias Médias Percorridas ($\bar{d}_{i,j}$)                                                                                                       | Oracle APEX (`AVERAGE_DISTANCE`), tabelas de referência sazonal (`distanciasref_*.csv`)           | `1e_distancias_{SUFIXO}.csv`                                                                      |
-| **3. Quotas de Repartição**        | `03_quotas.R`                        | Quota de Repartição Dinâmica ($\text{Quota}_{i,j}$) | Passageiros Transportados ($PT$), Distâncias Médias ($\bar{d}$), Pesos PKM (`pesos_pkm.csv`) | `1_quotas_{SUFIXO}.csv` (PKM, Quotas por título)                                                  |                                                                                                   |
-| **4. Vendas A e K**                  | `04_vendas_AK.R`                     | Apuramento de Vendas e Volume Global                                                                                                                    | Recibos B (`transactionsOperatorSystem`), Separação PV/ATM (`ReciboB_*_Separação_PV_ATM.xlsx`) | `2_vendas_A_{SUFIXO}.csv`, `2_vendas_K_{SUFIXO}.csv`, `4a_receita_titulo_distribuir_{SUFIXO}.csv` |
-| **5. Repartição B e Congelamento** | `05_reparticao_B.R`                  | Receita Devida ($B$) e Congelamento Navegante | Quotas dinâmicas, Receita a distribuir ($R_i$), Taxa de Atualização Tarifária (`tat.csv`)           | `4b_reparticao_B_{SUFIXO}.csv`, `4_receitaB_congelamento_{SUFIXO}.csv`                             |                                                                                                   |
-| **6. Compensação COSP**            | `06_cosp_D.R`                        | Pagamento por Conta da COSP Tarifária ($D$) | Volume total de passes ($Q$), Sazonalidade mensal (`sazonalidade.csv`), VMC regulado                     | `5a_cosp_{SUFIXO}.csv`, `5_cosp_operador_{SUFIXO}.csv`                                             |                                                                                                   |
-| **7. Transferências Finais**        | `07_transferencias_F.R``08_tables.R` | Apuramento de Transferências ($F$) e Relatório Excel                                                                                                  | Receitas$A$, $B$, $D$, Congelamento TAT, canais partilhados $K$                                    | `6_transferencias_{SUFIXO}.csv`, `Anexo_Calculos_{SUFIXO}.xlsx` (6 folhas)                        |
-| **8. Documentos Oficiais**           | `10_documentos.R`                    | Informação Técnica e Ofícios de Liquidação                                                                                                        | Tabelas consolidadas, parâmetros de emissão (`doc_params.R`), templates Typst                    | `Informacao_{SUFIXO}.pdf`, `Anexo_Metodologia_{SUFIXO}.pdf`, `Oficio1/2_{SUFIXO}.pdf`             |
+| Fase                                 | Script(s)                            | Designação Regulamentar                                                                                                                                                                                                   | Entradas Principais                                                                                | Saídas Principais                                                                                |
+| -------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **1. Validações e Passageiros**    | `01_recibos_b.R`                     | Passageiros Transportados ($PT$) e Reconciliação                                                                                                                                                                          | Recibos B (`PTconsideredByProduct`), Oracle (`query_SL_TT.sql`, `query_CM_fiscaismoveis.sql`)      | `1a_PT_{SUFIXO}.csv`, `1b_PT_CM_{SUFIXO}.csv`, `1d_validacoes_{SUFIXO}.csv` (VaT)                 |
+| **2. Distâncias Médias**           | `02_distancias.R`                    | Distâncias Médias Percorridas ($\bar{d}_{i,j}$)                                                                                                                                                                           | Oracle APEX (`AVERAGE_DISTANCE`), tabelas de referência sazonal (`distanciasref_*.csv`)           | `1e_distancias_{SUFIXO}.csv`                                                                      |
+| **3. Quotas de Repartição**        | `03_quotas.R`                        | Quota de Repartição Dinâmica ($\text{Quota}_{i,j}$) | Passageiros Transportados ($PT$), Distâncias Médias ($\bar{d}$), Pesos PKM (`pesos_pkm.csv`)                                                                     | `1_quotas_{SUFIXO}.csv` (PKM, Quotas por título)                                                  |                                                                                                   |
+| **4. Vendas A e K**                  | `04_vendas_AK.R`                     | Apuramento de Vendas e Volume Global                                                                                                                                                                                        | Recibos B (`transactionsOperatorSystem`), Separação PV/ATM (`ReciboB_*_Separação_PV_ATM.xlsx`) | `2_vendas_A_{SUFIXO}.csv`, `2_vendas_K_{SUFIXO}.csv`, `4a_receita_titulo_distribuir_{SUFIXO}.csv` |
+| **5. Repartição B e Congelamento** | `05_reparticao_B.R`                  | Receita Devida ($B$) e Congelamento Navegante | Quotas dinâmicas, Receita a distribuir ($R_i$), Taxa de Atualização Tarifária (`tat.csv`)                                                                               | `4b_reparticao_B_{SUFIXO}.csv`, `4_receitaB_congelamento_{SUFIXO}.csv`                             |                                                                                                   |
+| **6. Compensação COSP**            | `06_cosp_D.R`                        | Pagamento por Conta da COSP Tarifária ($D$) | Volume total de passes ($Q$), Sazonalidade mensal (`sazonalidade.csv`), VMC regulado                                                                                         | `5a_cosp_{SUFIXO}.csv`, `5_cosp_operador_{SUFIXO}.csv`                                             |                                                                                                   |
+| **7. Transferências Finais**        | `07_transferencias_F.R``08_tables.R` | Apuramento de Transferências ($F$) e Relatório Excel                                                                                                  | Receitas $A$, $B$, $D$, Congelamento TAT, canais partilhados $K$ | `6_transferencias_{SUFIXO}.csv`, `Anexo_Calculos_{SUFIXO}.xlsx` (6 folhas)                         |                                                                                                   |
+| **8. Documentos Oficiais**           | `10_documentos.R`                    | Informação Técnica e Ofícios de Liquidação                                                                                                                                                                            | Tabelas consolidadas, parâmetros de emissão (`doc_params.R`), templates Typst                    | `Informacao_{SUFIXO}.pdf`, `Anexo_Metodologia_{SUFIXO}.pdf`, `Oficio1/2_{SUFIXO}.pdf`             |
 
 ---
 
@@ -349,15 +349,16 @@ ORDER BY TICKET_CODE, ENTITY_ID, RUN_CODE;
 > **Regras essenciais da reconciliação:**
 >
 > 1. As validações móveis são distribuídas pelas 4 sub-áreas da CM através do cálculo:
+>
 >    $$
 >    \text{Área CM} = \lfloor \text{RUN\_CODE} / 1000 \rfloor + 40
->
 >    $$
 >
 >    - `1xxx` $\rightarrow$ Código 41 $\rightarrow$ **Área 1 (A1)**
 >    - `2xxx` $\rightarrow$ Código 42 $\rightarrow$ **Área 2 (A2)**
 >    - `3xxx` $\rightarrow$ Código 43 $\rightarrow$ **Área 3 (A3)**
 >    - `4xxx` $\rightarrow$ Código 44 $\rightarrow$ **Área 4 (A4)**
+>
 > 2. **Apenas são considerados os títulos que já existem no Recibo B da CM**. Títulos não-Navegante (ex: ticket 33592) são automaticamente ignorados.
 
 **Query 2c ([`code/query_CM_fiscaismoveis.sql`](file:///c:/GIS/Compensacoes/code/query_CM_fiscaismoveis.sql)):**
@@ -618,46 +619,47 @@ $$
 
    $$
    \text{Estimativa Anual} = \frac{\text{Qty Total Mês}}{\text{Sazonalidade Mês}}
-   $$
 
+   $$
 3. **Percentagem de passes a compensar**:
 
    $$
    \text{Pct Compensar} = \min\left(1, \frac{\text{N\_PASSES\_COMPENSAR}}{\text{Estimativa Anual}}\right)
 
    $$
-
 4. **N.º de passes a compensar por título $i$**:
+
    $$
    \text{Passes Compensar}_i = \text{round}(\text{Pct Compensar} \times \text{Qty Total}_i)
-   $$
 
+   $$
 5. **COSP por título $i$**:
+
    $$
    \text{COSP}_i = \text{Passes Compensar}_i \times \text{Valor Médio Passe} \times (1 - \text{Retenção TML})
-   $$
 
+   $$
 6. **Distribuição por operador $j$ (D)**:
+
    $$
    \text{COSP}_{i,j} = \text{Quota}_{i,j} \times \text{COSP}_i \quad \Longrightarrow \quad D_j = \sum_i \text{COSP}_{i,j}
 
    $$
 
 > [!IMPORTANT]
-> **Esclarecimento metodológico: N.º de passes a compensar vs. volume real de passes do mês:**  
-> A quantidade total de **passes a compensar no mês** (total apurado na coluna de passes a compensar da Folha 5 / Tabela 5) **difere do volume real de passes** emitidos ou validados no mês:
+> **Esclarecimento metodológico: N.º de passes a compensar vs. volume real de passes do mês:**A quantidade total de **passes a compensar no mês** (total apurado na coluna de passes a compensar da Folha 5 / Tabela 5) **difere do volume real de passes** emitidos ou validados no mês:
+>
 > 1. Resulta da aplicação da **percentagem regulamentar de passes a compensar** ($\text{Pct Compensar} \le 100\%$) sobre o total real de passes do mês, sempre que a procura anual estimada (anualização pela sazonalidade mensal) excede o limite máximo regulamentar anual (`N_PASSES_COMPENSAR`, fixado em 8 472 279 passes).
-> 2. **Impacto crítico dos títulos gratuitos sem carregamento prévio (`Validations as Transactions` — VaT):**  
->    Títulos bonificados/gratuitos como Navegante Sub18+TP, Sub23+TP ou Navegante 12 Criança não geram receita de venda direta nas bilheteiras dos operadores ($A = 0$), mas **têm obrigatoriamente de ser somados à quantidade total de passes do mês** para efeito de apuramento da COSP.  
+> 2. **Impacto crítico dos títulos gratuitos sem carregamento prévio (`Validations as Transactions` — VaT):**
+>    Títulos bonificados/gratuitos como Navegante Sub18+TP, Sub23+TP ou Navegante 12 Criança não geram receita de venda direta nas bilheteiras dos operadores ($A = 0$), mas **têm obrigatoriamente de ser somados à quantidade total de passes do mês** para efeito de apuramento da COSP.
 >    Se estes títulos fossem omitidos do volume mensal, a procura anualizada estimada ficaria artificialmente reduzida (ficando abaixo do teto regulamentar anual), o que levaria o sistema a aplicar erradamente uma taxa de compensação de $100\%$ em vez do rácio proporcional inferior a $100\%$, desvirtuando os montantes regulamentares de compensação devidos a todos os operadores.
 
 > [!NOTE]
-> **Transtejo (TT) e Soflusa (SL) — Agregação vs. Detalhe por Rubrica:**  
-> Na Tabela 6 (Transferências Finais), a Transtejo (TT) e a Soflusa (SL) são apresentadas de forma consolidada num único montante conjunto (`TT + SL`).  
-> No entanto, no detalhe das etapas anteriores:
+> **Transtejo (TT) e Soflusa (SL) — Agregação vs. Detalhe por Rubrica:**Na Tabela 6 (Transferências Finais), a Transtejo (TT) e a Soflusa (SL) são apresentadas de forma consolidada num único montante conjunto (`TT + SL`).No entanto, no detalhe das etapas anteriores:
+>
 > - **Tabela 4 (Receita Bilheteira B devida):** TT e SL são apuradas individualmente por operador a partir das respetivas quotas dinâmicas;
-> - **Tabela 5 (COSP D por conta):** TT e SL são igualmente calculadas e discriminadas em separado.  
-> Ao validar os apuramentos, deve ter-se o cuidado metodológico de não comparar a COSP ($D$) com a Receita Bilheteira ($B$), pois tratam-se de parcelas financeiras de natureza distinta (uma é a repartição da receita tarifária arrecadada e a outra é a compensação de serviço público calculada com base no VMC e quotas).
+> - **Tabela 5 (COSP D por conta):** TT e SL são igualmente calculadas e discriminadas em separado.
+>   Ao validar os apuramentos, deve ter-se o cuidado metodológico de não comparar a COSP ($D$) com a Receita Bilheteira ($B$), pois tratam-se de parcelas financeiras de natureza distinta (uma é a repartição da receita tarifária arrecadada e a outra é a compensação de serviço público calculada com base no VMC e quotas).
 
 ### Script: `06_cosp_D.R`
 
