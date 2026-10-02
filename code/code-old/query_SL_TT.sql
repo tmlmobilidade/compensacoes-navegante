@@ -14,7 +14,7 @@
 ---- NÃO USAR MAIS ESTA QUERY, A PARTIR DE JULHO 2026, já não é necessário. ----------------------------------------
 -- ============================================================
 -- Query 2b → Separação TT (Transtejo) / SL (Soflusa)
--- Agrega por TICKET_CODE + RUN_CODE com as regras da fórmula da colega:
+-- Agrega por TICKET_CODE + RUN_CODE com as regras da fórmula usada anteriormente:
 --   - ENTITY_ID IN (5, 8)
 --   - TICKET_OPERATOR_CODE = 31
 --   - VALID_TYPE_ID = 0

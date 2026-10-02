@@ -84,7 +84,7 @@ PT_raw <- PT_raw |>
 # Alguns Recibos B (CA, TB) têm uma linha especial com ticket_operator_code=-1 e
 # ticket_code=-1 que representa passageiros de títulos gratuitos (VaT, ticket 1020
 # = Navegante 12 Criança, pvp=0) que o sistema não conseguiu associar a um ticket
-# específico. A colega inclui estes passageiros atribuindo-os ao ticket 1020.
+# específico. Estes passageiros são incluidos, atribuindo-os ao ticket 1020.
 # Apenas CA e TB têm operador_total > 0 nesta linha; todos os outros têm 0.
 PT_raw <- PT_raw |>
   dplyr::mutate(
@@ -100,7 +100,7 @@ PT_raw <- PT_raw |>
 stopifnot(all(c("ticket_code", "operador_total", "operador") %in% names(PT_raw)))
 
 # ---- Validações de fiscais móveis da CM (Portal VIVA - entity 23) ----------
-# A colega distribui pelas 4 áreas operacionais com base no RUN_CODE / AREA_CM:
+# São distribuidas pelas 4 áreas operacionais com base no RUN_CODE / AREA_CM:
 #   1xxx / 41 -> A1, 2xxx / 42 -> A2, 3xxx / 43 -> A3, 4xxx / 44 -> A4
 # Apenas títulos presentes no Recibo B da CM são considerados.
 usar_cm_viva <- !is.null(F_CM_VIVA_VALIDACOES) && file.exists(F_CM_VIVA_VALIDACOES)

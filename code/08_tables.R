@@ -908,7 +908,7 @@ qty_total_mes <- sum(rtd_raw$qty_total, na.rm = TRUE)
 estimativa_passes_anuais <- qty_total_mes / saz_mes
 pct_compensar <- min(1, N_PASSES_COMPENSAR / estimativa_passes_anuais)
 
-# Passes a compensar: somar os arredondamentos por título (igual à colega)
+# Passes a compensar: somar os arredondamentos por título (igual aos exemplos anteriores)
 # passes_compensar_i já foi arredondado à unidade em 06_cosp_D.R por título
 cosp_detail_raw <- read.csv2(F_COSP_D, stringsAsFactors = FALSE, dec = ",")
 for (col in c("qty_total_i", "passes_compensar_i", "COSP_i", "quota", "COSP_ij")) {
