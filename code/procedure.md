@@ -114,7 +114,7 @@ flowchart TD
 
 | Fase                                 | Script(s)                            | Designação Regulamentar                                                                                                                                                                                                   | Entradas Principais                                                                                | Saídas Principais                                                                                |
 | -------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| **1. Validações e Passageiros**    | `01_recibos_b.R`                     | Passageiros Transportados ($PT$) e Reconciliação                                                                                                                                                                          | Recibos B (`PTconsideredByProduct`), Oracle (`query_SL_TT.sql`, `query_CM_fiscaismoveis.sql`)      | `1a_PT_{SUFIXO}.csv`, `1b_PT_CM_{SUFIXO}.csv`, `1d_validacoes_{SUFIXO}.csv` (VaT)                 |
+| **1. Validações e Passageiros**    | `01_recibos_b.R`                     | Passageiros Transportados ($PT$) e Reconciliação                                                                                                                                                                          | Recibos B (`PTconsideredByProduct`), Oracle Fiscais Móveis CM (`query_CM_fiscaismoveis.sql`)      | `1a_PT_{SUFIXO}.csv`, `1b_PT_CM_{SUFIXO}.csv`, `1d_validacoes_{SUFIXO}.csv` (VaT)                 |
 | **2. Distâncias Médias**           | `02_distancias.R`                    | Distâncias Médias Percorridas ($\bar{d}_{i,j}$)                                                                                                                                                                           | Oracle APEX (`AVERAGE_DISTANCE`), tabelas de referência sazonal (`distanciasref_*.csv`)           | `1e_distancias_{SUFIXO}.csv`                                                                      |
 | **3. Quotas de Repartição**        | `03_quotas.R`                        | Quota de Repartição Dinâmica ($\text{Quota}_{i,j}$) | Passageiros Transportados ($PT$), Distâncias Médias ($\bar{d}$), Pesos PKM (`pesos_pkm.csv`)                                                                     | `1_quotas_{SUFIXO}.csv` (PKM, Quotas por título)                                                  |                                                                                                   |
 | **4. Vendas A e K**                  | `04_vendas_AK.R`                     | Apuramento de Vendas e Volume Global                                                                                                                                                                                        | Recibos B (`transactionsOperatorSystem`), Separação PV/ATM (`ReciboB_*_Separação_PV_ATM.xlsx`) | `2_vendas_A_{SUFIXO}.csv`, `2_vendas_K_{SUFIXO}.csv`, `4a_receita_titulo_distribuir_{SUFIXO}.csv` |
@@ -155,7 +155,7 @@ code/
 │
 ├── custom_styles.typ         # Estilos Typst: cabeçalhos, fundos e papel timbrado
 ├── linebreaks.lua            # Filtro Pandoc: quebras de linha e deteção de doc-tipo externo
-├── query_SL_TT.sql           # Query Oracle para separação TT/SL (Query 2b)
+├── query_SL_TT.sql           # Query Oracle para separação TT/SL (Query 2b — histórica / descontinuada)
 ├── query_CM_fiscaismoveis.sql# Query Oracle para fiscais móveis CM (Query 2c)
 └── templates/                # Modelos e recursos visuais oficiais (versionados no Git)
     ├── folha_1.pdf           # Fundo timbrado oficial da 1.ª página (vetorial)
@@ -270,72 +270,40 @@ Lê todos os Recibos B de todos os operadores e reconcilia dados da Oracle para 
 
 ---
 
-### Reconciliação Oracle: TT / SL e Carris Metropolitana
+### Reconciliação e Separações Especiais: TT / SL e Carris Metropolitana
 
-Para bater a 100% com as contas oficiais (folha Excel de validação), é necessário extrair dois ficheiros auxiliares da base de dados Oracle `PDBDWPROD` e colocá-los na pasta `{MES_ANO}_replicate/input/`:
+No apuramento oficial das validações ($PT$), há duas operações essenciais para garantir que os dados batem a 100% com o sistema bilhético:
 
-1. **Separação TT / SL**: [`code/query_SL_TT.sql`](file:///c:/GIS/Compensacoes/code/query_SL_TT.sql) (Query 2b)
-2. **Fiscais Móveis CM (Portal VIVA)**: [`code/query_CM_fiscaismoveis.sql`](file:///c:/GIS/Compensacoes/code/query_CM_fiscaismoveis.sql) (Query 2c)
+1. **Separação TT / SL**: Feita **diretamente via Recibos B do APEX** (`reg_SL_reciboB` e `reg_TT_reciboB`). A Query 2b (`query_SL_TT.sql`) foi **descontinuada** no fluxo regular.
+2. **Fiscais Móveis CM (Portal VIVA)**: [`code/query_CM_fiscaismoveis.sql`](file:///c:/GIS/Compensacoes/code/query_CM_fiscaismoveis.sql) (Query 2c) continua a ser extraída da base de dados Oracle `PDBDWPROD` e guardada em `{MES_ANO}_replicate/input/`.
 
 ```
 {MES_ANO}_replicate/input/
-├── tt_sl_*(timestamp).csv       ← gerado por query_SL_TT.sql
-├── entity23_*(timestamp).csv    ← gerado por query_CM_fiscaismoveis.sql
+├── entity23_*(timestamp).csv    ← gerado por query_CM_fiscaismoveis.sql (Portal VIVA)
 └── V_REG_AVERAGE_DISTANCE_FINAL_ALL_*(timestamp).csv ← distâncias APEX (CM e Cascais)
 ```
 
 ---
 
-#### 1. Separação TT (Transtejo) / SL (Soflusa) — Query 2b
+#### 1. Separação TT (Transtejo) / SL (Soflusa) — Direto via APEX (Recibos B)
 
-O Recibo B entregue pela Transtejo (**TT**) contém na coluna `OPERADOR_TOTAL` os passageiros **conjuntos de TT + SL** (os dois operadores fluviais partilham o mesmo Recibo B). O Recibo B separado de SL tem valores diferentes e duplicaria o SL se fosse somado.
+O Recibo B entregue pela Transtejo (**TT**) contém na coluna `OPERADOR_TOTAL` os passageiros **conjuntos de TT + SL** (os dois operadores fluviais partilham a mesma bilhética de cais e o Recibo B de TT agrega ambos). O Recibo B separado de Soflusa (**SL**) contém os passageiros apurados exclusivamente para a Soflusa (`ENTITY_ID = 8`).
 
-> [!IMPORTANT]
-> **Armadilha do `ENTITY_ID` na separação TT/SL:**Ao contrário do que seria intuitivo, **não se deve filtrar por `ENTITY_ID = 5` vs `ENTITY_ID = 8`**! Ambas as entidades têm validações registadas de forma cruzada nos cais.A metodologia oficial da TML (reproduzida da fórmula Excel prévio utiliza a **georreferenciação por `RUN_CODE`**:
->
-> - **`RUN_CODE = 7` $\rightarrow$ Soflusa (SL)** (ligação fluvial do Barreiro).
-> - **Todos os outros `RUN_CODE` (0, 1, 3, 5, 9) $\rightarrow$ Transtejo (TT)** (Cacilhas, Seixal, Montijo, Trafaria).
->
-> Além disso, é obrigatório filtrar:
->
-> - `VALID_TYPE_ID = 0` (exclui testes / validações de serviço)
-> - `VALBYPROF = 0` (exclui perfis profissionais especiais)
-> - `TICKET_OPERATOR_CODE = 31` (títulos Navegante)
+> [!NOTE]
+> **Metodologia de Separação no R ([`code/01_recibos_b.R`](file:///c:/GIS/Compensacoes/code/01_recibos_b.R)):**
+> 
+> * **Soflusa ($PT_{\text{SL}}$)**: retirado diretamente do Recibo B de Soflusa (`reg_SL_reciboB_PTconsideredByProduct_*.csv`).
+> * **Transtejo ($PT_{\text{TT}}$)**: calculado por subtração título a título:
+>   $$PT_{\text{TT}} = PT_{\text{Recibo B (TT)}} - PT_{\text{Recibo B (SL)}}$$
+> 
+> Desta forma, assegura-se rigorosamente que $PT_{\text{TT}} + PT_{\text{SL}} = PT_{\text{Recibo B (TT)}}$ ao passageiro unitário em todos os títulos, sem truncaturas nem distorções de arredondamento.
 
-**Query 2b ([`code/query_SL_TT.sql`](file:///c:/GIS/Compensacoes/code/query_SL_TT.sql)):**
-
-```sql
-SELECT
-    DISTRIBUTION_YEAR,
-    DISTRIBUTION_MONTH,
-    TICKET_OPERATOR_CODE,
-    TICKET_CODE,
-    ENTITY_ID,
-    RUN_CODE,
-    VALID_TYPE_ID,
-    VALBYPROF,
-    SUM(QNT_VALIDATION) AS PT_VALIDACOES
-FROM DW_PROC.F_VALIDATIONS
-WHERE DISTRIBUTION_YEAR  = <ANO>
-  AND DISTRIBUTION_MONTH = <MES>
-  AND ENTITY_ID IN (5, 8)          -- 5=TT (Transtejo), 8=SL (Soflusa)
-  AND TICKET_OPERATOR_CODE = 31    -- Navegante
-  AND VALID_TYPE_ID = 0
-  AND VALBYPROF = 0
-GROUP BY
-    DISTRIBUTION_YEAR,
-    DISTRIBUTION_MONTH,
-    TICKET_OPERATOR_CODE,
-    TICKET_CODE,
-    ENTITY_ID,
-    RUN_CODE,
-    VALID_TYPE_ID,
-    VALBYPROF
-ORDER BY TICKET_CODE, ENTITY_ID, RUN_CODE;
-```
-
-- **Gravar em `input/` como:** `tt_sl_*(timestamp).csv` (ex: `tt_sl_202609111613.csv`).
-- **Como o script calcula:** O total oficial de TT+SL é ancorado ao Recibo B de TT (`OPERADOR_TOTAL`). Os registos da Oracle fornecem apenas o *rateio percentual* entre TT e SL para cada título, assegurando que `TT + SL = Recibo B de TT` ao passageiro exato.
+> [!WARNING]
+> **Descontinuação da Regra Antiga (`RUN_CODE = 7`) e da Query 2b:**
+> 
+> * **O que acontecia antes:** Na fórmula Excel prévia, a Soflusa era filtrada apenas por `RUN_CODE = 7` (ferry Barreiro – Terreiro do Paço) a partir de uma query Oracle (`query_SL_TT.sql`).
+> * **Porque foi corrigido:** Na tabela `DW_PROC.F_VALIDATIONS`, a Soflusa (`ENTITY_ID = 8`) tem validações com `RUN_CODE = 7` e também com `RUN_CODE = 0` (validações fixas de cais no terminal do Barreiro não associadas a uma viagem específica). A regra antiga desconsiderava essas validações de `RUN_CODE = 0`, subtraindo-as erradamente para a Transtejo (~22.000 a 26.000 validações mensais em falta na Soflusa).
+> * **Nova abordagem:** Os Recibos B do APEX já filtram a Soflusa com base em `ENTITY_ID = 8` (incluindo `RUN_CODE = 0` e `7`). Por isso, a separação direta dos Recibos B no R é mais precisa, elimina trabalho manual e torna desnecessário executar o script SQL mensalmente.
 
 ---
 
@@ -399,9 +367,8 @@ ORDER BY TICKET_CODE, AREA_CM;
 > **Armadilha do Limite de 200 Linhas no Oracle SQL Developer:**Por omissão, o SQL Developer limita a busca em grelha a 200 registos. Se uma consulta devolver mais de 200 linhas e for exportada sem fazer scroll até ao fim, **o ficheiro CSV fica truncado em 200 linhas**, corrompendo os dados!**Como foi resolvido**:
 > As consultas foram pré-agrupadas e otimizadas no SQL:
 >
-> - `query_SL_TT.sql` devolve apenas ~93 linhas.
-> - `query_CM_fiscaismoveis.sql` devolve apenas ~47 linhas.
->   Ambas ficam muito abaixo do limite de 200 linhas e podem ser exportadas diretamente em CSV com total segurança.
+> - `query_CM_fiscaismoveis.sql` devolve apenas ~47 linhas (muito abaixo do limite de 200 linhas).
+> - `query_SL_TT.sql` (descontinuada do fluxo regular; devolvia ~93 linhas).
 
 > [!TIP]
 > **Regra de Seleção Automática de Ficheiros:**
@@ -414,7 +381,7 @@ ORDER BY TICKET_CODE, AREA_CM;
 > Esta regra aplica-se de forma uniforme e transversal a:
 >
 > - **Distâncias médias APEX**: qualquer ficheiro com `AVERAGE_DISTANCE` no nome (ex.: `PDBDWPROD_V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv` ou `V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv`; ficheiros como `distancias_dinamicas` são ignorados);
-> - **Tabelas de validações TT / SL**: ficheiros com `tt_sl` no nome (ex.: `tt_sl_*.csv`);
+> - **Tabelas de validações TT / SL (fallback)**: caso não exista Recibo B de SL, ficheiros com `tt_sl` no nome (ex.: `tt_sl_*.csv`);
 > - **Tabelas de fiscais móveis CM**: ficheiros com `entity23` no nome (ex.: `entity23_*.csv`).
 
 **Comportamento em Fallback (se os ficheiros não existirem em `input/`):**
