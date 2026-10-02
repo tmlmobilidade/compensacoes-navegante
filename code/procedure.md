@@ -17,8 +17,8 @@ flowchart TD
     %% -------------------------------------------------------------------------
     subgraph IN["1. Fontes de Dados e Entradas"]
         direction TB
-        IN_RECIBOS["Recibos B dos Operadores\n- Validações de passageiros (PT)\n- Vendas de bilheteira (Canais A)\n- Títulos sem carregamento prévio (VaT)"]
-        IN_ORACLE["Extrações Oracle PDBDWPROD\n- Distâncias médias APEX (CM e CAP)\n- Rateio TT / SL por RUN_CODE (Query 2b)\n- Fiscais móveis CM / Portal VIVA (Query 2c)"]
+        IN_RECIBOS["Recibos B dos Operadores (APEX)\n- Validações de passageiros (PT)\n- Separação direta TT e SL via Recibos B\n- Vendas de bilheteira (Canais A)\n- Títulos sem carregamento prévio (VaT)"]
+        IN_ORACLE["Extrações Oracle PDBDWPROD\n- Distâncias médias APEX (CM e CAP)\n- Fiscais móveis CM / Portal VIVA (Query 2c)\n- (Rateio TT / SL descontinuado / fallback)"]
         IN_K["Canais Partilhados TML (K)\n- Ficheiro de separação PV e ATM\n(Portal VIVA e SIBS / Multibanco)"]
         IN_LISTS["Tabelas Regulamentares (lists/)\n- Distâncias de referência (ago21 / out21)\n- Pesos operacionais PKM por operador\n- TAT anual, Sazonalidade COSP e VMC"]
     end
@@ -28,7 +28,7 @@ flowchart TD
     %% -------------------------------------------------------------------------
     subgraph QUOTAS_STEP["2. Quotas de Repartição Dinâmica"]
         direction TB
-        P01["01_recibos_b.R\n- Limpeza e filtros regulamentares\n- Separação TT vs. SL por RUN_CODE\n- Integração fiscais móveis CM (A1 a A4)\n→ Gera PT_ij e Validações VaT_i"]
+        P01["01_recibos_b.R\n- Limpeza e filtros regulamentares\n- Separação direta TT e SL (Recibos B APEX)\n- Integração fiscais móveis CM (A1 a A4)\n→ Gera PT_ij e Validações VaT_i"]
         P02["02_distancias.R\n- Hierarquia regulamentar de distâncias:\n  1. APEX dinâmicas (CM e CAP)\n  2. Distâncias ref estáticas (verão/outros)\n→ Gera Distância Média d_ij"]
         P03["03_quotas.R\n- PKM_ij = PT_ij × d_ij\n- Quota Raw_ij = Peso_j × PKM_ij\n- Quota_ij = Raw_ij / ∑ Raw_ik\n(com fallback para Quota Global se PKM = 0)\n→ Gera Quota Dinâmica Quota_ij"]
     

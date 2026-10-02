@@ -49,11 +49,14 @@ Executar as queries e guardar os CSVs (separador `;`) em `08_ago_2026_replicate/
 | Ficheiro a gravar em`input/`                       | Consulta / Script                                                                                                   | Objetivo                                                                                        |
 | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | `V_REG_AVERAGE_DISTANCE_FINAL_ALL_<timestamp>.csv` | `SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = 8 AND distribution_year = 2026;` | Distâncias médias dinâmicas APEX para Carris Metropolitana (`75`) e Cascais Próxima (`22`). |
-| `tt_sl_<timestamp>.csv`                            | [`code/query_SL_TT.sql`](code/query_SL_TT.sql)                                                                      | Rácios de georreferenciação por`RUN_CODE` para separar Transtejo (`TT`) de Soflusa (`SL`).   |
 | `entity23_<timestamp>.csv`                         | [`code/query_CM_fiscaismoveis.sql`](code/query_CM_fiscaismoveis.sql)                                                | Validações em terminais móveis dos fiscais da Carris Metropolitana (`ENTITY_ID = 23`).       |
 
+> [!NOTE]
+> **Separação Transtejo (TT) / Soflusa (SL) direta via APEX:**
+> O APEX emite o Recibo B separado da Soflusa (`reg_SL_reciboB`) e o conjunto TT+SL (`reg_TT_reciboB`). Por isso, a separação é feita **diretamente no R** ($PT_{\text{SL}} = \text{Recibo B (SL)}$ e $PT_{\text{TT}} = \text{Recibo B (TT)} - \text{Recibo B (SL)}$), sendo **desnecessário** executar a consulta [`code/query_SL_TT.sql`](code/query_SL_TT.sql) ou descarregar ficheiros `tt_sl_*.csv` na rotina mensal (mantidos apenas como fallback histórico).
+
 > [!TIP]
-> O script seleciona automaticamente o ficheiro com o **timestamp numérico mais recente**. Para substituir um ficheiro sem apagar o anterior, adiciona `_update` ao nome (ex: `tt_sl_202608151400_update.csv`) — os ficheiros `_update` têm **prioridade automática**.
+> O script seleciona automaticamente o ficheiro com o **timestamp numérico mais recente**. Para substituir um ficheiro sem apagar o anterior, adiciona `_update` ao nome (ex: `entity23_202608151400_update.csv`) — os ficheiros `_update` têm **prioridade automática**.
 
 ### 3. Registar a `load_version` do mês em `lists/load_versions.csv`
 
@@ -240,7 +243,6 @@ Compensacoes/
 │   ├── utils_extenso.R           # Funções auxiliares para montantes por extenso em euros
 │   ├── custom_styles.typ         # Estilos Typst: cabeçalhos, fundos e papel timbrado
 │   ├── linebreaks.lua            # Filtro Pandoc (quebras de linha e deteção de doc-tipo externo)
-│   ├── query_SL_TT.sql           # Query Oracle para separação TT / SL (Query 2b)
 │   ├── query_CM_fiscaismoveis.sql# Query Oracle para validações fiscais CM (Query 2c)
 │   └── templates/                # Modelos e recursos visuais institucionais (versionados no Git)
 │       ├── folha_1.pdf           # Papel timbrado oficial TML (1.ª página, vetorial)
