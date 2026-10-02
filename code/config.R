@@ -144,13 +144,11 @@ F_APEX_DISTANCIAS <- selecionar_ficheiro_recente(
   pattern_pref = "AVERAGE_DISTANCE.*\\.csv$"
 )
 
-# Ficheiro Oracle com validações TT (entity 5) e SL (entity 8) — query 2b de query_SL_TT.sql
-# Exportado de PDBDWPROD: DW_PROC.F_VALIDATIONS com ENTITY_ID IN (5,8), TICKET_OPERATOR_CODE=31
-# Padrão: tt_sl_*(timestamp).csv (ou fallback validacoes_TT_SL / TICKET_OPERATOR)
-TT_ENTITY_ID <- 5L    # Tâmega e Tua
-SL_ENTITY_ID <- 8L    # Soflusa / Barreiro
-SL_RUN_CODE  <- 7L    # RUN_CODE do ferry Soflusa/Barreiro — identifica validações SL
-                      # (RUN_CODE != 7 → TT; metodologia da colega via georreferenciação)
+# Ficheiro Oracle com validações TT (entity 5) e SL (entity 8) — query 2b de query_SL_TT.sql (FALLBACK)
+# NOTA: No fluxo principal, TT e SL são separados directamente através dos Recibos B do APEX.
+# Este ficheiro só é utilizado se não existir Recibo B de SL.
+TT_ENTITY_ID <- 5L    # Transtejo (TT)
+SL_ENTITY_ID <- 8L    # Soflusa (SL)
 
 F_TT_SL_VALIDACOES <- selecionar_ficheiro_recente(
   c(INPUT_DIR, REPLICATE_DIR),
