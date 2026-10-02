@@ -113,11 +113,17 @@ numero_oficio2    <- "TML-YYYY-YYYY-OF-YYYY-DEP"
 
 > A `load_version` é lida automaticamente de [`lists/load_versions.csv`](lists/load_versions.csv) (ver passo 3). Os campos de autoria (`de_pessoa1_nome`, etc.) raramente mudam — só atualizar se houver alteração de intervenientes.
 
-### 6. Verificar pré-requisitos do sistema (apenas uma vez por máquina)
+### 6. Verificar pré-requisitos e restaurar ambiente R (`renv`)
 
 - **R** ≥ 4.3 instalado.
 - **Quarto CLI** ([quarto.org](https://quarto.org)) instalado e acessível em linha de comandos (`quarto --version`).
-- Pacotes R instalados: `Rscript code/00_setup.R` (instala `tidyverse`, `readxl`, `writexl`, `janitor`, `glue`, `here`, `lubridate`, `scales`, `openxlsx`, `tinytable`).
+- **Restaurar ambiente de pacotes R com `renv`**:
+  O projecto utiliza `renv` para garantir que as versões exatas de todos os pacotes são replicáveis:
+  ```r
+  # No terminal ou na consola R:
+  renv::restore()
+  ```
+  *(Em alternativa, `Rscript code/00_setup.R` também pode ser usado para verificar ou carregar os pacotes base).*
 - (Opcional) **PDF24 Toolbox** instalado em `C:/Program Files/PDF24/` para conversão PDF → Word.
 
 ---
@@ -213,10 +219,62 @@ Os resultados são gerados na pasta `{MES}_{mes_abrev}_{ANO}_replicate/output/` 
 
 ---
 
+## 🏷️ Fecho do Mês e Criação de Tag Git (Congelamento de Versão)
+
+Após executar o pipeline com sucesso, validar as tabelas de compensação e emitir os documentos finais do mês (PDFs/DOCX e Excel), deve-se **congelar o estado exato do código e das dependências** através de um commit de fecho e uma **tag Git**.
+
+Isto permite que, no futuro (para auditorias, conferência ou recálculos), seja possível voltar a este instante com a certeza matemática de obter exatamente os mesmos resultados.
+
+### 1. Registar o estado dos ficheiros e pacotes
+Se tiveres instalado ou atualizado algum pacote durante o mês, atualiza o snapshot do `renv`:
+```r
+renv::snapshot()
+```
+
+Faz o commit das alterações de configuração, parâmetros do mês e lockfile:
+```bash
+git add code/config.R code/doc_params.R lists/load_versions.csv renv.lock
+git commit -m "feat(fecho): fecho de contas e documentos de Agosto 2026"
+```
+
+### 2. Criar a Tag Git correspondente ao mês
+Cria uma tag anotada com o identificador do mês:
+```bash
+# Formato padrão: run-AAAA-MM-<mes>
+git tag -a run-2026-08-ago -m "Estimativa final de contas de Agosto 2026"
+```
+
+Enviar as alterações e a tag para o repositório remoto:
+```bash
+git push origin main --tags
+```
+
+### 3. Como reproduzir um mês anterior no futuro
+Se for necessário auditar ou recalcular um mês antigo (ex: Maio de 2026):
+```bash
+# 1. Mudar para a tag desse mês
+git checkout run-2026-05-mai
+
+# 2. Restaurar o ambiente exato de pacotes R da altura
+Rscript -e "renv::restore()"
+
+# 3. Executar os cálculos
+Rscript code/99_run_all.R
+```
+Para regressar ao ramo principal de trabalho:
+```bash
+git checkout main
+Rscript -e "renv::restore()"
+```
+
+---
+
 ## 📁 Estrutura do Repositório
 
 ```
 Compensacoes/
+├── renv.lock                     # Snapshot de versões exatas de todos os pacotes R (reprodutibilidade)
+├── renv/                         # Definições e script de ativação do renv
 ├── code/
 │   ├── config.R                  # Configuração global de caminhos, parâmetros e flags de documentos
 │   ├── 00_setup.R                # Gestão e instalação de dependências R
