@@ -243,6 +243,31 @@ st_total_pct <- createStyle(
   border = "TopBottomLeftRight", borderColour = cor_border, fontSize = 9
 )
 
+# Estilos base vectorizados para tabelas extensas (elimina loops lentos célula a célula)
+st_cod <- createStyle(
+  fgFill = cor_white, fontColour = cor_darkgray, halign = "center",
+  border = "LeftRight", borderColour = cor_border_soft, fontSize = 9
+)
+st_desig <- createStyle(
+  fgFill = cor_white, fontColour = cor_darkgray, halign = "left",
+  border = "LeftRight", borderColour = cor_border_soft, fontSize = 9
+)
+st_curr <- createStyle(
+  fgFill = cor_white, fontColour = cor_darkgray, numFmt = "#,##0.00", halign = "right",
+  border = "LeftRight", borderColour = cor_border_soft, fontSize = 9
+)
+st_pct <- createStyle(
+  fgFill = cor_white, fontColour = cor_darkgray, numFmt = "0.0000%", halign = "right",
+  border = "LeftRight", borderColour = cor_border_soft, fontSize = 9
+)
+st_int <- createStyle(
+  fgFill = cor_white, fontColour = cor_darkgray, numFmt = "#,##0", halign = "right",
+  border = "LeftRight", borderColour = cor_border_soft, fontSize = 9
+)
+st_alt   <- createStyle(fgFill = cor_alt_row)
+st_zero  <- createStyle(fontColour = cor_gray_text)
+st_inact <- createStyle(fontColour = cor_gray_text)
+
 st_param_lbl <- createStyle(
   fgFill = cor_op_col, textDecoration = "bold",
   halign = "left", border = "TopBottomLeftRight",
@@ -512,35 +537,15 @@ setRowHeights(wb, ws_q, rows = 2, heights = 32)
 # Dados
 writeData(wb, ws_q, x = quotas_out, startRow = 3, startCol = 1, colNames = FALSE)
 
-n_q_rows <- nrow(quotas_out)
-for (i in seq_len(n_q_rows)) {
-  rw <- i + 2
-  fg <- if (i %% 2 == 0) cor_alt_row else cor_white
+n_q_rows  <- nrow(quotas_out)
+r_range_q <- 3:(n_q_rows + 2)
+even_rq   <- r_range_q[(seq_len(n_q_rows) %% 2 == 0)]
 
-  # Código e Designação sempre a cor normal
-  addStyle(wb, ws_q, createStyle(fgFill = fg, fontColour = cor_darkgray, halign = "center", border = "LeftRight",
-                                 borderColour = cor_border_soft, fontSize = 9),
-           rows = rw, cols = 1)
-  addStyle(wb, ws_q, createStyle(fgFill = fg, fontColour = cor_darkgray, halign = "left", border = "LeftRight",
-                                 borderColour = cor_border_soft, fontSize = 9),
-           rows = rw, cols = 2)
-
-  # Quotas dos operadores: se 0,00%, mostrar a cinzento claro; caso contrário em preto
-  for (j in seq_along(ordem_ops_sep)) {
-    c_idx <- 2 + j
-    val_q <- quotas_out[[ordem_ops_sep[j]]][i]
-    f_col <- if (!is.na(val_q) && val_q == 0) cor_gray_text else cor_darkgray
-
-    addStyle(wb, ws_q, createStyle(fgFill = fg, fontColour = f_col, numFmt = "0.0000%", halign = "right",
-                                   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = c_idx)
-  }
-
-  # Coluna Total Quota sempre a preto (cor normal)
-  addStyle(wb, ws_q, createStyle(fgFill = fg, fontColour = cor_darkgray, numFmt = "0.0000%", halign = "right",
-                                 border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-           rows = rw, cols = n_q_cols)
-}
+addStyle(wb, ws_q, st_cod,   rows = r_range_q, cols = 1, gridExpand = TRUE)
+addStyle(wb, ws_q, st_desig, rows = r_range_q, cols = 2, gridExpand = TRUE)
+addStyle(wb, ws_q, st_pct,   rows = r_range_q, cols = 3:n_q_cols, gridExpand = TRUE)
+addStyle(wb, ws_q, st_alt,   rows = even_rq,   cols = 1:n_q_cols, gridExpand = TRUE, stack = TRUE)
+conditionalFormatting(wb, ws_q, cols = 3:(n_q_cols - 1), rows = r_range_q, rule = "==0", style = st_zero)
 
 setColWidths(wb, ws_q, cols = 1, widths = 8)
 setColWidths(wb, ws_q, cols = 2, widths = 34)
@@ -564,8 +569,12 @@ pivot_ops_wide <- function(df, val_col) {
 
 # Escreve um bloco wide (título, cabeçalho, dados) a partir de start_col
 write_ops_block <- function(df_out, start_col, titulo, headers, num_fmt) {
-  n_c  <- ncol(df_out)
-  cols <- start_col:(start_col + n_c - 1)
+  n_c     <- ncol(df_out)
+  cols    <- start_col:(start_col + n_c - 1)
+  n_r     <- nrow(df_out)
+  r_range <- 3:(n_r + 2)
+  even_r  <- r_range[(seq_len(n_r) %% 2 == 0)]
+
   mergeCells(wb, ws_q, rows = 1, cols = cols)
   writeData(wb, ws_q, x = titulo, startRow = 1, startCol = start_col)
   addStyle(wb, ws_q, st_title, rows = 1, cols = cols, gridExpand = TRUE)
@@ -574,16 +583,13 @@ write_ops_block <- function(df_out, start_col, titulo, headers, num_fmt) {
   addStyle(wb, ws_q, st_header_gold, rows = 2, cols = cols, gridExpand = TRUE)
 
   writeData(wb, ws_q, x = df_out, startRow = 3, startCol = start_col, colNames = FALSE)
-  for (i in seq_len(nrow(df_out))) {
-    fg <- if (i %% 2 == 0) cor_alt_row else cor_white
-    for (j in seq_len(n_c)) {
-      v     <- df_out[[j]][i]
-      f_col <- if (!is.na(v) && v == 0) cor_gray_text else cor_darkgray
-      addStyle(wb, ws_q, createStyle(fgFill = fg, fontColour = f_col, numFmt = num_fmt, halign = "right",
-                                     border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-               rows = i + 2, cols = cols[j])
-    }
-  }
+
+  st_col <- createStyle(fgFill = cor_white, fontColour = cor_darkgray, numFmt = num_fmt, halign = "right",
+                        border = "LeftRight", borderColour = cor_border_soft, fontSize = 9)
+  addStyle(wb, ws_q, st_col, rows = r_range, cols = cols, gridExpand = TRUE)
+  addStyle(wb, ws_q, st_alt, rows = even_r,  cols = cols, gridExpand = TRUE, stack = TRUE)
+  conditionalFormatting(wb, ws_q, cols = cols, rows = r_range, rule = "==0", style = st_zero)
+
   setColWidths(wb, ws_q, cols = cols, widths = 12)
   invisible(max(cols))
 }
@@ -836,39 +842,26 @@ setRowHeights(wb, ws_ak, rows = row_det + 1, heights = 32)
 
 writeData(wb, ws_ak, x = detalhe_ak_full, startRow = row_det + 2, startCol = 1, colNames = FALSE)
 
-n_det <- nrow(detalhe_ak_full)
-for (i in seq_len(n_det)) {
-  rw <- row_det + 1 + i
-  is_tot <- (i == n_det)
-  fg <- if (is_tot) cor_gold_light else if (i %% 2 == 0) cor_alt_row else cor_white
-  txt_dec <- if (is_tot) "bold" else NULL
+n_det   <- nrow(detalhe_ak_full)
+n_data  <- n_det - 1
+r_data  <- (row_det + 2):(row_det + 1 + n_data)
+rw_tot  <- row_det + 1 + n_det
+even_rd <- r_data[(seq_len(n_data) %% 2 == 0)]
 
-  if (is_tot) {
-    addStyle(wb, ws_ak, st_total_lbl, rows = rw, cols = 1:2, gridExpand = TRUE)
-    addStyle(wb, ws_ak, st_total_lbl, rows = rw, cols = 3)
-    addStyle(wb, ws_ak, st_total_int, rows = rw, cols = c(4, 6, 8), gridExpand = TRUE)
-    addStyle(wb, ws_ak, st_total_num, rows = rw, cols = c(5, 7, 9), gridExpand = TRUE)
-  } else {
-    t_cod <- detalhe_ak_full$ticket_code[i]
-    f_col <- if (!is.na(t_cod) && t_cod %in% titulos_inativos) cor_gray_text else cor_darkgray
+addStyle(wb, ws_ak, st_cod,   rows = r_data, cols = 1, gridExpand = TRUE)
+addStyle(wb, ws_ak, st_desig, rows = r_data, cols = 2, gridExpand = TRUE)
+addStyle(wb, ws_ak, st_curr,  rows = r_data, cols = c(3, 5, 7, 9), gridExpand = TRUE)
+addStyle(wb, ws_ak, st_int,   rows = r_data, cols = c(4, 6, 8), gridExpand = TRUE)
+addStyle(wb, ws_ak, st_alt,   rows = even_rd, cols = 1:9, gridExpand = TRUE, stack = TRUE)
 
-    addStyle(wb, ws_ak, createStyle(fgFill = fg, fontColour = f_col, halign = "center", border = "LeftRight",
-                                   borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 1)
-    addStyle(wb, ws_ak, createStyle(fgFill = fg, fontColour = f_col, halign = "left", border = "LeftRight",
-                                   borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 2)
-    addStyle(wb, ws_ak, createStyle(fgFill = fg, fontColour = f_col, numFmt = "#,##0.00", halign = "right",
-                                   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 3)
-    addStyle(wb, ws_ak, createStyle(fgFill = fg, fontColour = f_col, numFmt = "#,##0", halign = "right",
-                                   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = c(4, 6, 8), gridExpand = TRUE)
-    addStyle(wb, ws_ak, createStyle(fgFill = fg, fontColour = f_col, numFmt = "#,##0.00", halign = "right",
-                                   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = c(5, 7, 9), gridExpand = TRUE)
-  }
+idx_inact <- which(detalhe_ak_full$ticket_code[1:n_data] %in% titulos_inativos)
+if (length(idx_inact) > 0) {
+  addStyle(wb, ws_ak, st_inact, rows = r_data[idx_inact], cols = 1:9, gridExpand = TRUE, stack = TRUE)
 }
+
+addStyle(wb, ws_ak, st_total_lbl, rows = rw_tot, cols = 1:3, gridExpand = TRUE)
+addStyle(wb, ws_ak, st_total_int, rows = rw_tot, cols = c(4, 6, 8), gridExpand = TRUE)
+addStyle(wb, ws_ak, st_total_num, rows = rw_tot, cols = c(5, 7, 9), gridExpand = TRUE)
 
 setColWidths(wb, ws_ak, cols = 1, widths = 8)
 setColWidths(wb, ws_ak, cols = 2, widths = 32)
@@ -1032,33 +1025,24 @@ if (!is.null(rep_b_raw)) {
   writeData(wb, ws_b, x = rec_b_wide_out, startRow = rw_det_b + 2, startCol = 1, colNames = FALSE)
 
   n_det_b_rows <- nrow(rec_b_wide_out)
-  for (i in seq_len(n_det_b_rows)) {
-    rw     <- rw_det_b + 1 + i
-    is_tot <- (i == n_det_b_rows)
-    fg     <- if (is_tot) cor_gold_light else if (i %% 2 == 0) cor_alt_row else cor_white
+  n_data_b     <- n_det_b_rows - 1
+  r_data_b     <- (rw_det_b + 2):(rw_det_b + 1 + n_data_b)
+  rw_tot_b     <- rw_det_b + 1 + n_det_b_rows
+  even_rdb     <- r_data_b[(seq_len(n_data_b) %% 2 == 0)]
 
-    if (is_tot) {
-      addStyle(wb, ws_b, st_total_lbl, rows = rw, cols = 1:2, gridExpand = TRUE)
-      addStyle(wb, ws_b, st_total_num, rows = rw, cols = 3:n_det_b_cols, gridExpand = TRUE)
-    } else {
-      t_cod <- rec_b_wide_out$ticket_code[i]
-      f_col <- if (!is.na(t_cod) && t_cod %in% titulos_inativos) cor_gray_text else cor_darkgray
+  addStyle(wb, ws_b, st_cod,   rows = r_data_b, cols = 1, gridExpand = TRUE)
+  addStyle(wb, ws_b, st_desig, rows = r_data_b, cols = 2, gridExpand = TRUE)
+  addStyle(wb, ws_b, st_curr,  rows = r_data_b, cols = 3:n_det_b_cols, gridExpand = TRUE)
+  addStyle(wb, ws_b, st_alt,   rows = even_rdb, cols = 1:n_det_b_cols, gridExpand = TRUE, stack = TRUE)
+  conditionalFormatting(wb, ws_b, cols = 3:n_det_b_cols, rows = r_data_b, rule = "==0", style = st_zero)
 
-      addStyle(wb, ws_b, createStyle(fgFill = fg, fontColour = f_col, halign = "center", border = "LeftRight",
-                                     borderColour = cor_border_soft, fontSize = 9),
-               rows = rw, cols = 1)
-      addStyle(wb, ws_b, createStyle(fgFill = fg, fontColour = f_col, halign = "left", border = "LeftRight",
-                                     borderColour = cor_border_soft, fontSize = 9),
-               rows = rw, cols = 2)
-      for (c_idx in 3:n_det_b_cols) {
-        val_c <- rec_b_wide_out[[c_idx]][i]
-        f_c   <- if (!is.na(val_c) && val_c == 0) cor_gray_text else f_col
-        addStyle(wb, ws_b, createStyle(fgFill = fg, fontColour = f_c, numFmt = "#,##0.00", halign = "right",
-                                       border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-                 rows = rw, cols = c_idx)
-      }
-    }
+  idx_inact_b <- which(rec_b_wide_out$ticket_code[1:n_data_b] %in% titulos_inativos)
+  if (length(idx_inact_b) > 0) {
+    addStyle(wb, ws_b, st_inact, rows = r_data_b[idx_inact_b], cols = 1:n_det_b_cols, gridExpand = TRUE, stack = TRUE)
   }
+
+  addStyle(wb, ws_b, st_total_lbl, rows = rw_tot_b, cols = 1:2, gridExpand = TRUE)
+  addStyle(wb, ws_b, st_total_num, rows = rw_tot_b, cols = 3:n_det_b_cols, gridExpand = TRUE)
 
   setColWidths(wb, ws_b, cols = 7:n_det_b_cols, widths = 14)
 }
@@ -1305,36 +1289,27 @@ setRowHeights(wb, ws_cosp, rows = rw_det_cosp + 1, heights = 40)
 
 writeData(wb, ws_cosp, x = cosp_wide_out, startRow = rw_det_cosp + 2, startCol = 1, colNames = FALSE)
 
-n_det_rows <- nrow(cosp_wide_out)
-for (i in seq_len(n_det_rows)) {
-  rw     <- rw_det_cosp + 1 + i
-  is_tot <- (i == n_det_rows)
-  fg     <- if (is_tot) cor_gold_light else if (i %% 2 == 0) cor_alt_row else cor_white
-  col_ops_start <- 6
-  col_ops_end   <- n_det_cols
+n_det_rows  <- nrow(cosp_wide_out)
+n_data_cosp <- n_det_rows - 1
+r_data_cosp <- (rw_det_cosp + 2):(rw_det_cosp + 1 + n_data_cosp)
+rw_tot_cosp <- rw_det_cosp + 1 + n_det_rows
+even_rdc    <- r_data_cosp[(seq_len(n_data_cosp) %% 2 == 0)]
 
-  if (is_tot) {
-    addStyle(wb, ws_cosp, st_total_lbl, rows = rw, cols = 1:2, gridExpand = TRUE)
-    addStyle(wb, ws_cosp, st_total_int, rows = rw, cols = 3:4, gridExpand = TRUE)
-    addStyle(wb, ws_cosp, st_total_num, rows = rw, cols = 5:n_det_cols, gridExpand = TRUE)
-  } else {
-    t_cod <- cosp_wide_out$ticket_code[i]
-    f_col <- if (!is.na(t_cod) && t_cod %in% titulos_inativos) cor_gray_text else cor_darkgray
+addStyle(wb, ws_cosp, st_cod,   rows = r_data_cosp, cols = 1, gridExpand = TRUE)
+addStyle(wb, ws_cosp, st_desig, rows = r_data_cosp, cols = 2, gridExpand = TRUE)
+addStyle(wb, ws_cosp, st_int,   rows = r_data_cosp, cols = 3:4, gridExpand = TRUE)
+addStyle(wb, ws_cosp, st_curr,  rows = r_data_cosp, cols = 5:n_det_cols, gridExpand = TRUE)
+addStyle(wb, ws_cosp, st_alt,   rows = even_rdc,    cols = 1:n_det_cols, gridExpand = TRUE, stack = TRUE)
+conditionalFormatting(wb, ws_cosp, cols = 3:n_det_cols, rows = r_data_cosp, rule = "==0", style = st_zero)
 
-    addStyle(wb, ws_cosp, createStyle(fgFill = fg, fontColour = f_col, halign = "center", border = "LeftRight",
-                                      borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 1)
-    addStyle(wb, ws_cosp, createStyle(fgFill = fg, fontColour = f_col, halign = "left", border = "LeftRight",
-                                      borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 2)
-    addStyle(wb, ws_cosp, createStyle(fgFill = fg, fontColour = f_col, numFmt = "#,##0", halign = "right",
-                                      border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 3:4, gridExpand = TRUE)
-    addStyle(wb, ws_cosp, createStyle(fgFill = fg, fontColour = f_col, numFmt = "#,##0.00", halign = "right",
-                                      border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 5:n_det_cols, gridExpand = TRUE)
-  }
+idx_inact_cosp <- which(cosp_wide_out$ticket_code[1:n_data_cosp] %in% titulos_inativos)
+if (length(idx_inact_cosp) > 0) {
+  addStyle(wb, ws_cosp, st_inact, rows = r_data_cosp[idx_inact_cosp], cols = 1:n_det_cols, gridExpand = TRUE, stack = TRUE)
 }
+
+addStyle(wb, ws_cosp, st_total_lbl, rows = rw_tot_cosp, cols = 1:2, gridExpand = TRUE)
+addStyle(wb, ws_cosp, st_total_int, rows = rw_tot_cosp, cols = 3:4, gridExpand = TRUE)
+addStyle(wb, ws_cosp, st_total_num, rows = rw_tot_cosp, cols = 5:n_det_cols, gridExpand = TRUE)
 
 # Larguras das colunas da tabela detalhada
 setColWidths(wb, ws_cosp, cols = 1,                    widths = 8)
