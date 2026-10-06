@@ -169,13 +169,16 @@ passes_comp_mes  <- sum(unique(cosp_detail_raw[, c("ticket_code", "passes_compen
 # ---- Auto-atualização de receitas_anteriores.csv -----------------------------
 rac_file <- file.path(LISTS_DIR, "receitas_anteriores.csv")
 if (file.exists(rac_file)) {
-  rac <- read.csv2(rac_file, stringsAsFactors = FALSE, dec = ",", check.names = FALSE)
+  # Ler tudo como texto: evita conflito de tipos no bind_rows e preserva os valores originais ao reescrever
+  rac <- read.csv2(rac_file, stringsAsFactors = FALSE, check.names = FALSE, colClasses = "character")
   rac <- rac[, !grepl("^X|;$|^$", names(rac))]
+  rac$ano <- as.integer(rac$ano)
+  rac$mes <- as.integer(rac$mes)
 } else {
   rac <- data.frame(
     ano = integer(), mes = integer(), Tipo = character(), TOTAL = character(),
     CP = character(), FT = character(), TT = character(), SL = character(),
-    ML = character(), MS = character(), Carris = character(), TCB = character(),
+    ML = character(), MTS = character(), Carris = character(), TCB = character(),
     `AT Cascais` = character(), `AT TML - CM` = character(), `BT Oeste` = character(),
     stringsAsFactors = FALSE, check.names = FALSE
   )
@@ -322,7 +325,7 @@ O Regulamento n.º 278-A/2019, de 19 de março, designado “Regulamento Metropo
 
 Na presente informação procede-se ao apuramento dos montantes a transferir, no atual mês de `r mes_transf_nome` de `r ano_transf`, aos Operadores que disponibilizaram os Passes Navegante no mês de `r mes_nome` de `r ANO`, na sequência do apuramento provisório desse mês, de acordo com as regras estabelecidas no Anexo V do Regulamento n.º 278-A/2019 da AML, na sua redação atual.
 
-Os cálculos realizados tiveram por base dados de passageiros e vendas disponibilizados pelo DITS a `r data_dados_dits` (ficheiros equivalentes a recibos B finais + Receitas PV e ATM e passageiros transportados agregados na tabela `DW_PROC.F_VALIDATIONS` em `PDBDDWPROD`) e as distâncias percorridas pelos passageiros transportados na Carris Metropolitana calculadas e disponibilizadas pelo ITS na tabela `r sprintf("\x60prp_case_a1_agg run_id = %s\x60", load_version)` (esquema `delta.tmlprepared` da nova base de dados trino) a `r data_dados_its`.
+Os cálculos realizados tiveram por base dados de passageiros e vendas disponibilizados pelo DITS a `r data_dados_dits` (ficheiros equivalentes a recibos B finais + Receitas PV e ATM e passageiros transportados agregados na tabela `DW_PROC.F_VALIDATIONS` em `PDBDDWPROD`) e as distâncias percorridas pelos passageiros transportados na Carris Metropolitana calculadas e disponibilizadas pelo ITS na tabela `r sprintf("\x60gold_pks_cases_agg run_id = %s\x60", load_version)` (esquema `GOLD_prod.dbo` da base de dados fabric) a `r data_dados_its`.
 
 Importa referir que a implementação de validações com cartão virtual nas linhas da Carris Metropolitana teve início a 19 de setembro de 2025. O procedimento implementado tem implicações, quer ao nível das transações de venda, quer ao nível das validações.
 

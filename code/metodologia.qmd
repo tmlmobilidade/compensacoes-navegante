@@ -146,13 +146,16 @@ passes_comp_mes  <- sum(unique(cosp_detail_raw[, c("ticket_code", "passes_compen
 # ---- Auto-atualização de receitas_anteriores.csv -----------------------------
 rac_file <- file.path(LISTS_DIR, "receitas_anteriores.csv")
 if (file.exists(rac_file)) {
-  rac <- read.csv2(rac_file, stringsAsFactors = FALSE, dec = ",", check.names = FALSE)
+  # Ler tudo como texto: evita conflito de tipos no bind_rows e preserva os valores originais ao reescrever
+  rac <- read.csv2(rac_file, stringsAsFactors = FALSE, check.names = FALSE, colClasses = "character")
   rac <- rac[, !grepl("^X|;$|^$", names(rac))]
+  rac$ano <- as.integer(rac$ano)
+  rac$mes <- as.integer(rac$mes)
 } else {
   rac <- data.frame(
     ano = integer(), mes = integer(), Tipo = character(), TOTAL = character(),
     CP = character(), FT = character(), TT = character(), SL = character(),
-    ML = character(), MS = character(), Carris = character(), TCB = character(),
+    ML = character(), MTS = character(), Carris = character(), TCB = character(),
     `AT Cascais` = character(), `AT TML - CM` = character(), `BT Oeste` = character(),
     stringsAsFactors = FALSE, check.names = FALSE
   )
