@@ -9,8 +9,8 @@
 
 # ---- Dados de bilhética ------------------------------------------------------
 # Datas em que foram disponibilizados os dados DITS e ITS para este mês
-data_dados_dits <- "24 de agosto de 2026"   # data de disponibilização dos dados DITS
-data_dados_its  <- "24 de agosto de 2026"   # data de disponibilização dos dados ITS
+data_dados_dits <- "28 de setembro de 2026"   # data de disponibilização dos dados DITS
+data_dados_its  <- "2 de outubro de 2026"   # data de disponibilização dos dados ITS
 
 # ---- Financiamento Incentiva +TP (Fundo Ambiental) ---------------------------
 # TRUE  = verba ainda NÃO transferida à data de emissão → faturação parcelar
@@ -27,7 +27,8 @@ data_documento    <- format(Sys.Date(), "%d/%m/%Y")  # ou fixar manualmente: "24
 de_pessoa1_nome  <- "Ana Isabel Capote Fernandes Rosado"
 de_pessoa1_cargo <- "Técnica Superior"
 
-de_pessoa2_nome  <- "Luísa Salomé Freixo Lopes de Castro Nogueira"
+# de_pessoa2_nome  <- "Luísa Salomé Freixo Lopes de Castro Nogueira"
+de_pessoa2_nome  <- "Rosa Melo Félix"
 de_pessoa2_cargo <- "Técnica Superior"
 
 de_pessoa3_nome  <- "António Sérgio Vaz Rei Manso Pinheiro"

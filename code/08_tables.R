@@ -123,6 +123,16 @@ cong_raw$congelamento_B <- as.numeric(gsub(",", ".", cong_raw$congelamento_B))
 cosp_raw <- read.csv2(F_D_OPERADOR, stringsAsFactors = FALSE, dec = ",")
 cosp_raw$cosp_D <- as.numeric(gsub(",", ".", cosp_raw$cosp_D))
 
+# 1.8 Passageiros Transportados por título × operador (Tabela 1a)
+pt_raw <- read.csv2(F_PT, stringsAsFactors = FALSE)
+pt_raw$ticket_code <- as.integer(pt_raw$ticket_code)
+pt_raw$pt_operador <- as.numeric(gsub(",", ".", pt_raw$pt_operador))
+
+# 1.9 Distâncias médias por título × operador (Tabela 1b)
+dist_raw <- read.csv2(F_DISTANCIAS, stringsAsFactors = FALSE)
+dist_raw$ticket_code  <- as.integer(dist_raw$ticket_code)
+dist_raw$distancia_km <- as.numeric(gsub(",", ".", dist_raw$distancia_km))
+
 # Total K de canais partilhados
 total_K_val <- sum(rtd_raw$receita_K, na.rm = TRUE)
 
@@ -527,6 +537,85 @@ setColWidths(wb, ws_q, cols = 1, widths = 8)
 setColWidths(wb, ws_q, cols = 2, widths = 34)
 setColWidths(wb, ws_q, cols = 3, widths = 10)
 setColWidths(wb, ws_q, cols = 4:n_q_cols, widths = 12)
+
+# --- Função auxiliar: pivot wide por operador, alinhado com titulos_df ---------
+pivot_ops_wide <- function(df, val_col) {
+  w <- df |>
+    mutate(nome_op = nome_op_sep[operador]) |>
+    filter(!is.na(nome_op)) |>
+    select(ticket_code, nome_op, valor = all_of(val_col)) |>
+    pivot_wider(names_from = nome_op, values_from = valor, values_fill = 0)
+  for (op in ordem_ops_sep) if (!op %in% names(w)) w[[op]] <- 0
+  titulos_df |>
+    select(ticket_code) |>
+    left_join(w, by = "ticket_code") |>
+    mutate(across(all_of(ordem_ops_sep), ~ replace_na(.x, 0))) |>
+    arrange(ticket_code) |>
+    select(all_of(ordem_ops_sep))
+}
+
+# Escreve um bloco wide (título, cabeçalho, dados) a partir de start_col
+write_ops_block <- function(df_out, start_col, titulo, headers, num_fmt) {
+  n_c  <- ncol(df_out)
+  cols <- start_col:(start_col + n_c - 1)
+  mergeCells(wb, ws_q, rows = 1, cols = cols)
+  writeData(wb, ws_q, x = titulo, startRow = 1, startCol = start_col)
+  addStyle(wb, ws_q, st_title, rows = 1, cols = cols, gridExpand = TRUE)
+
+  writeData(wb, ws_q, x = as.data.frame(t(headers)), startRow = 2, startCol = start_col, colNames = FALSE)
+  addStyle(wb, ws_q, st_header_gold, rows = 2, cols = cols, gridExpand = TRUE)
+
+  writeData(wb, ws_q, x = df_out, startRow = 3, startCol = start_col, colNames = FALSE)
+  for (i in seq_len(nrow(df_out))) {
+    fg <- if (i %% 2 == 0) cor_alt_row else cor_white
+    for (j in seq_len(n_c)) {
+      v     <- df_out[[j]][i]
+      f_col <- if (!is.na(v) && v == 0) cor_gray_text else cor_darkgray
+      addStyle(wb, ws_q, createStyle(fgFill = fg, fontColour = f_col, numFmt = num_fmt, halign = "right",
+                                     border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+               rows = i + 2, cols = cols[j])
+    }
+  }
+  setColWidths(wb, ws_q, cols = cols, widths = 12)
+  invisible(max(cols))
+}
+
+# --- Tabela 1a: Passageiros Transportados (com Total) --------------------------
+pt_out <- pivot_ops_wide(pt_raw, "pt_operador")
+pt_out$Total <- rowSums(pt_out[, ordem_ops_sep], na.rm = TRUE)
+
+col_1a <- n_q_cols + 2                       # 1 coluna vazia de separação
+setColWidths(wb, ws_q, cols = col_1a - 1, widths = 10)
+end_1a <- write_ops_block(
+  pt_out, col_1a,
+  paste0("     Tabela 1a - Passageiros Transportados por Título e Operador — ", mes_nome, " ", ANO),
+  c(ordem_ops_sep, "Total"), "#,##0"
+)
+# Coluna Total sempre a preto
+addStyle(wb, ws_q, createStyle(fontColour = cor_darkgray), rows = 3:(nrow(pt_out) + 2),
+         cols = end_1a, gridExpand = TRUE, stack = TRUE)
+
+# --- Tabela 1b: Distância Média (fonte por baixo do operador, sem Total) -------
+# Etiqueta da referência estática derivada do ficheiro usado (config.R): "ago21" (verão) ou "out21"
+ref_lbl   <- sub("^distanciasref_([^_]+)_.*$", "\\1", basename(DIST_REF_FILE))
+fonte_lbl <- c(APEX = "APEX", ref_estatica = ref_lbl, nao_encontrada = "N/D")
+fontes_op <- sapply(ordem_ops_sep, function(op) {
+  f <- unique(dist_raw$fonte[nome_op_sep[dist_raw$operador] == op])
+  f <- f[!is.na(f) & f != "nao_encontrada"]
+  if (length(f) == 0) "N/D" else paste(ifelse(is.na(fonte_lbl[f]), f, fonte_lbl[f]), collapse = " / ")
+})
+
+dist_out <- pivot_ops_wide(dist_raw, "distancia_km")
+
+col_1b <- end_1a + 2
+setColWidths(wb, ws_q, cols = col_1b - 1, widths = 10)
+write_ops_block(
+  dist_out, col_1b,
+  paste0("     Tabela 1b - Distância Média (km) por Título e Operador — ", mes_nome, " ", ANO),
+  paste0(ordem_ops_sep, "\n(", fontes_op, ")"), "#,######0.000000"
+)
+
+setRowHeights(wb, ws_q, rows = 2, heights = 36)
 freezePane(wb, ws_q, firstActiveRow = 3, firstActiveCol = 3)
 
 
@@ -567,7 +656,7 @@ qty_k_tot     <- qty_k_pv_tot + qty_k_atm_tot
 rec_k_tot     <- rec_k_pv_tot + rec_k_atm_tot
 
 vendas_k_tab <- tibble(
-  Canal = c("Portal VIVA", "Caixas Multibanco / ATM", "TOTAL Vendas K"),
+  Canal = c("Portal VIVA", "SIBS", "TOTAL Vendas K"),
   Quantidade = c(qty_k_pv_tot, qty_k_atm_tot, qty_k_tot),
   `Receita (€)` = c(rec_k_pv_tot, rec_k_atm_tot, rec_k_tot),
   `% Vendas K` = c(
