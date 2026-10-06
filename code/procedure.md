@@ -2,7 +2,7 @@
 
 > **Implementação em R**: `code/99_run_all.R`
 > Alterar `ANO` e `MES` em `code/config.R` e correr `Rscript code/99_run_all.R`.
-> Os outputs ficam em `{MES_ANO}_replicate/` com sufixo `{SUFIXO}` (ex: `mai26`, `jun26`).
+> Os outputs ficam em `data/{MES_ANO}/` com sufixo `{SUFIXO}` (ex: `mai26`, `jun26`).
 
 ---
 
@@ -172,11 +172,11 @@ code/
 | `ANO`                | `2026`                               | Ano de distribuição                                                                       |
 | `MES`                | `5`                                  | Mês de distribuição (inteiro)                                                            |
 | `SUFIXO`             | `"mai26"`                            | Sufixo para nomes de ficheiros:`paste0(mes_abrev, ano_curto)`                               |
-| `DATA_DIR`           | `05_mai_2026/`                       | Pasta com dados do mês (Recibos B, etc.)                                                   |
-| `REPLICATE_DIR`      | `05_mai_2026_replicate/`             | Pasta de replicação do mês                                                               |
-| `INPUT_DIR`          | `05_mai_2026_replicate/input/`       | Pasta de inputs específicos do mês (ex: APEX distâncias)                                 |
-| `OUT_DIR`            | `05_mai_2026_replicate/output/`      | Pasta de outputs gerados pelos scripts                                                      |
-| `DOCS_DIR`           | `05_mai_2026_replicate/output/docs/` | Pasta de destino para relatórios e ofícios gerados                                        |
+| `DATA_DIR`           | `data/05_mai_2026/input/`            | Pasta com dados do mês (Recibos B, etc.)                                                   |
+| `MONTH_DIR`          | `data/05_mai_2026/`                  | Pasta do mês (dentro de `data/`, gitignored)                                               |
+| `INPUT_DIR`          | `data/05_mai_2026/input/`       | Pasta de inputs específicos do mês (ex: APEX distâncias)                                 |
+| `OUT_DIR`            | `data/05_mai_2026/output/`      | Pasta de outputs gerados pelos scripts                                                      |
+| `DOCS_DIR`           | `data/05_mai_2026/output/docs/` | Pasta de destino para relatórios e ofícios gerados                                        |
 | `RENDER_INFORMACAO1` | `TRUE`                               | Booleano: controla a renderização da Informação 1                                       |
 | `RENDER_OFICIO1`     | `FALSE`                              | Booleano: controla a renderização do Ofício 1                                            |
 | `RENDER_OFICIO2`     | `FALSE`                              | Booleano: controla a renderização do Ofício 2                                            |
@@ -228,7 +228,7 @@ As variáveis `F_*` em `config.R` centralizam todos os caminhos.
 
 # Dados iniciais: Recibos B
 
-As receitas por título vendido, em quantidade e pvp, são enviadas por todos os operadores e validadas pela TML quando envia o "Recibo B" (eg: `05_mai_2026/Recibos B`).
+As receitas por título vendido, em quantidade e pvp, são enviadas por todos os operadores e validadas pela TML quando envia o "Recibo B" (eg: `data/05_mai_2026/input/Recibos B`).
 
 Cada operador envia 3 ficheiros, com os nomes maisoumenos assim (tem datas no fim):
 
@@ -275,10 +275,10 @@ Lê todos os Recibos B de todos os operadores e reconcilia dados da Oracle para 
 No apuramento oficial das validações ($PT$), há duas operações essenciais para garantir que os dados batem a 100% com o sistema bilhético:
 
 1. **Separação TT / SL**: Feita **diretamente via Recibos B do APEX** (`reg_SL_reciboB` e `reg_TT_reciboB`). A Query 2b (`query_SL_TT.sql`) foi **descontinuada** no fluxo regular.
-2. **Fiscais Móveis CM (Portal VIVA)**: [`code/query_CM_fiscaismoveis.sql`](file:///c:/GIS/Compensacoes/code/query_CM_fiscaismoveis.sql) (Query 2c) continua a ser extraída da base de dados Oracle `PDBDWPROD` e guardada em `{MES_ANO}_replicate/input/`.
+2. **Fiscais Móveis CM (Portal VIVA)**: [`code/query_CM_fiscaismoveis.sql`](file:///c:/GIS/Compensacoes/code/query_CM_fiscaismoveis.sql) (Query 2c) continua a ser extraída da base de dados Oracle `PDBDWPROD` e guardada em `data/{MES_ANO}/input/`.
 
 ```
-{MES_ANO}_replicate/input/
+data/{MES_ANO}/input/
 ├── entity23_*(timestamp).csv    ← gerado por query_CM_fiscaismoveis.sql (Portal VIVA)
 └── V_REG_AVERAGE_DISTANCE_FINAL_ALL_*(timestamp).csv ← distâncias APEX (CM e Cascais)
 ```
@@ -372,7 +372,7 @@ ORDER BY TICKET_CODE, AREA_CM;
 
 > [!TIP]
 > **Regra de Seleção Automática de Ficheiros:**
-> O script seleciona automaticamente os ficheiros de input em `{MES_ANO}_replicate/input/` segundo a seguinte hierarquia:
+> O script seleciona automaticamente os ficheiros de input em `data/{MES_ANO}/input/` segundo a seguinte hierarquia:
 >
 > 1. **Ficheiro mais recente pela data/timestamp no nome** (formato numérico `YYYYMMDD...`);
 > 2. **Se houver mais do que um ficheiro com a mesma data**, usar o que diz `_update` (ou `update`) no nome (ex.: `..._update.csv`);
@@ -428,8 +428,8 @@ where distribution_month = 05 and distribution_year = 2026;  -- Alterar ano e m�
 
 que, carregando em "Export data" em csv, separado por ;, me dá o resultado em:
 
-- `05_mai_2026_replicate/input/` (ex.: `PDBDWPROD_V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv` ou `V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv`)
-- `06_jun_2026_replicate/input/`
+- `data/05_mai_2026/input/` (ex.: `PDBDWPROD_V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv` ou `V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv`)
+- `data/06_jun_2026/input/`
 
 > [!NOTE]
 > O script seleciona automaticamente o ficheiro mais recente com `AVERAGE_DISTANCE` no nome pelo timestamp de data (preferindo `_update` se houver empate de data). Ficheiros com outros nomes (como `distancias_dinamicas`) são ignorados.
@@ -747,7 +747,7 @@ A produção dos relatórios é automatizada com **Quarto** e compilada através
   # ou alternativamente apenas a Informação 1:
   Rscript code/render_informacao1.R
   ```
-- **Outputs gerados** (em `{MES_ANO}_replicate/output/docs/`):
+- **Outputs gerados** (em `data/{MES_ANO}/output/docs/`):
   - `informacao1_{SUFIXO}.pdf` (documento interno, cabeçalho simples)
   - `metodologia_{SUFIXO}.pdf` (documento externo com papel timbrado oficial)
   - `informacao1_{SUFIXO}.docx` (quando `RENDER_DOCX <- TRUE`)

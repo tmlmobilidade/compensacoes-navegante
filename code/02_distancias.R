@@ -29,14 +29,14 @@ PT_mesano  <- read.csv2(F_PT,
                         stringsAsFactors = FALSE)
 
 # ---- 1. Distâncias dinâmicas APEX (CM e CAP) ---------------------------------
-# Ficheiro exportado do Oracle PDBDWPROD (procurar em INPUT_DIR ou REPLICATE_DIR)
+# Ficheiro exportado do Oracle PDBDWPROD (procurar em INPUT_DIR)
 # Regra: 1. Ficheiro mais recente com "AVERAGE_DISTANCE" (pelo timestamp no nome)
 #        2. Se houver mais do que um com a mesma data, usar o que diz "_update"
 apex_file <- if (exists("F_APEX_DISTANCIAS") && !is.null(F_APEX_DISTANCIAS) && file.exists(F_APEX_DISTANCIAS)) {
   F_APEX_DISTANCIAS
 } else {
   selecionar_ficheiro_recente(
-    c(INPUT_DIR, REPLICATE_DIR),
+    INPUT_DIR,
     pattern_pref = "AVERAGE_DISTANCE.*\\.csv$"
   )
 }

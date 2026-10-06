@@ -5,7 +5,7 @@
 # Alterar ANO e MES para correr para outro mês.
 
 ANO <- if (!is.na(Sys.getenv("ANO", unset = NA))) as.integer(Sys.getenv("ANO")) else 2026
-MES <- if (!is.na(Sys.getenv("MES", unset = NA))) as.integer(Sys.getenv("MES")) else 5      # 5 = maio, 6 = junho, etc.
+MES <- if (!is.na(Sys.getenv("MES", unset = NA))) as.integer(Sys.getenv("MES")) else 7      # 5 = maio, 6 = junho, etc.
 
 # ---- Renderização de Documentos (Quarto) -------------------------------------
 # Parâmetros booleanos para controlar se os documentos devem ser renderizados
@@ -31,10 +31,12 @@ mes_str       <- sprintf("%02d", MES)
 mes_abrev     <- meses_pt[MES]                      # ex: "mai"
 mes_nome      <- meses_pt_nome[MES]                 # ex: "Maio"
 mes_ano       <- sprintf("%02d_%s_%d", MES, mes_abrev, ANO)   # ex: "05_mai_2026"
-DATA_DIR      <- file.path(BASE_DIR, mes_ano)
-REPLICATE_DIR <- file.path(BASE_DIR, paste0(mes_ano, "_replicate")) # estava a usar este para output intermédio, mas ajustar para input/output final
-INPUT_DIR     <- file.path(REPLICATE_DIR, "input")
-OUT_DIR       <- file.path(REPLICATE_DIR, "output")
+# Todas as pastas mensais ficam em data/ (ignorada pelo git)
+DATA_ROOT     <- file.path(BASE_DIR, "data")
+MONTH_DIR     <- file.path(DATA_ROOT, mes_ano)      # ex: data/07_jul_2026
+DATA_DIR      <- file.path(MONTH_DIR, "input")       # Recibos B + exportações Oracle
+INPUT_DIR     <- file.path(MONTH_DIR, "input")
+OUT_DIR       <- file.path(MONTH_DIR, "output")
 DOCS_DIR      <- file.path(OUT_DIR, "docs")
 
 # Sufixo para nomes de ficheiros de output: paste0(mes_abrev, ano curto)
@@ -140,7 +142,7 @@ selecionar_ficheiro_recente <- function(diretorias, pattern_pref, pattern_fallba
 # Ficheiro Oracle com distâncias APEX (CM e CAP)
 # Padrão: ficheiro com AVERAGE_DISTANCE no nome (ignora distancias_dinamicas)
 F_APEX_DISTANCIAS <- selecionar_ficheiro_recente(
-  c(INPUT_DIR, REPLICATE_DIR),
+  INPUT_DIR,
   pattern_pref = "AVERAGE_DISTANCE.*\\.csv$"
 )
 
@@ -151,7 +153,7 @@ TT_ENTITY_ID <- 5L    # Transtejo (TT)
 SL_ENTITY_ID <- 8L    # Soflusa (SL)
 
 F_TT_SL_VALIDACOES <- selecionar_ficheiro_recente(
-  c(INPUT_DIR, REPLICATE_DIR),
+  INPUT_DIR,
   pattern_pref     = "tt_sl.*\\.csv$",
   pattern_fallback = "(validacoes_TT_SL|TICKET_OPERATOR).*\\.csv$"
 )
@@ -159,7 +161,7 @@ F_TT_SL_VALIDACOES <- selecionar_ficheiro_recente(
 # Ficheiro Oracle com validações do Portal VIVA (fiscais móveis Carris Metropolitana, entity 23) — query 2c
 # Padrão: entity23_*(timestamp).csv (ou fallback CM_viva / PV_CM)
 F_CM_VIVA_VALIDACOES <- selecionar_ficheiro_recente(
-  c(INPUT_DIR, REPLICATE_DIR),
+  INPUT_DIR,
   pattern_pref     = "entity_?23.*\\.csv$",
   pattern_fallback = "(CM_viva|PV_CM).*\\.csv$"
 )

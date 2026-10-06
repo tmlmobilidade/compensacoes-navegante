@@ -20,18 +20,18 @@ Replica com precisão matemática a metodologia regulamentar (Regulamento n.º 1
 
 Antes de correr o pipeline pela primeira vez para um novo mês, há um conjunto de passos obrigatórios. Segue-os **por esta ordem**.
 
-### 1. Criar a pasta de dados do mês
+### 1. Criar a pasta de dados do mês (dentro de `data/`)
 
-Cria a pasta `08_ago_2026/` na raiz do projecto (por analogia com `05_mai_2026/`, `06_jun_2026/`). Dentro desta pasta, cria a sub-pasta `Recibos B/`.
+Cria a pasta `data/08_ago_2026/input/` (a pasta `data/` está no `.gitignore`, pelo que **não é preciso** alterar o `.gitignore` em cada mês). Dentro de `input/`, cria a sub-pasta `Recibos B/`. A pasta `output/` é criada automaticamente.
 
 ### 2. Recolher e colocar os ficheiros de dados
 
 #### 2a. Recibos B dos operadores
 
-Descompactar as pastas dos Recibos B de cada operador para `08_ago_2026/Recibos B/`:
+Descompactar as pastas dos Recibos B de cada operador para `data/08_ago_2026/input/Recibos B/`:
 
 ```
-08_ago_2026/Recibos B/
+data/08_ago_2026/input/Recibos B/
 ├── reg_CP_reciboB_082026_<DATA>/
 ├── reg_ML_reciboB_082026_<DATA>/
 ├── reg_Carris_reciboB_082026_<DATA>/
@@ -43,7 +43,7 @@ O ficheiro `ReciboB_082026_Separa_receita_PV_e_ATM.xlsx` é fornecido pelo Dept.
 
 #### 2b. Exportações Oracle (`PDBDWPROD`)
 
-Executar as queries e guardar os CSVs (separador `;`) em `08_ago_2026_replicate/input/`:
+Executar as queries e guardar os CSVs (separador `;`) em `data/08_ago_2026/input/`:
 
 
 | Ficheiro a gravar em`input/`                       | Consulta / Script                                                                                                   | Objetivo                                                                                        |
@@ -173,7 +173,7 @@ $env:RENDER_DOCX="TRUE"; Rscript code/10_documentos.R
 $env:RENDER_DOCX="TRUE"; $env:DOCX_MODE="asposeBlocks"; Rscript code/10_documentos.R
 ```
 
-Os documentos são gravados em `{MES}_{mes_abrev}_{ANO}_replicate/output/docs/`:
+Os documentos são gravados em `data/{MES}_{mes_abrev}_{ANO}/output/docs/`:
 
 
 | Documento                | Ficheiro                         |
@@ -190,7 +190,7 @@ Os documentos são gravados em `{MES}_{mes_abrev}_{ANO}_replicate/output/docs/`:
 
 ## 📊 Ficheiros de Saída (Output)
 
-Os resultados são gerados na pasta `{MES}_{mes_abrev}_{ANO}_replicate/output/` com o sufixo do mês (ex: `ago26`):
+Os resultados são gerados na pasta `data/{MES}_{mes_abrev}_{ANO}/output/` com o sufixo do mês (ex: `ago26`):
 
 
 | Ficheiro                                    | Descrição                                                                                                                                                                  |
@@ -275,6 +275,7 @@ Rscript -e "renv::restore()"
 Compensacoes/
 ├── renv.lock                     # Snapshot de versões exatas de todos os pacotes R (reprodutibilidade)
 ├── renv/                         # Definições e script de ativação do renv
+├── data/                         # Dados mensais (gitignored): data/MM_mes_AAAA/{input,output}/
 ├── code/
 │   ├── config.R                  # Configuração global de caminhos, parâmetros e flags de documentos
 │   ├── 00_setup.R                # Gestão e instalação de dependências R
