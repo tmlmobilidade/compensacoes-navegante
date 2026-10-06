@@ -119,6 +119,18 @@ cong_raw <- read.csv2(F_CONGELAMENTO, stringsAsFactors = FALSE, dec = ",")
 cong_raw$receita_B      <- as.numeric(gsub(",", ".", cong_raw$receita_B))
 cong_raw$congelamento_B <- as.numeric(gsub(",", ".", cong_raw$congelamento_B))
 
+# 1.6b Repartição B por título e operador (Tabela 4 detalhe)
+rep_b_raw <- if (file.exists(F_REPARTICAO_B)) {
+  df_rb <- read.csv2(F_REPARTICAO_B, stringsAsFactors = FALSE, dec = ",")
+  for (c in c("quota", "receita_distribuir", "dist_receita", "receita_compensar")) {
+    if (c %in% names(df_rb)) df_rb[[c]] <- as.numeric(gsub(",", ".", df_rb[[c]]))
+  }
+  df_rb$ticket_code <- as.integer(df_rb$ticket_code)
+  df_rb
+} else {
+  NULL
+}
+
 # 1.7 COSP D por operador
 cosp_raw <- read.csv2(F_D_OPERADOR, stringsAsFactors = FALSE, dec = ",")
 cosp_raw$cosp_D <- as.numeric(gsub(",", ".", cosp_raw$cosp_D))
@@ -953,12 +965,103 @@ for (i in seq_len(n_b_rows)) {
   }
 }
 
-setColWidths(wb, ws_b, cols = 1, widths = 14)
+setColWidths(wb, ws_b, cols = 1, widths = 11)
 setColWidths(wb, ws_b, cols = 2, widths = 32)
-setColWidths(wb, ws_b, cols = 3, widths = 22)
+setColWidths(wb, ws_b, cols = 3, widths = 18)
 setColWidths(wb, ws_b, cols = 4, widths = 14)
-setColWidths(wb, ws_b, cols = 5, widths = 25)
-setColWidths(wb, ws_b, cols = 6, widths = 26)
+setColWidths(wb, ws_b, cols = 5, widths = 14)
+setColWidths(wb, ws_b, cols = 6, widths = 16)
+
+# =============================================================================
+# Tabela detalhada da Receita Devida [B] por título × operador (wide) — abaixo do resumo
+# =============================================================================
+if (!is.null(rep_b_raw)) {
+  # Pivot wide: dist_receita por título e operador
+  rec_b_wide <- rep_b_raw |>
+    select(ticket_code, titulo_nome, operador, dist_receita) |>
+    mutate(nome_op = nome_op_sep[operador]) |>
+    filter(!is.na(nome_op)) |>
+    select(ticket_code, titulo_nome, nome_op, dist_receita) |>
+    pivot_wider(names_from = nome_op, values_from = dist_receita, values_fill = 0)
+
+  for (op in ordem_ops_sep) {
+    if (!op %in% names(rec_b_wide)) rec_b_wide[[op]] <- 0
+  }
+
+  # Juntar receita_distribuir por título
+  titulo_rec_dist <- rep_b_raw |>
+    select(ticket_code, receita_distribuir) |>
+    distinct()
+
+  rec_b_wide <- titulos_df |>
+    select(ticket_code, titulo_nome) |>
+    left_join(titulo_rec_dist, by = "ticket_code") |>
+    left_join(rec_b_wide |> select(-titulo_nome), by = "ticket_code") |>
+    mutate(across(c(receita_distribuir, all_of(ordem_ops_sep)), ~ replace_na(.x, 0))) |>
+    arrange(ticket_code)
+
+  # Linha de totais
+  rec_b_totais <- tibble(
+    ticket_code        = NA_integer_,
+    titulo_nome        = "TOTAL",
+    receita_distribuir = sum(rec_b_wide$receita_distribuir, na.rm = TRUE)
+  )
+  for (op in ordem_ops_sep) rec_b_totais[[op]] <- sum(rec_b_wide[[op]], na.rm = TRUE)
+
+  rec_b_wide_out <- bind_rows(
+    rec_b_wide |> select(ticket_code, titulo_nome, receita_distribuir, all_of(ordem_ops_sep)),
+    rec_b_totais |> select(ticket_code, titulo_nome, receita_distribuir, all_of(ordem_ops_sep))
+  )
+
+  n_det_b_cols <- 3 + length(ordem_ops_sep)   # Código, Designação, Receita a Distribuir, 11 ops = 14 cols
+  rw_det_b     <- n_b_rows + 5                # 2 linhas de espaço após tabela de resumo
+
+  # Sub-cabeçalho da tabela detalhada
+  mergeCells(wb, ws_b, rows = rw_det_b, cols = 1:n_det_b_cols)
+  writeData(wb, ws_b, x = "Detalhe da Receita Bilheteira Devida [B] por Título e Operador (€)",
+            startRow = rw_det_b, startCol = 1)
+  addStyle(wb, ws_b, st_sub_header, rows = rw_det_b, cols = 1:n_det_b_cols, gridExpand = TRUE)
+  setRowHeights(wb, ws_b, rows = rw_det_b, heights = 22)
+
+  names_det_b <- c("Código", "Designação do Título", "Receita a Distribuir (€)", ordem_ops_sep)
+  writeData(wb, ws_b, x = as.data.frame(t(names_det_b)),
+            startRow = rw_det_b + 1, startCol = 1, colNames = FALSE)
+  addStyle(wb, ws_b, st_header_gold, rows = rw_det_b + 1, cols = 1:n_det_b_cols, gridExpand = TRUE)
+  setRowHeights(wb, ws_b, rows = rw_det_b + 1, heights = 32)
+
+  writeData(wb, ws_b, x = rec_b_wide_out, startRow = rw_det_b + 2, startCol = 1, colNames = FALSE)
+
+  n_det_b_rows <- nrow(rec_b_wide_out)
+  for (i in seq_len(n_det_b_rows)) {
+    rw     <- rw_det_b + 1 + i
+    is_tot <- (i == n_det_b_rows)
+    fg     <- if (is_tot) cor_gold_light else if (i %% 2 == 0) cor_alt_row else cor_white
+
+    if (is_tot) {
+      addStyle(wb, ws_b, st_total_lbl, rows = rw, cols = 1:2, gridExpand = TRUE)
+      addStyle(wb, ws_b, st_total_num, rows = rw, cols = 3:n_det_b_cols, gridExpand = TRUE)
+    } else {
+      t_cod <- rec_b_wide_out$ticket_code[i]
+      f_col <- if (!is.na(t_cod) && t_cod %in% titulos_inativos) cor_gray_text else cor_darkgray
+
+      addStyle(wb, ws_b, createStyle(fgFill = fg, fontColour = f_col, halign = "center", border = "LeftRight",
+                                     borderColour = cor_border_soft, fontSize = 9),
+               rows = rw, cols = 1)
+      addStyle(wb, ws_b, createStyle(fgFill = fg, fontColour = f_col, halign = "left", border = "LeftRight",
+                                     borderColour = cor_border_soft, fontSize = 9),
+               rows = rw, cols = 2)
+      for (c_idx in 3:n_det_b_cols) {
+        val_c <- rec_b_wide_out[[c_idx]][i]
+        f_c   <- if (!is.na(val_c) && val_c == 0) cor_gray_text else f_col
+        addStyle(wb, ws_b, createStyle(fgFill = fg, fontColour = f_c, numFmt = "#,##0.00", halign = "right",
+                                       border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+                 rows = rw, cols = c_idx)
+      }
+    }
+  }
+
+  setColWidths(wb, ws_b, cols = 7:n_det_b_cols, widths = 14)
+}
 
 
 # =============================================================================
