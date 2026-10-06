@@ -471,7 +471,7 @@ for (op in ordem_ops_sep) {
 }
 
 quotas_wide <- titulos_df |>
-  select(ticket_code, titulo_nome, pvp) |>
+  select(ticket_code, titulo_nome) |>
   left_join(quotas_wide, by = "ticket_code") |>
   mutate(across(all_of(ordem_ops_sep), ~ replace_na(.x, 0))) |>
   arrange(ticket_code)
@@ -481,7 +481,7 @@ quotas_wide$total_quota <- rowSums(quotas_wide[, ordem_ops_sep], na.rm = TRUE)
 
 # Reordenar colunas
 quotas_out <- quotas_wide |>
-  select(ticket_code, titulo_nome, pvp, all_of(ordem_ops_sep), total_quota)
+  select(ticket_code, titulo_nome, all_of(ordem_ops_sep), total_quota)
 
 # Título
 n_q_cols <- ncol(quotas_out)
@@ -492,7 +492,7 @@ addStyle(wb, ws_q, st_title, rows = 1, cols = 1:n_q_cols, gridExpand = TRUE)
 setRowHeights(wb, ws_q, rows = 1, heights = 26)
 
 # Cabeçalhos
-names_quotas <- c("Código", "Designação do Título", "PVP (€)", ordem_ops_sep, "Total Quota")
+names_quotas <- c("Código", "Designação do Título", ordem_ops_sep, "Total Quota")
 writeData(wb, ws_q, x = as.data.frame(t(names_quotas)), startRow = 2, startCol = 1, colNames = FALSE)
 addStyle(wb, ws_q, st_header_gold, rows = 2, cols = 1:n_q_cols, gridExpand = TRUE)
 setRowHeights(wb, ws_q, rows = 2, heights = 32)
@@ -505,20 +505,17 @@ for (i in seq_len(n_q_rows)) {
   rw <- i + 2
   fg <- if (i %% 2 == 0) cor_alt_row else cor_white
 
-  # Código, Designação e PVP sempre a cor normal
+  # Código e Designação sempre a cor normal
   addStyle(wb, ws_q, createStyle(fgFill = fg, fontColour = cor_darkgray, halign = "center", border = "LeftRight",
                                  borderColour = cor_border_soft, fontSize = 9),
            rows = rw, cols = 1)
   addStyle(wb, ws_q, createStyle(fgFill = fg, fontColour = cor_darkgray, halign = "left", border = "LeftRight",
                                  borderColour = cor_border_soft, fontSize = 9),
            rows = rw, cols = 2)
-  addStyle(wb, ws_q, createStyle(fgFill = fg, fontColour = cor_darkgray, numFmt = "#,##0.00", halign = "right",
-                                 border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-           rows = rw, cols = 3)
 
   # Quotas dos operadores: se 0,00%, mostrar a cinzento claro; caso contrário em preto
   for (j in seq_along(ordem_ops_sep)) {
-    c_idx <- 3 + j
+    c_idx <- 2 + j
     val_q <- quotas_out[[ordem_ops_sep[j]]][i]
     f_col <- if (!is.na(val_q) && val_q == 0) cor_gray_text else cor_darkgray
 
@@ -535,8 +532,7 @@ for (i in seq_len(n_q_rows)) {
 
 setColWidths(wb, ws_q, cols = 1, widths = 8)
 setColWidths(wb, ws_q, cols = 2, widths = 34)
-setColWidths(wb, ws_q, cols = 3, widths = 10)
-setColWidths(wb, ws_q, cols = 4:n_q_cols, widths = 12)
+setColWidths(wb, ws_q, cols = 3:n_q_cols, widths = 12)
 
 # --- Função auxiliar: pivot wide por operador, alinhado com titulos_df ---------
 pivot_ops_wide <- function(df, val_col) {
@@ -899,7 +895,6 @@ df_b_op <- df_b_op |>
 
 tab_b_full <- bind_rows(
   df_b_op |> select(
-    Código = operador_cod,
     Operador = operador,
     `Nome Completo` = nome_completo,
     `Receita Devida [B] (€)` = receita_B,
@@ -908,7 +903,6 @@ tab_b_full <- bind_rows(
     `Total Devido [B + CongNav B] (€)` = total_b_cong
   ),
   tibble(
-    Código = "",
     Operador = "TOTAL",
     `Nome Completo` = "",
     `Receita Devida [B] (€)` = tot_rec_b,
@@ -919,15 +913,15 @@ tab_b_full <- bind_rows(
 )
 
 # Título
-mergeCells(wb, ws_b, rows = 1, cols = 1:7)
+mergeCells(wb, ws_b, rows = 1, cols = 1:6)
 writeData(wb, ws_b, x = paste0("     Tabela 4 - Receita Bilheteira Devida [B] e Congelamento Navegante [CongNav B] — ", mes_nome, " ", ANO),
           startRow = 1, startCol = 1)
-addStyle(wb, ws_b, st_title, rows = 1, cols = 1:7, gridExpand = TRUE)
+addStyle(wb, ws_b, st_title, rows = 1, cols = 1:6, gridExpand = TRUE)
 setRowHeights(wb, ws_b, rows = 1, heights = 26)
 
 # Cabeçalhos
 writeData(wb, ws_b, x = as.data.frame(t(names(tab_b_full))), startRow = 2, startCol = 1, colNames = FALSE)
-addStyle(wb, ws_b, st_header_gold, rows = 2, cols = 1:7, gridExpand = TRUE)
+addStyle(wb, ws_b, st_header_gold, rows = 2, cols = 1:6, gridExpand = TRUE)
 setRowHeights(wb, ws_b, rows = 2, heights = 35)
 
 writeData(wb, ws_b, x = tab_b_full, startRow = 3, startCol = 1, colNames = FALSE)
@@ -940,35 +934,31 @@ for (i in seq_len(n_b_rows)) {
   txt_dec <- if (is_tot) "bold" else NULL
 
   if (is_tot) {
-    addStyle(wb, ws_b, st_total_lbl, rows = rw, cols = 1:3, gridExpand = TRUE)
-    addStyle(wb, ws_b, st_total_num, rows = rw, cols = c(4, 6, 7), gridExpand = TRUE)
-    addStyle(wb, ws_b, st_total_pct, rows = rw, cols = 5, gridExpand = TRUE)
+    addStyle(wb, ws_b, st_total_lbl, rows = rw, cols = 1:2, gridExpand = TRUE)
+    addStyle(wb, ws_b, st_total_num, rows = rw, cols = c(3, 5, 6), gridExpand = TRUE)
+    addStyle(wb, ws_b, st_total_pct, rows = rw, cols = 4, gridExpand = TRUE)
   } else {
-    addStyle(wb, ws_b, createStyle(fgFill = fg, halign = "center", border = "LeftRight",
-                                   borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 1)
     addStyle(wb, ws_b, createStyle(fgFill = fg, textDecoration = "bold", halign = "left",
                                    border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 2)
+             rows = rw, cols = 1)
     addStyle(wb, ws_b, createStyle(fgFill = fg, halign = "left", border = "LeftRight",
                                    borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 3)
+             rows = rw, cols = 2)
     addStyle(wb, ws_b, createStyle(fgFill = fg, numFmt = "#,##0.00", halign = "right",
                                    border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = c(4, 6, 7), gridExpand = TRUE)
+             rows = rw, cols = c(3, 5, 6), gridExpand = TRUE)
     addStyle(wb, ws_b, createStyle(fgFill = fg, numFmt = "0.0000%", halign = "right",
                                    border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 5)
+             rows = rw, cols = 4)
   }
 }
 
-setColWidths(wb, ws_b, cols = 1, widths = 8)
-setColWidths(wb, ws_b, cols = 2, widths = 14)
-setColWidths(wb, ws_b, cols = 3, widths = 32)
-setColWidths(wb, ws_b, cols = 4, widths = 22)
-setColWidths(wb, ws_b, cols = 5, widths = 14)
-setColWidths(wb, ws_b, cols = 6, widths = 25)
-setColWidths(wb, ws_b, cols = 7, widths = 26)
+setColWidths(wb, ws_b, cols = 1, widths = 14)
+setColWidths(wb, ws_b, cols = 2, widths = 32)
+setColWidths(wb, ws_b, cols = 3, widths = 22)
+setColWidths(wb, ws_b, cols = 4, widths = 14)
+setColWidths(wb, ws_b, cols = 5, widths = 25)
+setColWidths(wb, ws_b, cols = 6, widths = 26)
 
 
 # =============================================================================
@@ -1174,7 +1164,7 @@ titulo_passes <- cosp_detail_raw |>
   distinct()
 
 cosp_wide <- titulos_df |>
-  select(ticket_code, titulo_nome, pvp) |>
+  select(ticket_code, titulo_nome) |>
   left_join(titulo_passes, by = "ticket_code") |>
   left_join(cosp_wide |> select(-titulo_nome), by = "ticket_code") |>
   mutate(across(all_of(ordem_ops_sep), ~ replace_na(.x, 0))) |>
@@ -1184,7 +1174,6 @@ cosp_wide <- titulos_df |>
 cosp_wide_totais <- tibble(
   ticket_code        = NA_integer_,
   titulo_nome        = "TOTAL",
-  pvp                = NA_real_,
   qty_total_i        = sum(cosp_wide$qty_total_i,        na.rm = TRUE),
   passes_compensar_i = sum(cosp_wide$passes_compensar_i, na.rm = TRUE),
   COSP_i             = sum(cosp_wide$COSP_i,             na.rm = TRUE)
@@ -1193,8 +1182,8 @@ for (op in ordem_ops_sep) cosp_wide_totais[[op]] <- sum(cosp_wide[[op]], na.rm =
 
 cosp_wide_out <- bind_rows(cosp_wide, cosp_wide_totais)
 
-# Colunas: código, nome, pvp, qty, passes, COSP_i, [11 ops] = 17 cols sem a redundante
-n_det_cols <- 6 + length(ordem_ops_sep)
+# Colunas: código, nome, qty, passes, COSP_i, [11 ops] = 5 + 11 = 16 cols
+n_det_cols <- 5 + length(ordem_ops_sep)
 
 rw_det_cosp <- rw_tab_cosp + n_cop + 3   # 2 linhas de espaço após tabela operador
 
@@ -1203,7 +1192,7 @@ mergeCells(wb, ws_cosp, rows = rw_det_cosp, cols = 1:n_det_cols)
 writeData(wb, ws_cosp, x = "Detalhe COSP por Título e Operador (COSP_ij em €)", startRow = rw_det_cosp, startCol = 1)
 addStyle(wb, ws_cosp, st_sub_header, rows = rw_det_cosp, cols = 1:n_det_cols, gridExpand = TRUE)
 
-names_det_cosp <- c("Código", "Designação do Título", "PVP (€)",
+names_det_cosp <- c("Código", "Designação do Título",
                     "Qtd Vendida", "Passes a Compensar", "COSP Título (€)",
                     ordem_ops_sep)
 writeData(wb, ws_cosp, x = as.data.frame(t(names_det_cosp)),
@@ -1218,13 +1207,13 @@ for (i in seq_len(n_det_rows)) {
   rw     <- rw_det_cosp + 1 + i
   is_tot <- (i == n_det_rows)
   fg     <- if (is_tot) cor_gold_light else if (i %% 2 == 0) cor_alt_row else cor_white
-  col_ops_start <- 7
+  col_ops_start <- 6
   col_ops_end   <- n_det_cols
 
   if (is_tot) {
-    addStyle(wb, ws_cosp, st_total_lbl, rows = rw, cols = 1:3, gridExpand = TRUE)
-    addStyle(wb, ws_cosp, st_total_int, rows = rw, cols = 4:5, gridExpand = TRUE)
-    addStyle(wb, ws_cosp, st_total_num, rows = rw, cols = 6:n_det_cols, gridExpand = TRUE)
+    addStyle(wb, ws_cosp, st_total_lbl, rows = rw, cols = 1:2, gridExpand = TRUE)
+    addStyle(wb, ws_cosp, st_total_int, rows = rw, cols = 3:4, gridExpand = TRUE)
+    addStyle(wb, ws_cosp, st_total_num, rows = rw, cols = 5:n_det_cols, gridExpand = TRUE)
   } else {
     t_cod <- cosp_wide_out$ticket_code[i]
     f_col <- if (!is.na(t_cod) && t_cod %in% titulos_inativos) cor_gray_text else cor_darkgray
@@ -1235,25 +1224,21 @@ for (i in seq_len(n_det_rows)) {
     addStyle(wb, ws_cosp, createStyle(fgFill = fg, fontColour = f_col, halign = "left", border = "LeftRight",
                                       borderColour = cor_border_soft, fontSize = 9),
              rows = rw, cols = 2)
-    addStyle(wb, ws_cosp, createStyle(fgFill = fg, fontColour = f_col, numFmt = "#,##0.00", halign = "right",
-                                      border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 3)
     addStyle(wb, ws_cosp, createStyle(fgFill = fg, fontColour = f_col, numFmt = "#,##0", halign = "right",
                                       border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 4:5, gridExpand = TRUE)
+             rows = rw, cols = 3:4, gridExpand = TRUE)
     addStyle(wb, ws_cosp, createStyle(fgFill = fg, fontColour = f_col, numFmt = "#,##0.00", halign = "right",
                                       border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
-             rows = rw, cols = 6:n_det_cols, gridExpand = TRUE)
+             rows = rw, cols = 5:n_det_cols, gridExpand = TRUE)
   }
 }
 
 # Larguras das colunas da tabela detalhada
 setColWidths(wb, ws_cosp, cols = 1,                    widths = 8)
 setColWidths(wb, ws_cosp, cols = 2,                    widths = 32)
-setColWidths(wb, ws_cosp, cols = 3,                    widths = 10)
-setColWidths(wb, ws_cosp, cols = 4:5,                  widths = 14)
-setColWidths(wb, ws_cosp, cols = 6,                    widths = 18)
-setColWidths(wb, ws_cosp, cols = 7:n_det_cols,         widths = 13)
+setColWidths(wb, ws_cosp, cols = 3:4,                  widths = 14)
+setColWidths(wb, ws_cosp, cols = 5,                    widths = 18)
+setColWidths(wb, ws_cosp, cols = 6:n_det_cols,         widths = 13)
 # freezePane(wb, ws_cosp, firstActiveRow = rw_det_cosp + 2, firstActiveCol = 3)
 
 
