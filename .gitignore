@@ -54,8 +54,7 @@ po/*~
 rsconnect/
 
 # Data
-05_mai_2026*/
-06_jun_2026*/
+data/
 code/*.pdf
 code/*.docx
 lists/receitas_anteriores.csv
