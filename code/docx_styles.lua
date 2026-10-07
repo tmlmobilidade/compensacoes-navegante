@@ -26,14 +26,18 @@ function Table(tbl)
     end
   end
 
-  -- 2. Processar corpos e linha TOTAL (linha preta superior acima do TOTAL)
+  -- 2. Processar corpos: linha TOTAL (borda superior) e linha de variação 'vs' (borda superior e inferior)
   for _, body in ipairs(tbl.bodies) do
     for _, row in ipairs(body.body) do
       local is_total = false
+      local is_var = false
       for _, cell in ipairs(row.cells) do
         local txt = pandoc.utils.stringify(cell)
         if txt:match("^TOTAL") then
           is_total = true
+          break
+        elseif txt:match("%s+vs%s+") then
+          is_var = true
           break
         end
       end
@@ -42,6 +46,14 @@ function Table(tbl)
           local raw_tc = pandoc.RawBlock(
             "openxml",
             '<w:tcPr><w:tcBorders><w:top w:val="single" w:sz="8" w:space="0" w:color="000000"/></w:tcBorders></w:tcPr>'
+          )
+          cell.contents:insert(1, raw_tc)
+        end
+      elseif is_var then
+        for _, cell in ipairs(row.cells) do
+          local raw_tc = pandoc.RawBlock(
+            "openxml",
+            '<w:tcPr><w:tcBorders><w:top w:val="single" w:sz="8" w:space="0" w:color="000000"/><w:bottom w:val="single" w:sz="8" w:space="0" w:color="000000"/></w:tcBorders></w:tcPr>'
           )
           cell.contents:insert(1, raw_tc)
         end

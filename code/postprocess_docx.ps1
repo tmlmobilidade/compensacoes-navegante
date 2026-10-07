@@ -28,23 +28,36 @@ foreach ($f in $files) {
         $matches = [regex]::Matches($xml, '<w:tbl[ >].*?</w:tbl>')
         $modified = $false
         
-        for ($i = 0; $i -lt $matches.Count; $i++) {
+        for ($i = $matches.Count - 1; $i -ge 0; $i--) {
             $tbl = $matches[$i].Value
+            $tblNew = $tbl
+            
             if ($tbl.Contains('Passageiros') -and $tbl.Contains('Receitas') -and $tbl.Contains('jan/25')) {
-                # Apply TabelaTextoPequeno to Table 7 cells
+                # Table 7: TabelaTextoPequeno e margens compactas
                 $tblNew = $tbl.Replace('w:val="Compact"', 'w:val="TabelaTextoPequeno"')
-                
-                # Apply compact margins
                 $tightMar = '<w:tblCellMar><w:top w:w="15" w:type="dxa"/><w:left w:w="40" w:type="dxa"/><w:bottom w:w="15" w:type="dxa"/><w:right w:w="40" w:type="dxa"/></w:tblCellMar>'
                 if ($tblNew.Contains('<w:tblCellMar>')) {
                     $tblNew = [regex]::Replace($tblNew, '<w:tblCellMar>.*?</w:tblCellMar>', $tightMar)
                 } else {
                     $tblNew = [regex]::Replace($tblNew, '(<w:tblLayout [^>]*/>)', "`$1$tightMar")
                 }
-                
+            } elseif ($tbl.Contains('De:') -and $tbl.Contains('Para:')) {
+                # Tabela de cabecalho (De e Para): 2 colunas sem bordas
+                $tblNew = $tbl.Replace('w:val="Compact"', 'w:val="BlocoPequeno"')
+                $tblNew = $tblNew.Replace('w:val="TabelaTexto"', 'w:val="BlocoPequeno"')
+                $tblNew = [regex]::Replace($tblNew, '<w:tr[ >].*?<w:tblHeader/>.*?</w:tr>', '')
+                $tblNew = [regex]::Replace($tblNew, '<w:tblStyle [^>]*/>', '')
+                $tblNew = [regex]::Replace($tblNew, '<w:tcBorders>.*?</w:tcBorders>', '<w:tcBorders><w:top w:val="none"/><w:left w:val="none"/><w:bottom w:val="none"/><w:right w:val="none"/></w:tcBorders>')
+                $noBrd = '<w:tblW w:type="pct" w:w="5000"/><w:tblBorders><w:top w:val="none"/><w:left w:val="none"/><w:bottom w:val="none"/><w:right w:val="none"/><w:insideH w:val="none"/><w:insideV w:val="none"/></w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="0" w:type="dxa"/><w:left w:w="0" w:type="dxa"/><w:bottom w:w="140" w:type="dxa"/><w:right w:w="120" w:type="dxa"/></w:tblCellMar><w:tblLook w:val="0000"/>'
+                $tblNew = [regex]::Replace($tblNew, '<w:tblPr>.*?</w:tblPr>', "<w:tblPr>$noBrd</w:tblPr>")
+            } else {
+                # Tabelas normais: TabelaTexto (Calibri 8.5 pt)
+                $tblNew = $tbl.Replace('w:val="Compact"', 'w:val="TabelaTexto"')
+            }
+            
+            if ($tblNew -ne $tbl) {
                 $xml = $xml.Substring(0, $matches[$i].Index) + $tblNew + $xml.Substring($matches[$i].Index + $matches[$i].Length)
                 $modified = $true
-                break
             }
         }
         

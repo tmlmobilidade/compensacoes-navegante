@@ -65,6 +65,7 @@ build_reference_doc <- function(
   p_body <- '<w:spacing w:before="120" w:after="240" w:line="288" w:lineRule="auto"/><w:ind w:right="-7"/><w:jc w:val="both"/>'
   r_body <- '<w:rFonts w:ascii="Greycliff CF Light" w:hAnsi="Greycliff CF Light"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="pt-PT"/>'
 
+  p_compact_list  <- '<w:spacing w:before="40" w:after="40" w:line="260" w:lineRule="auto"/><w:ind w:right="-7"/><w:jc w:val="both"/>'
   p_compact       <- '<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/><w:ind w:right="0"/><w:jc w:val="left"/>'
   p_compact_small <- '<w:spacing w:before="0" w:after="0" w:line="180" w:lineRule="exact"/><w:ind w:right="0"/><w:jc w:val="left"/>'
   r_tbl_text      <- '<w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri"/><w:sz w:val="17"/><w:szCs w:val="17"/><w:lang w:val="pt-PT"/>'
@@ -77,9 +78,9 @@ build_reference_doc <- function(
   r_caption <- '<w:rFonts w:ascii="Greycliff CF" w:hAnsi="Greycliff CF"/><w:b/><w:bCs/><w:sz w:val="18"/><w:szCs w:val="18"/>'
 
   p_bloco_dir <- '<w:keepLines/><w:spacing w:before="120" w:after="240" w:line="240" w:lineRule="auto"/><w:ind w:left="4536"/><w:jc w:val="left"/>'
-  r_bloco_dir <- '<w:rFonts w:ascii="Greycliff CF Light" w:hAnsi="Greycliff CF Light"/><w:sz w:val="18"/><w:szCs w:val="18"/>'
+  r_bloco_dir <- '<w:rFonts w:ascii="Greycliff CF Light" w:hAnsi="Greycliff CF Light" w:cs="Greycliff CF Light"/><w:sz w:val="18"/><w:szCs w:val="18"/>'
 
-  p_bloco_peq  <- '<w:spacing w:before="0" w:after="80" w:line="240" w:lineRule="auto"/><w:jc w:val="left"/>'
+  p_bloco_peq  <- '<w:spacing w:before="0" w:after="30" w:line="240" w:lineRule="auto"/><w:jc w:val="left"/>'
   p_linha_desp <- '<w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="000000"/></w:pBdr><w:spacing w:before="600" w:after="120"/>'
 
   # Headings oficiais TML (Greycliff CF, preto, numeração do Word)
@@ -128,7 +129,7 @@ build_reference_doc <- function(
     '<w:top w:val="single" w:sz="8" w:space="0" w:color="000000"/>',
     '<w:bottom w:val="single" w:sz="8" w:space="0" w:color="000000"/>',
     '<w:insideH w:val="none"/>',
-    '</w:tblBorders><w:tblCellMar><w:top w:w="70" w:type="dxa"/><w:left w:w="70" w:type="dxa"/><w:bottom w:w="70" w:type="dxa"/><w:right w:w="70" w:type="dxa"/></w:tblCellMar></w:tblPr>',
+    '</w:tblBorders><w:tblCellMar><w:top w:w="65" w:type="dxa"/><w:left w:w="70" w:type="dxa"/><w:bottom w:w="65" w:type="dxa"/><w:right w:w="70" w:type="dxa"/></w:tblCellMar></w:tblPr>',
     '<w:tblStylePr w:type="firstRow"><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri"/><w:b/><w:bCs/><w:sz w:val="17"/><w:szCs w:val="17"/></w:rPr><w:tcPr><w:tcBorders><w:bottom w:val="single" w:sz="8" w:space="0" w:color="000000"/></w:tcBorders><w:vAlign w:val="bottom"/></w:tcPr></w:tblStylePr>',
     '</w:style>'
   )
@@ -153,7 +154,7 @@ build_reference_doc <- function(
   extra_styles <- list(
     BodyText           = make_style("BodyText", "Body Text", based = "Normal", ppr = p_body, rpr = r_body),
     FirstParagraph     = make_style("FirstParagraph", "First Paragraph", based = "Normal", ppr = p_body, rpr = r_body),
-    Compact            = make_style("Compact", "Compact", based = "Normal", ppr = p_compact, rpr = r_tbl_text),
+    Compact            = make_style("Compact", "Compact", based = "Normal", ppr = p_compact_list, rpr = r_body),
     TableCaption       = make_style("TableCaption", "Table Caption", based = "Normal", ppr = p_caption, rpr = r_caption),
     ImageCaption       = make_style("ImageCaption", "Image Caption", based = "Normal", ppr = p_caption, rpr = r_caption),
     Caption            = make_style("Caption", "Caption", based = "Normal", ppr = p_caption, rpr = r_caption),
