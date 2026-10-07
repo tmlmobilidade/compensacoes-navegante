@@ -128,9 +128,6 @@ pincent_bt  <- tg_pi("BT Oeste")
 **Estudos e Planeamento `r data_documento`**
 :::
 
-_Forma de envio:_\
-Correio eletrónico
-
 ::: {custom-style="Subject"}
 Assunto: Pagamento da 2.ª parcela dos montantes a transferir em `r mes_transf_nome` de `r ano_transf` aos operadores de transporte público de passageiros da área metropolitana de Lisboa que disponibilizam o título intermodal Navegante, no âmbito do Regulamento n.º 278-A/2019 da AML
 :::
