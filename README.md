@@ -159,19 +159,24 @@ Ao executar `Rscript code/99_run_all.R`, o script mestre executa automaticamente
 Se os cálculos já foram executados e queres apenas recompilar documentos (ex.: após rever texto ou números de referência):
 
 ```bash
-# Todos os documentos ativos em config.R:
+# Todos os documentos ativos em config.R (PDF e DOCX nativo):
 Rscript code/10_documentos.R
 ```
 
-Para gerar a versão Word (DOCX) via PDF24 Toolbox:
+Para renderizar um único documento individual diretamente para Word (DOCX):
 
 ```powershell
-# Modo flow (texto corrido):
-$env:RENDER_DOCX="TRUE"; Rscript code/10_documentos.R
-
-# Modo blocks (caixas/blocos):
-$env:RENDER_DOCX="TRUE"; $env:DOCX_MODE="asposeBlocks"; Rscript code/10_documentos.R
+quarto render code/informacao1.qmd --to docx
+quarto render code/oficio1.qmd --to docx
+quarto render code/oficio2.qmd --to docx
 ```
+
+> **Nota:** Se alterares configurações de estilos, fontes ou margens de tabela em `code/build_reference_doc.R`, é necessário regerar o modelo antes de renderizar:
+> ```powershell
+> Rscript code/build_reference_doc.R
+> quarto render code/informacao1.qmd --to docx
+> ```
+> *(Lembra-te de fechar o Word antes de correr o script para não bloquear o ficheiro de template).*
 
 Os documentos são gravados em `data/{MES}_{mes_abrev}_{ANO}/output/docs/`:
 

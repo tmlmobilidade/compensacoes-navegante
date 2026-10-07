@@ -741,16 +741,35 @@ A produção dos relatórios é automatizada com **Quarto** e compilada através
   ```bash
   Rscript code/99_run_all.R
   ```
-- **Apenas a geração de documentos**:
+- **Apenas a geração de documentos (PDF + DOCX)**:
   ```bash
   Rscript code/10_documentos.R
-  # ou alternativamente apenas a Informação 1:
-  Rscript code/render_informacao1.R
   ```
+- **Renderização isolada de um documento individual para Word (DOCX)**:
+  ```powershell
+  quarto render code/informacao1.qmd --to docx
+  quarto render code/oficio1.qmd --to docx
+  quarto render code/oficio2.qmd --to docx
+  ```
+  *(Nota: `metodologia.qmd` é gerado exclusivamente em PDF via Typst com papel timbrado oficial).*
+
+> [!IMPORTANT]
+> **Alterações aos estilos Word (`build_reference_doc.R`):**
+> O Quarto/Pandoc utiliza o ficheiro compilado `code/templates/TML_Informacao_pandoc.docx` como `--reference-doc`.  
+> Se alterares fontes, tamanhos, entrelinhas, margens de tabelas (`tblCellMar`) ou regras de formatação em [`code/build_reference_doc.R`](build_reference_doc.R), deves **sempre regerar o template** antes de renderizar:
+> ```powershell
+> Rscript code/build_reference_doc.R
+> # ou na consola R:
+> source("code/build_reference_doc.R")
+> ```
+> *(Certifica-te de fechar o Microsoft Word antes de correr o script para não bloquear o ficheiro com erro de permissão).*  
+> De seguida, executa o comando `quarto render ... --to docx` do documento pretendido para ver as alterações refletidas no Word. O script de pós-processamento (`code/postprocess_docx.ps1`) é invocado automaticamente pelo Quarto no final.
+
 - **Outputs gerados** (em `data/{MES_ANO}/output/docs/`):
-  - `informacao1_{SUFIXO}.pdf` (documento interno, cabeçalho simples)
-  - `metodologia_{SUFIXO}.pdf` (documento externo com papel timbrado oficial)
-  - `informacao1_{SUFIXO}.docx` (quando `RENDER_DOCX <- TRUE`)
+  - `informacao1_{SUFIXO}.pdf` e `informacao1_{SUFIXO}.docx`
+  - `oficio1_{SUFIXO}.pdf` e `oficio1_{SUFIXO}.docx`
+  - `oficio2_{SUFIXO}.pdf` e `oficio2_{SUFIXO}.docx`
+  - `metodologia_{SUFIXO}.pdf` (exclusivamente em PDF com papel timbrado oficial)
 
 # Outras notas
 
