@@ -122,12 +122,6 @@ pincent_bt  <- tg_pi("BT Oeste")
 ```
 
 ::: {.content-visible when-format="docx"}
-::: {custom-style="Bloco Direita"}
-Exmos. Senhores\
-Operadores de transporte público que disponibilizam o título Intermodal Navegante
-
-CC/ Autoridades de Transporte: Secretaria de Estado da Mobilidade, Instituto da Mobilidade e dos Transportes, Câmara Municipal do Barreiro, Câmara Municipal de Lisboa, Câmara Municipal de Cascais, CIM Oeste e AML
-:::
 
 ::: {custom-style="Bloco Pequeno"}
 **N/Ref.ª - `r numero_oficio2`**\
@@ -265,13 +259,6 @@ Colocamo-nos à disposição para qualquer esclarecimento que entendam necessár
 
 Com os melhores cumprimentos,
 
-::: {.content-visible when-format="docx"}
-::: {custom-style="Bloco Direita"}
-**`r de_pessoa3_nome`**\
-**`r de_pessoa3_cargo`**\
-Ao abrigo do Despacho de subdelegação de competências do PCA de 13/03/2026
-:::
-:::
 
 ```{=typst}
 #v(1.5cm)
