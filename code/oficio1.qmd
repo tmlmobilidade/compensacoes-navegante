@@ -141,9 +141,6 @@ ppart_bt  <- tg_pp("BT Oeste")
 **Estudos e Planeamento `r data_documento`**
 :::
 
-_Forma de envio:_\
-Correio eletrónico
-
 ::: {custom-style="Subject"}
 Assunto: Apuramento provisório do mês de `r mes_nome` de `r ANO` e cálculo dos montantes a transferir aos operadores de transporte público ou às autoridades de transporte, em `r mes_transf_nome` de `r ano_transf`, no âmbito do Regulamento n.º 278-A/2019 da AML, na sua redação atual
 :::
