@@ -89,9 +89,9 @@ render_qmd_doc <- function(qmd_name, pdf_dest, docx_dest = NULL) {
   message("-----------------------------------------------------------------")
 
   # 1. Garantir reference-doc atualizado
-  if (file.exists(here::here("code", "build_reference_doc.R"))) {
+  if (file.exists(here::here("code", "templates", "build_reference_doc.R"))) {
     tryCatch({
-      source(here::here("code", "build_reference_doc.R"))
+      source(here::here("code", "templates", "build_reference_doc.R"))
       build_reference_doc()
     }, error = function(e) invisible(NULL))
   }

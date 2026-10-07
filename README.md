@@ -49,11 +49,11 @@ Executar as queries e guardar os CSVs (separador `;`) em `data/08_ago_2026/input
 | Ficheiro a gravar em`input/`                       | Consulta / Script                                                                                                   | Objetivo                                                                                        |
 | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | `V_REG_AVERAGE_DISTANCE_FINAL_ALL_<timestamp>.csv` | `SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = 8 AND distribution_year = 2026;` | Distâncias médias dinâmicas APEX para Carris Metropolitana (`75`) e Cascais Próxima (`22`). |
-| `entity23_<timestamp>.csv`                         | [`code/query_CM_fiscaismoveis.sql`](code/query_CM_fiscaismoveis.sql)                                                | Validações em terminais móveis dos fiscais da Carris Metropolitana (`ENTITY_ID = 23`).       |
+| `entity23_<timestamp>.csv`                         | [`code/sql/query_CM_fiscaismoveis.sql`](code/sql/query_CM_fiscaismoveis.sql)                                           | Validações em terminais móveis dos fiscais da Carris Metropolitana (`ENTITY_ID = 23`).       |
 
 > [!NOTE]
 > **Separação Transtejo (TT) / Soflusa (SL) direta via APEX:**
-> O APEX emite o Recibo B separado da Soflusa (`reg_SL_reciboB`) e o conjunto TT+SL (`reg_TT_reciboB`). Por isso, a separação é feita **diretamente no R** ($PT_{\text{SL}} = \text{Recibo B (SL)}$ e $PT_{\text{TT}} = \text{Recibo B (TT)} - \text{Recibo B (SL)}$), sendo **desnecessário** executar a consulta [`code/query_SL_TT.sql`](code/query_SL_TT.sql) ou descarregar ficheiros `tt_sl_*.csv` na rotina mensal (mantidos apenas como fallback histórico).
+> O APEX emite o Recibo B separado da Soflusa (`reg_SL_reciboB`) e o conjunto TT+SL (`reg_TT_reciboB`). Por isso, a separação é feita **diretamente no R** ($PT_{\text{SL}} = \text{Recibo B (SL)}$ e $PT_{\text{TT}} = \text{Recibo B (TT)} - \text{Recibo B (SL)}$), sendo **desnecessário** executar a consulta [`code/code-old/query_SL_TT.sql`](code/code-old/query_SL_TT.sql) ou descarregar ficheiros `tt_sl_*.csv` na rotina mensal (mantidos apenas como fallback histórico).
 
 > [!TIP]
 > O script seleciona automaticamente o ficheiro com o **timestamp numérico mais recente**. Para substituir um ficheiro sem apagar o anterior, adiciona `_update` ao nome (ex: `entity23_202608151400_update.csv`) — os ficheiros `_update` têm **prioridade automática**.
@@ -171,9 +171,9 @@ quarto render code/oficio1.qmd --to docx
 quarto render code/oficio2.qmd --to docx
 ```
 
-> **Nota:** Se alterares configurações de estilos, fontes ou margens de tabela em `code/build_reference_doc.R`, é necessário regerar o modelo antes de renderizar:
+> **Nota:** Se alterares configurações de estilos, fontes ou margens de tabela em `code/templates/build_reference_doc.R`, é necessário regerar o modelo antes de renderizar:
 > ```powershell
-> Rscript code/build_reference_doc.R
+> Rscript code/templates/build_reference_doc.R
 > quarto render code/informacao1.qmd --to docx
 > ```
 > *(Lembra-te de fechar o Word antes de correr o script para não bloquear o ficheiro de template).*
@@ -305,14 +305,22 @@ Compensacoes/
 │   ├── doc_params.R              # ← Parâmetros de emissão mensais (datas, refs, autores)
 │   ├── utils_tables.R            # Funções de formatação de tabelas (tinytable / Typst)
 │   ├── utils_extenso.R           # Funções auxiliares para montantes por extenso em euros
-│   ├── custom_styles.typ         # Estilos Typst: cabeçalhos, fundos e papel timbrado
-│   ├── linebreaks.lua            # Filtro Pandoc (quebras de linha e deteção de doc-tipo externo)
-│   ├── query_CM_fiscaismoveis.sql# Query Oracle para validações fiscais CM (Query 2c)
-│   └── templates/                # Modelos e recursos visuais institucionais (versionados no Git)
+│   ├── sql/                      # Consultas Oracle SQL
+│   │   ├── query_CM_fiscaismoveis.sql # Query Oracle para validações fiscais CM (Query 2c)
+│   │   └── query_distancias_medias.sql # Query Oracle de apoio a distâncias médias
+│   ├── code-old/                 # Scripts e queries legados / descontinuados
+│   │   └── query_SL_TT.sql       # Query Oracle histórica para separação TT/SL (Query 2b)
+│   └── templates/                # Modelos, filtros e recursos visuais institucionais
+│       ├── custom_styles.typ     # Estilos Typst: cabeçalhos, fundos e papel timbrado
+│       ├── linebreaks.lua        # Filtro Pandoc (quebras de linha e deteção de doc-tipo externo)
+│       ├── docx_styles.lua       # Filtro Pandoc: formatação de tabelas e estilos Word (DOCX)
+│       ├── build_reference_doc.R # Constrói o reference-doc com estilos XML para Word
+│       ├── postprocess_docx.ps1  # Script PowerShell de pós-processamento de tabelas DOCX
+│       ├── TML_template.docx     # Modelo base Word
+│       ├── TML_Informacao_pandoc.docx # Modelo compilado de referência para o Pandoc
 │       ├── folha_1.pdf           # Papel timbrado oficial TML (1.ª página, vetorial)
 │       ├── folha_restantes.pdf   # Papel timbrado oficial TML (páginas seguintes, vetorial)
-│       ├── logo_tml.svg          # Logótipo vetorial institucional TML
-│       └── TML_template.docx     # Modelo de referência Word
+│       └── logo_tml.svg          # Logótipo vetorial institucional TML
 ├── lists/                        # Tabelas estáticas e regulamentares de referência
 │   ├── operadores.csv            # Mapeamento de códigos e nomes de operadores
 │   ├── pesos_pkm.csv             # Pesos operacionais para cálculo de quotas PKM

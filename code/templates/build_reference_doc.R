@@ -24,7 +24,7 @@ build_reference_doc <- function(
   if (!file.exists(template)) stop("Modelo não encontrado: ", template)
   if (!force && file.exists(output) &&
       file.mtime(output) >= file.mtime(template) &&
-      file.mtime(output) >= file.mtime(here::here("code", "build_reference_doc.R"))) {
+      file.mtime(output) >= file.mtime(here::here("code", "templates", "build_reference_doc.R"))) {
     return(invisible(output))
   }
 

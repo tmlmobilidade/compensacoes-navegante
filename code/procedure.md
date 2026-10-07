@@ -153,15 +153,22 @@ code/
 ├── utils_tables.R            # Funções de formatação de tabelas com tinytable (Typst)
 ├── utils_extenso.R           # Funções auxiliares para montantes por extenso em euros
 │
-├── custom_styles.typ         # Estilos Typst: cabeçalhos, fundos e papel timbrado
-├── linebreaks.lua            # Filtro Pandoc: quebras de linha e deteção de doc-tipo externo
-├── query_SL_TT.sql           # Query Oracle para separação TT/SL (Query 2b — histórica / descontinuada)
-├── query_CM_fiscaismoveis.sql# Query Oracle para fiscais móveis CM (Query 2c)
-└── templates/                # Modelos e recursos visuais oficiais (versionados no Git)
+├── sql/                      # Consultas Oracle SQL
+│   ├── query_CM_fiscaismoveis.sql # Query Oracle para fiscais móveis CM (Query 2c)
+│   └── query_distancias_medias.sql # Query Oracle de apoio a distâncias médias
+├── code-old/                 # Scripts e queries legados / descontinuados
+│   └── query_SL_TT.sql       # Query Oracle histórica para separação TT/SL (Query 2b)
+└── templates/                # Modelos, filtros e recursos visuais oficiais
+    ├── custom_styles.typ     # Estilos Typst: cabeçalhos, fundos e papel timbrado
+    ├── linebreaks.lua        # Filtro Pandoc: quebras de linha e deteção de doc-tipo externo
+    ├── docx_styles.lua       # Filtro Pandoc: formatação de tabelas e estilos Word (DOCX)
+    ├── build_reference_doc.R # Constrói o reference-doc com estilos XML para Word
+    ├── postprocess_docx.ps1  # Script PowerShell de pós-processamento de tabelas DOCX
+    ├── TML_template.docx     # Modelo base Word
+    ├── TML_Informacao_pandoc.docx # Modelo compilado de referência para o Pandoc
     ├── folha_1.pdf           # Fundo timbrado oficial da 1.ª página (vetorial)
     ├── folha_restantes.pdf   # Fundo timbrado oficial das páginas seguintes (vetorial)
-    ├── logo_tml.svg          # Logótipo vetorial institucional TML
-    └── TML_template.docx     # Modelo de referência Word
+    └── logo_tml.svg          # Logótipo vetorial institucional TML
 ```
 
 ## Variáveis principais em `config.R`
@@ -274,8 +281,8 @@ Lê todos os Recibos B de todos os operadores e reconcilia dados da Oracle para 
 
 No apuramento oficial das validações ($PT$), há duas operações essenciais para garantir que os dados batem a 100% com o sistema bilhético:
 
-1. **Separação TT / SL**: Feita **diretamente via Recibos B do APEX** (`reg_SL_reciboB` e `reg_TT_reciboB`). A Query 2b (`query_SL_TT.sql`) foi **descontinuada** no fluxo regular.
-2. **Fiscais Móveis CM (Portal VIVA)**: [`code/query_CM_fiscaismoveis.sql`](file:///c:/GIS/Compensacoes/code/query_CM_fiscaismoveis.sql) (Query 2c) continua a ser extraída da base de dados Oracle `PDBDWPROD` e guardada em `data/{MES_ANO}/input/`.
+1. **Separação TT / SL**: Feita **diretamente via Recibos B do APEX** (`reg_SL_reciboB` e `reg_TT_reciboB`). A Query 2b (`query_SL_TT.sql`, guardada em `code/code-old/`) foi **descontinuada** no fluxo regular.
+2. **Fiscais Móveis CM (Portal VIVA)**: [`code/sql/query_CM_fiscaismoveis.sql`](file:///c:/GIS/Compensacoes/code/sql/query_CM_fiscaismoveis.sql) (Query 2c) continua a ser extraída da base de dados Oracle `PDBDWPROD` e guardada em `data/{MES_ANO}/input/`.
 
 ```
 data/{MES_ANO}/input/
@@ -301,7 +308,7 @@ O Recibo B entregue pela Transtejo (**TT**) contém na coluna `OPERADOR_TOTAL` o
 > [!WARNING]
 > **Descontinuação da Regra Antiga (`RUN_CODE = 7`) e da Query 2b:**
 > 
-> * **O que acontecia antes:** Na fórmula Excel prévia, a Soflusa era filtrada apenas por `RUN_CODE = 7` (ferry Barreiro – Terreiro do Paço) a partir de uma query Oracle (`query_SL_TT.sql`).
+> * **O que acontecia antes:** Na fórmula Excel prévia, a Soflusa era filtrada apenas por `RUN_CODE = 7` (ferry Barreiro – Terreiro do Paço) a partir de uma query Oracle (`code/code-old/query_SL_TT.sql`).
 > * **Porque foi corrigido:** Na tabela `DW_PROC.F_VALIDATIONS`, a Soflusa (`ENTITY_ID = 8`) tem validações com `RUN_CODE = 7` e também com `RUN_CODE = 0` (validações fixas de cais no terminal do Barreiro não associadas a uma viagem específica). A regra antiga desconsiderava essas validações de `RUN_CODE = 0`, subtraindo-as erradamente para a Transtejo (~22.000 a 26.000 validações mensais em falta na Soflusa).
 > * **Nova abordagem:** Os Recibos B do APEX já filtram a Soflusa com base em `ENTITY_ID = 8` (incluindo `RUN_CODE = 0` e `7`). Por isso, a separação direta dos Recibos B no R é mais precisa, elimina trabalho manual e torna desnecessário executar o script SQL mensalmente.
 
@@ -325,7 +332,7 @@ O Recibo B entregue pela Transtejo (**TT**) contém na coluna `OPERADOR_TOTAL` o
 >
 > 2. **Apenas são considerados os títulos que já existem no Recibo B da CM**. Títulos não-Navegante (ex: ticket 33592) são automaticamente ignorados.
 
-**Query 2c ([`code/query_CM_fiscaismoveis.sql`](file:///c:/GIS/Compensacoes/code/query_CM_fiscaismoveis.sql)):**
+**Query 2c ([`code/sql/query_CM_fiscaismoveis.sql`](file:///c:/GIS/Compensacoes/code/sql/query_CM_fiscaismoveis.sql)):**
 
 ```sql
 SELECT
@@ -367,8 +374,8 @@ ORDER BY TICKET_CODE, AREA_CM;
 > **Armadilha do Limite de 200 Linhas no Oracle SQL Developer:**Por omissão, o SQL Developer limita a busca em grelha a 200 registos. Se uma consulta devolver mais de 200 linhas e for exportada sem fazer scroll até ao fim, **o ficheiro CSV fica truncado em 200 linhas**, corrompendo os dados!**Como foi resolvido**:
 > As consultas foram pré-agrupadas e otimizadas no SQL:
 >
-> - `query_CM_fiscaismoveis.sql` devolve apenas ~47 linhas (muito abaixo do limite de 200 linhas).
-> - `query_SL_TT.sql` (descontinuada do fluxo regular; devolvia ~93 linhas).
+> - `code/sql/query_CM_fiscaismoveis.sql` devolve apenas ~47 linhas (muito abaixo do limite de 200 linhas).
+> - `code/code-old/query_SL_TT.sql` (descontinuada do fluxo regular; devolvia ~93 linhas).
 
 > [!TIP]
 > **Regra de Seleção Automática de Ficheiros:**
@@ -703,7 +710,7 @@ A produção dos relatórios é automatizada com **Quarto** e compilada através
 - **Formatação de Tabelas (`tinytable`)**: [`code/utils_tables.R`](utils_tables.R)
   - Padroniza o aspeto visual das tabelas: cabeçalhos escuros (`#2c3e50`), linhas zebradas subtis, linhas de separação minimalistas, totais a negrito e notas de rodapé (`notes`) com tamanho de fonte reduzido (`0.75em`).
   - Suporta quebras de linha manuais em cabeçalhos longos (ex.: Tabela 5) e rotação de títulos em tabelas largas em modo paisagem (Tabela 7).
-- **Estilos Tipográficos Typst**: [`code/custom_styles.typ`](custom_styles.typ)
+- **Estilos Tipográficos Typst**: [`code/templates/custom_styles.typ`](templates/custom_styles.typ)
   - Regras nativas em Typst para espaçamento vertical entre linhas de tabela (`inset`), alinhamentos e quebras de página.
 - **Script de Pipeline**: [`code/10_documentos.R`](10_documentos.R)
   - Executa a compilação de cada documento configurado como ativo em `config.R`.
@@ -722,7 +729,7 @@ A produção dos relatórios é automatizada com **Quarto** e compilada através
 2. **Diferenciação entre Documentos Internos e Externos:**
 
    - **Documentos Internos** (ex: `informacao1.qmd`): utilizam o cabeçalho padrão com o logótipo da TML (`templates/logo_tml.svg`) alinhado à esquerda no topo da página.
-   - **Documentos Externos** (ex: `metodologia.qmd`, `oficio1.qmd`, `oficio2.qmd`): definem `doc-tipo: externo` no cabeçalho YAML. O filtro Pandoc ([`linebreaks.lua`](linebreaks.lua)) injeta a etiqueta `<doc-externo>`, e o ficheiro [`code/custom_styles.typ`](custom_styles.typ) aplica automaticamente os modelos vetoriais de papel timbrado oficial da TML (guardados em [`code/templates/`](templates/)):
+   - **Documentos Externos** (ex: `metodologia.qmd`, `oficio1.qmd`, `oficio2.qmd`): definem `doc-tipo: externo` no cabeçalho YAML. O filtro Pandoc ([`code/templates/linebreaks.lua`](templates/linebreaks.lua)) injeta a etiqueta `<doc-externo>`, e o ficheiro [`code/templates/custom_styles.typ`](templates/custom_styles.typ) aplica automaticamente os modelos vetoriais de papel timbrado oficial da TML (guardados em [`code/templates/`](templates/)):
      - 1.ª página: fundo timbrado com `templates/folha_1.pdf` (logótipo TML, contactos institucionais no rodapé e marcas de furação);
      - Páginas seguintes: fundo timbrado com `templates/folha_restantes.pdf`.
 3. **No bloco inicial de parâmetros dos documentos:**
@@ -756,14 +763,14 @@ A produção dos relatórios é automatizada com **Quarto** e compilada através
 > [!IMPORTANT]
 > **Alterações aos estilos Word (`build_reference_doc.R`):**
 > O Quarto/Pandoc utiliza o ficheiro compilado `code/templates/TML_Informacao_pandoc.docx` como `--reference-doc`.  
-> Se alterares fontes, tamanhos, entrelinhas, margens de tabelas (`tblCellMar`) ou regras de formatação em [`code/build_reference_doc.R`](build_reference_doc.R), deves **sempre regerar o template** antes de renderizar:
+> Se alterares fontes, tamanhos, entrelinhas, margens de tabelas (`tblCellMar`) ou regras de formatação em [`code/templates/build_reference_doc.R`](templates/build_reference_doc.R), deves **sempre regerar o template** antes de renderizar:
 > ```powershell
-> Rscript code/build_reference_doc.R
+> Rscript code/templates/build_reference_doc.R
 > # ou na consola R:
-> source("code/build_reference_doc.R")
+> source("code/templates/build_reference_doc.R")
 > ```
 > *(Certifica-te de fechar o Microsoft Word antes de correr o script para não bloquear o ficheiro com erro de permissão).*  
-> De seguida, executa o comando `quarto render ... --to docx` do documento pretendido para ver as alterações refletidas no Word. O script de pós-processamento (`code/postprocess_docx.ps1`) é invocado automaticamente pelo Quarto no final.
+> De seguida, executa o comando `quarto render ... --to docx` do documento pretendido para ver as alterações refletidas no Word. O script de pós-processamento (`code/templates/postprocess_docx.ps1`) é invocado automaticamente pelo Quarto no final.
 
 - **Outputs gerados** (em `data/{MES_ANO}/output/docs/`):
   - `informacao1_{SUFIXO}.pdf` e `informacao1_{SUFIXO}.docx`

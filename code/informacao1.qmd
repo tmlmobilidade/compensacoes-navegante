@@ -12,15 +12,15 @@ format:
       top: 4.0cm
       bottom: 3.0cm
     include-in-header:
-      - custom_styles.typ
+      - templates/custom_styles.typ
   docx:
     reference-doc: templates/TML_Informacao_pandoc.docx
     number-sections: false # a numeração dos títulos vem do estilo Word (Título 1/2/3)
     fig-dpi: 300
 filters:
-  - linebreaks.lua
+  - templates/linebreaks.lua
   - quarto
-  - docx_styles.lua
+  - templates/docx_styles.lua
 number-sections: true
 section-numbering: 1.1.1.
 execute:

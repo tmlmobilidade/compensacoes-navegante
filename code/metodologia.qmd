@@ -13,9 +13,9 @@ format:
       top: 4.0cm
       bottom: 3.0cm
     include-in-header:
-      - custom_styles.typ
+      - templates/custom_styles.typ
 filters:
-  - linebreaks.lua
+  - templates/linebreaks.lua
 number-sections: true
 section-numbering: 1.1.1.
 execute:
