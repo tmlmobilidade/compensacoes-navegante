@@ -150,7 +150,7 @@ if (isTRUE(RENDER_METODOLOGIA)) {
   render_qmd_doc(
     qmd_name  = "metodologia.qmd",
     pdf_dest  = F_DOC_METODOLOGIA_PDF,
-    docx_dest = F_DOC_METODOLOGIA_DOCX
+    docx_dest = NULL # apenas em PDF conforme requisitos
   )
 } else {
   message("ℹ Metodologia: ignorada (RENDER_METODOLOGIA = FALSE em config.R).")
