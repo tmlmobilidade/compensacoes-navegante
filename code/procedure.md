@@ -83,7 +83,7 @@ flowchart TD
     subgraph OUT_STEP["7. Documentação e Relatórios Finais"]
         direction TB
         OUT_EXCEL["Workbook Excel Consolidado\nAnexo_Calculos_{SUFIXO}.xlsx\n(Folhas: 0 - Global, 1 - Quotas, 2 - Vendas AK,\n4 - Receita B, 5 - COSP D, 6 - Transferencias F)"]
-        OUT_REPORTS["Documentos Oficiais (Quarto / Typst / DOCX)\n- Informacao_{SUFIXO}.pdf (Nota técnica interna)\n- Anexo_Metodologia_{SUFIXO}.pdf (Documento timbrado oficial)\n- Oficio1_{SUFIXO}.pdf & Oficio2_{SUFIXO}.pdf\n- Versões Word .docx (via PDF24)"]
+        OUT_REPORTS["Documentos Oficiais (Quarto / Typst / DOCX)\n- Informacao_{SUFIXO}.pdf (Nota técnica interna)\n- Anexo_Metodologia_{SUFIXO}.pdf (Documento timbrado oficial)\n- Oficio1_{SUFIXO}.pdf & Oficio2_{SUFIXO}.pdf\n- Versões Word .docx (nativas via Quarto)"]
     end
 
     %% Ligações entre etapas
@@ -187,8 +187,7 @@ code/
 | `RENDER_INFORMACAO1` | `TRUE`                               | Booleano: controla a renderização da Informação 1                                       |
 | `RENDER_OFICIO1`     | `FALSE`                              | Booleano: controla a renderização do Ofício 1                                            |
 | `RENDER_OFICIO2`     | `FALSE`                              | Booleano: controla a renderização do Ofício 2                                            |
-| `RENDER_DOCX`        | `FALSE`                              | Booleano:`TRUE` converte o PDF para Word (DOCX) via PDF24 Toolbox                           |
-| `DOCX_MODE`          | `"asposeFlow"`                       | Modo de conversão PDF24:`"asposeFlow"` (texto corrido) ou `"asposeBlocks"` (blocos/caixas) |
+| `RENDER_DOCX`        | `TRUE`                               | Booleano: `TRUE` gera também versões Word (DOCX) nativas via Quarto                       |
 | `LISTS_DIR`          | `lists/`                             | Tabelas estáticas de referência                                                           |
 | `DIST_REF_FILE`      | `distanciasref_out21_incompleto.csv` | Distâncias de referência (verão →`ago21`)                                               |
 | `APEX_ENTITY_IDS`    | `c(75, 22)`                          | Entidades com distâncias dinâmicas (CM, CAP)                                              |
@@ -724,8 +723,7 @@ A produção dos relatórios é automatizada com **Quarto** e compilada através
    - `RENDER_METODOLOGIA <- TRUE`: Ativa a geração do Anexo Metodologia (documento externo com papel timbrado oficial).
    - `RENDER_OFICIO1     <- FALSE`: Ativa a geração do Ofício 1 (pagamento imediato, em preparação).
    - `RENDER_OFICIO2     <- FALSE`: Ativa a geração do Ofício 2 (pagamento Incentiva, em preparação).
-   - `RENDER_DOCX        <- FALSE`: Se `TRUE`, converte automaticamente o PDF gerado para Word (`.docx`) através do CLI do **PDF24 Toolbox** instalado na máquina.
-   - `DOCX_MODE          <- "asposeFlow"`: Modo de conversão PDF24: `"asposeFlow"` (texto corrido) ou `"asposeBlocks"` (blocos de texto estruturados).
+   - `RENDER_DOCX        <- TRUE`: Se `TRUE`, gera também as versões Word (`.docx`) nativas através do Quarto/Pandoc (com o modelo oficial `templates/TML_Informacao_pandoc.docx`).
 2. **Diferenciação entre Documentos Internos e Externos:**
 
    - **Documentos Internos** (ex: `informacao1.qmd`): utilizam o cabeçalho padrão com o logótipo da TML (`templates/logo_tml.svg`) alinhado à esquerda no topo da página.

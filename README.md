@@ -87,8 +87,7 @@ RENDER_INFORMACAO1 <- TRUE
 RENDER_METODOLOGIA <- TRUE
 RENDER_OFICIO1     <- TRUE
 RENDER_OFICIO2     <- TRUE
-RENDER_DOCX        <- FALSE   # TRUE gera também versão Word (requer PDF24 instalado)
-DOCX_MODE          <- "asposeFlow"  # "asposeFlow" (fluxo) ou "asposeBlocks" (blocos)
+RENDER_DOCX        <- TRUE    # TRUE gera também versões Word (.docx) nativas via Quarto
 ```
 
 ### 5. Atualizar os parâmetros de emissão em `code/doc_params.R`
@@ -124,7 +123,6 @@ numero_oficio2    <- "TML-YYYY-YYYY-OF-YYYY-DEP"
   renv::restore()
   ```
   *(Em alternativa, `Rscript code/00_setup.R` também pode ser usado para verificar ou carregar os pacotes base).*
-- (Opcional) **PDF24 Toolbox** instalado em `C:/Program Files/PDF24/` para conversão PDF → Word.
 
 ---
 

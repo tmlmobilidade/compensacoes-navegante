@@ -14,8 +14,7 @@ RENDER_INFORMACAO1 <- if (!is.na(Sys.getenv("RENDER_INFORMACAO1", unset = NA))) 
 RENDER_METODOLOGIA <- if (!is.na(Sys.getenv("RENDER_METODOLOGIA", unset = NA))) as.logical(Sys.getenv("RENDER_METODOLOGIA")) else TRUE
 RENDER_OFICIO1     <- if (!is.na(Sys.getenv("RENDER_OFICIO1", unset = NA))) as.logical(Sys.getenv("RENDER_OFICIO1")) else TRUE
 RENDER_OFICIO2     <- if (!is.na(Sys.getenv("RENDER_OFICIO2", unset = NA))) as.logical(Sys.getenv("RENDER_OFICIO2")) else TRUE
-RENDER_DOCX        <- if (!is.na(Sys.getenv("RENDER_DOCX", unset = NA))) as.logical(Sys.getenv("RENDER_DOCX")) else TRUE   # Converte PDF para Word (DOCX) via PDF24 Toolbox
-DOCX_MODE          <- if (!is.na(Sys.getenv("DOCX_MODE", unset = NA))) Sys.getenv("DOCX_MODE") else "asposeFlow"            # Modo PDF24: "asposeFlow" (fluxo contínuo) ou "asposeBlocks" (blocos)
+RENDER_DOCX        <- if (!is.na(Sys.getenv("RENDER_DOCX", unset = NA))) as.logical(Sys.getenv("RENDER_DOCX")) else TRUE   # Gera também versões Word (DOCX) nativas via Quarto
 
 # ---- Caminhos base -----------------------------------------------------------
 BASE_DIR <- here::here()   # raiz do projecto (onde está o code/)
