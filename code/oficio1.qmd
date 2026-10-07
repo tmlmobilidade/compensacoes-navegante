@@ -111,7 +111,7 @@ tab2_dados     <- tabela_global %>%
   filter(!nome_tab %in% c("TOTAL", "AT Cascais"), parcela_partilhada > 0)
 total_imediato <- sum(tab2_dados$parcela_partilhada, na.rm = TRUE)
 
-# Valor a reter da AT Cascais (transferência apurada na Tabela 1)
+# Valor a reter da AT Cascais (transferência total apurada na Tabela 1)
 reter_cascais <- tabela_global %>%
   filter(nome_tab == "AT Cascais") %>%
   pull(total_tml)
@@ -164,6 +164,7 @@ Assunto: Apuramento provisório do mês de `r mes_nome` de `r ANO` e cálculo do
 ```
 ```{=typst}
 #v(1cm)
+#set list(marker: [–])
 ```
 Foi publicado no dia 27 de dezembro de 2023, o Regulamento n.º 1362-C/2023, que procede à 6.ª alteração ao Regulamento n.º 278-A/2019. Com a referida alteração, ficou definida, no Anexo V, uma metodologia que fixa novas regras relativas à titularidade das receitas tarifárias e às compensações financeiras devidas aos Operadores de serviço público de transporte regular de passageiros da área metropolitana de Lisboa, pelo cumprimento das OSP tarifárias inerentes ao sistema tarifário metropolitano, pela disponibilização dos passes Navegante a preços acessíveis.
 
@@ -174,6 +175,29 @@ No âmbito das competências delegadas e subdelegadas pela Área Metropolitana d
 1)  Os valores provisórios de receita e compensações pela obrigação de serviço público tarifária pela disponibilização dos passes Navegante, de cada Operador, em `r mes_nome` de `r ANO`, conforme Tabela 4 e Tabela 5 do ficheiro “`r paste0("Anexo_Calculos_", SUFIXO, ".xlsx")`”;
 
 1)  Os valores das transferências \[F`r MES`\] e de estimativas de pagamentos por conta de compensação pelo congelamento dos preços dos passes Navegante (CongNav~\[B`r MES`\]~), previstos nos pontos 13 e 23.2 do Anexo V, respetivamente, definidos para `r mes_transf_nome` de `r ano_transf`, calculados com base nos dados provisórios de `r mes_nome` de `r ANO` e distribuídos pelos Operadores conforme @tbl-1 do ofício:
+
+    a.  Valor total de **`r fmt_eur(total_transferir)`** (`r numero_por_extenso(total_transferir)`), – resultante da compensação tarifária (COSP), do congelamento do valor dos títulos navegante e da receita das vendas em canais de receita partilhada – a transferir pela TML aos Operadores e a faturar de forma parcelar (dado que a verba do Fundo Ambiental relativa ao Incentiva +TP referente ao mês de `r mes_transf_nome` de `r ano_transf` não foi disponibilizada), conforme ponto 13.6 do Anexo V:
+
+        i.  Solicitar aos operadores, de imediato, as faturas da parcela correspondente à receita de passes Navegante obtida através dos canais de receita partilhada (ATM e portal viva), num total de **`r fmt_eur(total_imediato)`** (`r numero_por_extenso(total_imediato)`), conforme @tbl-2:
+
+            - **CP - Comboios de Portugal, E.P.E.**: **`r fmt_eur(ppart_cp)`** (`r numero_por_extenso(ppart_cp)`);
+
+            - **Fertagus - Travessia do Tejo, Transportes S.A.**: **`r fmt_eur(ppart_ft)`** (`r numero_por_extenso(ppart_ft)`);
+
+            - **Transtejo Soflusa, S.A.**: **`r fmt_eur(ppart_tt)`** (`r numero_por_extenso(ppart_tt)`);
+
+            - **Metropolitano de Lisboa, E.P.E.**: **`r fmt_eur(ppart_ml)`** (`r numero_por_extenso(ppart_ml)`);
+
+            - **Carris - Companhia Carris de Ferro de Lisboa, E.M. S.A.**: **`r fmt_eur(ppart_ca)`** (`r numero_por_extenso(ppart_ca)`);
+
+            - **Serviços Municipalizados de Transportes Coletivos do Barreiro**: **`r fmt_eur(ppart_tcb)`** (`r numero_por_extenso(ppart_tcb)`);
+
+            - **Transportes Metropolitanos de Lisboa, E.M.T., S.A. - Contratos Carris Metropolitana Áreas 1, 2, 3 e 4**: **`r fmt_eur(ppart_cm)`** (`r numero_por_extenso(ppart_cm)`);
+            
+            - **Barraqueiro Transportes, S.A.**: **`r fmt_eur(ppart_bt)`** (`r numero_por_extenso(ppart_bt)`).
+
+`r if (excedente_mts > 0) paste0("1)  Solicitar ao operador **Metro Transportes do Sul (MTS) a transferência de receitas excedentes para o operador Fertagus num valor total de ", fmt_eur(excedente_mts), "** (", numero_por_extenso(excedente_mts), ");\n\n") else ""`
+1)  **Reter a transferência determinada para a AT Cascais**, no valor de `r fmt_eur(reter_cascais)` (`r numero_por_extenso(reter_cascais)`), ao abrigo do n.º 26 do Anexo V do Regulamento.
 
 ```{r}
 #| label: tbl-1
@@ -212,29 +236,6 @@ tml_table(tab5, fontsize = 0.72, align = c("l", "r", "r", "r", "r", "r", "r"),
 text = "As percentagens apresentam-se com três casas decimais, porém o cálculo é realizado sem o arredondamento prévio da proporção.")))
 ```
 
-```{=typst}
-#grid(
-  columns: (2em, 1fr),
-  column-gutter: 0.8em,
-  row-gutter: 1em,
-  [a.],
-  [
-```
-
-Valor total de **`r fmt_eur(total_transferir)`** (`r numero_por_extenso(total_transferir)`), – resultante da compensação tarifária (COSP), do congelamento do valor dos títulos navegante e da receita das vendas em canais de receita partilhada – a transferir pela TML aos Operadores e a faturar de forma parcelar (dado que a verba do Fundo Ambiental relativa ao Incentiva +TP referente ao mês de `r mes_transf_nome` de `r ano_transf` não foi disponibilizada), conforme ponto 13.6 do Anexo V:
-
-```{=typst}
-  #grid(
-    columns: (2em, 1fr),
-    column-gutter: 0.5em,
-    row-gutter: 0.8em,
-    [i.],
-    [
-#set list(marker: [–])
-```
-
-Solicitar aos operadores, de imediato, as faturas da parcela correspondente à receita de passes Navegante obtida através dos canais de receita partilhada (ATM e portal viva), num total de **`r fmt_eur(total_imediato)`** (`r numero_por_extenso(total_imediato)`), conforme @tbl-2:
-
 ```{r}
 #| label: tbl-2
 #| tbl-cap: !expr paste0("Valores autorizados para faturação de imediato, referentes às transferências de ", mes_transf_nome, " de ", ano_transf)
@@ -269,32 +270,6 @@ tml_table(
 )
 ```
 
-- **CP - Comboios de Portugal, E.P.E.: `r fmt_eur(ppart_cp)`** (`r numero_por_extenso(ppart_cp)`);
-
-- **Fertagus - Travessia do Tejo, Transportes S.A.: `r fmt_eur(ppart_ft)`** (`r numero_por_extenso(ppart_ft)`);
-
-- **Transtejo Soflusa, S.A.: `r fmt_eur(ppart_tt)`** (`r numero_por_extenso(ppart_tt)`);
-
-- **Metropolitano de Lisboa, E.P.E.: `r fmt_eur(ppart_ml)`** (`r numero_por_extenso(ppart_ml)`);
-
-- **Carris - Companhia Carris de Ferro de Lisboa, E.M. S.A.: `r fmt_eur(ppart_ca)`** (`r numero_por_extenso(ppart_ca)`);
-
-- **Serviços Municipalizados de Transportes Coletivos do Barreiro: `r fmt_eur(ppart_tcb)`** (`r numero_por_extenso(ppart_tcb)`);
-
-- **Transportes Metropolitanos de Lisboa, E.M.T., S.A. - Contratos Carris Metropolitana Áreas 1, 2, 3 e 4: `r fmt_eur(ppart_cm)`** (`r numero_por_extenso(ppart_cm)`);
-
-- **Barraqueiro Transportes, S.A.: `r fmt_eur(ppart_bt)`** (`r numero_por_extenso(ppart_bt)`).
-
-```{=typst}
-    ]  // fecha célula i.
-  )    // fecha grid i.
-  ]    // fecha célula a.
-)      // fecha grid a.
-```
-
-<!-- regra se houver excedente no MST -->
-`r if (excedente_mts > 0) paste0("4)  Solicitar ao operador **Metro Transportes do Sul (MTS) a transferência de receitas excedentes para o operador Fertagus num valor total de ", fmt_eur(excedente_mts), "** (", numero_por_extenso(excedente_mts), ");\n\n5)  **Reter a transferência determinada para a AT Cascais**, no valor de ", fmt_eur(reter_cascais), " (", numero_por_extenso(reter_cascais), "), ao abrigo do n.º 26 do Anexo V do Regulamento.") else paste0("4)  **Reter a transferência determinada para a AT Cascais**, no valor de ", fmt_eur(reter_cascais), " (", numero_por_extenso(reter_cascais), "), ao abrigo do n.º 26 do Anexo V do Regulamento.")`
-
 Os pagamentos serão realizados pela TML após a receção das respetivas faturas, para o endereço de correio eletrónico [**compras@tmlmobilidade.pt**](mailto:compras@tmlmobilidade.pt), nos termos indicados anteriormente.
 
 De acordo com o n.º 3 do artigo 18.º do Regulamento n.º 278-A/2019, é obrigação dos operadores submeter documento a autorizar a consulta da situação tributária e da situação contributiva perante a segurança social, ou enviar as respetivas certidões de não dívida, devendo ainda ser comprovado o registo central do beneficiário efetivo, quando aplicável. Sem a receção destes documentos não é possível proceder aos pagamentos.
@@ -310,3 +285,4 @@ A TML reserva-se o direito de não proceder a pagamentos no caso de não envio d
   Ao abrigo do Despacho de subdelegação de competências do PCA de 13/03/2026
 ]
 ```
+

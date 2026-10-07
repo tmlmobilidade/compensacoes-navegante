@@ -133,15 +133,10 @@ if (isTRUE(RENDER_METODOLOGIA)) {
 # 3. Ofício 1 (a disponibilizar brevemente)
 if (isTRUE(RENDER_OFICIO1)) {
   render_qmd_doc(
-    qmd_name  = "oficio1_alt.qmd", # com as tabelas no fim dos items numerados
+    qmd_name  = "oficio1.qmd", # com as tabelas no fim dos items numerados
     pdf_dest  = F_DOC_OFICIO1_PDF,
     docx_dest = F_DOC_OFICIO1_DOCX
   )
-  # render_qmd_doc(
-  #   qmd_name  = "oficio1_alt.qmd", 
-  #   pdf_dest  = F_DOC_OFICIO1ALT_PDF,
-  #   docx_dest = F_DOC_OFICIO1ALT_DOCX
-  # )
 }
 
 # 3. Ofício 2 (a disponibilizar brevemente)
