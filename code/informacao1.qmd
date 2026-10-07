@@ -973,13 +973,3 @@ Quando aprovado o seu pagamento, os operadores e respetivas autoridades deverão
 ```
 
 `r data_documento`
-
-```{=typst}
-#v(0.3cm)
-```
-
-**`r de_pessoa1_nome`**\
-`r de_pessoa1_cargo`
-
-**`r de_pessoa2_nome`**\
-`r de_pessoa2_cargo`
