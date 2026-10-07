@@ -273,24 +273,8 @@ if (!ja_existe_mes) {
 Informação n.º `r numero_informacao`
 :::
 
-| | |
-|:------------------------------------------------|:------------------------------------------------|
-| **De:**<br>`r de_pessoa1_nome`<br>`r de_pessoa1_cargo`<br>`r de_pessoa2_nome`<br>`r de_pessoa2_cargo`<br>`r de_divisao` | **Para:**<br>`r para_pessoa_nome`<br>`r para_cargo`<br>`r para_divisao` |
-
 ::: {custom-style="Subject"}
 Assunto: Apuramento provisório do mês de `r mes_nome` de `r ANO` e cálculo dos montantes a transferir aos operadores de transporte público ou às autoridades de transporte, em `r mes_transf_nome` de `r ano_transf`, no âmbito do Regulamento n.º 278-A/2019 da AML, na sua redação atual
-:::
-
-**PARECER/VISTO:**
-
-::: {custom-style="Linha Despacho"}
-&nbsp;
-:::
-
-**DESPACHOS:**
-
-::: {custom-style="Linha Despacho"}
-&nbsp;
 :::
 :::
 
