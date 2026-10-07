@@ -75,7 +75,7 @@ build_reference_doc <- function(
   r_tbl_note <- '<w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri"/><w:sz w:val="15"/><w:szCs w:val="15"/><w:color w:val="595959"/>'
 
   p_caption <- '<w:keepNext/><w:spacing w:before="140" w:after="80" w:line="240" w:lineRule="auto"/><w:jc w:val="center"/>'
-  r_caption <- '<w:rFonts w:ascii="Greycliff CF" w:hAnsi="Greycliff CF"/><w:b/><w:bCs/><w:sz w:val="18"/><w:szCs w:val="18"/>'
+  r_caption <- '<w:rFonts w:ascii="Greycliff CF" w:hAnsi="Greycliff CF"/><w:sz w:val="18"/><w:szCs w:val="18"/>' #<w:b/><w:bCs/> bold
 
   p_bloco_dir <- '<w:keepLines/><w:spacing w:before="120" w:after="240" w:line="240" w:lineRule="auto"/><w:ind w:left="4536"/><w:jc w:val="left"/>'
   r_bloco_dir <- '<w:rFonts w:ascii="Greycliff CF Light" w:hAnsi="Greycliff CF Light" w:cs="Greycliff CF Light"/><w:sz w:val="18"/><w:szCs w:val="18"/>'
