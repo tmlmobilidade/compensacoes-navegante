@@ -14,8 +14,14 @@ format:
       bottom: 3.0cm
     include-in-header:
       - custom_styles.typ
+  docx:
+    reference-doc: templates/TML_Informacao_pandoc.docx
+    number-sections: false # a numeração dos títulos vem do estilo Word (Título 1/2/3)
+    fig-dpi: 300
 filters:
   - linebreaks.lua
+  - quarto
+  - docx_styles.lua
 number-sections: true
 section-numbering: 1.1.1.
 execute:
@@ -128,6 +134,28 @@ ppart_cm  <- tg_pp("AT TML - CM")
 ppart_bt  <- tg_pp("BT Oeste")
 ```
 
+::: {.content-visible when-format="docx"}
+::: {custom-style="Bloco Direita"}
+Exmos. Senhores\
+Operadores de transporte público que disponibilizam o título Intermodal Navegante
+
+CC/ Autoridades de Transporte: Secretaria de Estado da Mobilidade, Instituto da Mobilidade e dos Transportes, Câmara Municipal do Barreiro, Câmara Municipal de Lisboa, Câmara Municipal de Cascais, CIM Oeste e Área Metropolitana de Lisboa
+:::
+
+::: {custom-style="Bloco Pequeno"}
+**N/Ref.ª - `r numero_oficio`**\
+**Estudos e Planeamento `r data_documento`**
+:::
+
+_Forma de envio:_\
+Correio eletrónico
+
+::: {custom-style="Subject"}
+Assunto: Apuramento provisório do mês de `r mes_nome` de `r ANO` e cálculo dos montantes a transferir aos operadores de transporte público ou às autoridades de transporte, em `r mes_transf_nome` de `r ano_transf`, no âmbito do Regulamento n.º 278-A/2019 da AML, na sua redação atual
+:::
+:::
+
+::: {.content-visible when-format="typst"}
 :::::: {style="font-size: 0.7em;"}
 ::::: {layout-ncol="2"}
 ::: {}
@@ -162,6 +190,8 @@ Correio eletrónico
 Assunto: Apuramento provisório do mês de `r mes_nome` de `r ANO` e cálculo dos montantes a transferir aos operadores de transporte público ou às autoridades de transporte, em `r mes_transf_nome` de `r ano_transf`, no âmbito do Regulamento n.º 278-A/2019 da AML, na sua redação atual
 ]
 ```
+:::
+
 ```{=typst}
 #v(1cm)
 #set list(marker: [–])
@@ -276,6 +306,14 @@ De acordo com o n.º 3 do artigo 18.º do Regulamento n.º 278-A/2019, é obriga
 
 A TML reserva-se o direito de não proceder a pagamentos no caso de não envio de informação prevista no Regulamento n.º 278-A/2019.
 
+::: {.content-visible when-format="docx"}
+::: {custom-style="Bloco Direita"}
+**`r de_pessoa3_nome`**\
+**`r de_pessoa3_cargo`**\
+Ao abrigo do Despacho de subdelegação de competências do PCA de 13/03/2026
+:::
+:::
+
 ```{=typst}
 #v(1.5cm)
 #pad(left: 200pt)[
@@ -285,4 +323,5 @@ A TML reserva-se o direito de não proceder a pagamentos no caso de não envio d
   Ao abrigo do Despacho de subdelegação de competências do PCA de 13/03/2026
 ]
 ```
+
 

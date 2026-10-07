@@ -88,25 +88,51 @@ render_qmd_doc <- function(qmd_name, pdf_dest, docx_dest = NULL) {
   message(sprintf("Pasta de saída: %s", DOCS_DIR))
   message("-----------------------------------------------------------------")
 
-  # 1. Renderizar Typst (PDF)
-  message("-> A gerar PDF (Typst)...")
-  status_pdf <- system2("quarto", c("render", shQuote(qmd_file), "--to", "typst"))
-  pdf_src <- here::here("code", paste0(base_name, ".pdf"))
-  if (status_pdf == 0 && file.exists(pdf_src)) {
-    file.copy(pdf_src, pdf_dest, overwrite = TRUE)
-    message(sprintf("✓ PDF guardado em:  %s", pdf_dest))
-  } else {
-    warning(sprintf("Falha ao gerar %s.pdf.", base_name))
-    return(FALSE)
+  # 1. Garantir reference-doc atualizado
+  if (file.exists(here::here("code", "build_reference_doc.R"))) {
+    tryCatch({
+      source(here::here("code", "build_reference_doc.R"))
+      build_reference_doc()
+    }, error = function(e) invisible(NULL))
   }
 
-  # 2. Converter PDF gerado para Word (DOCX) via PDF24 CLI, se ativado em config.R
+  # 2. Renderizar Typst (PDF) se configurado
+  if (!is.null(pdf_dest) && isTRUE(get0("RENDER_PDF", ifnotfound = TRUE))) {
+    message("-> A gerar PDF (Typst)...")
+    status_pdf <- system2("quarto", c("render", shQuote(qmd_file), "--to", "typst"))
+    pdf_src <- here::here("code", paste0(base_name, ".pdf"))
+    if (status_pdf == 0 && file.exists(pdf_src)) {
+      file.copy(pdf_src, pdf_dest, overwrite = TRUE)
+      message(sprintf("✓ PDF guardado em:  %s", pdf_dest))
+    } else {
+      warning(sprintf("Falha ao gerar %s.pdf.", base_name))
+    }
+  }
+
+  # 3. Gerar Word (DOCX): diretamente com Quarto se suportado, senão via PDF24
   if (!is.null(docx_dest) && isTRUE(get0("RENDER_DOCX", ifnotfound = FALSE))) {
-    mode_chosen <- get0("DOCX_MODE", ifnotfound = "asposeFlow")
-    convert_pdf_to_docx_pdf24(pdf_dest, docx_dest, mode = mode_chosen)
+    lines_qmd <- readLines(qmd_file, n = 30, warn = FALSE)
+    has_docx_format <- any(grepl("^\\s*docx:", lines_qmd))
+
+    if (has_docx_format) {
+      message("-> A gerar Word (DOCX) diretamente via Quarto...")
+      status_docx <- system2("quarto", c("render", shQuote(qmd_file), "--to", "docx"))
+      docx_src <- here::here("code", paste0(base_name, ".docx"))
+      if (status_docx == 0 && file.exists(docx_src)) {
+        file.copy(docx_src, docx_dest, overwrite = TRUE)
+        message(sprintf("✓ DOCX guardado em: %s", docx_dest))
+      } else {
+        warning(sprintf("Falha ao gerar %s.docx.", base_name))
+      }
+    } else if (file.exists(pdf_dest)) {
+      message("-> A converter PDF para Word (DOCX) via PDF24 Toolbox...")
+      mode_chosen <- get0("DOCX_MODE", ifnotfound = "asposeFlow")
+      convert_pdf_to_docx_pdf24(pdf_dest, docx_dest, mode = mode_chosen)
+    }
   }
   TRUE
 }
+
 
 # 1. Informação 1
 if (isTRUE(RENDER_INFORMACAO1)) {
