@@ -76,8 +76,6 @@ F_DOC_METODOLOGIA_PDF <- file.path(DOCS_DIR, paste0("Anexo_Metodologia_",  SUFIX
 F_DOC_METODOLOGIA_DOCX<- file.path(DOCS_DIR, paste0("Anexo_Metodologia_",  SUFIXO, ".docx"))
 F_DOC_OFICIO1_PDF     <- file.path(DOCS_DIR, paste0("Oficio1_",      SUFIXO, ".pdf"))
 F_DOC_OFICIO1_DOCX    <- file.path(DOCS_DIR, paste0("Oficio1_",      SUFIXO, ".docx"))
-F_DOC_OFICIO1ALT_PDF  <- file.path(DOCS_DIR, paste0("Oficio1_alt_",   SUFIXO, ".pdf"))
-F_DOC_OFICIO1ALT_DOCX <- file.path(DOCS_DIR, paste0("Oficio1_alt_",   SUFIXO, ".docx"))
 F_DOC_OFICIO2_PDF     <- file.path(DOCS_DIR, paste0("Oficio2_",      SUFIXO, ".pdf"))
 F_DOC_OFICIO2_DOCX    <- file.path(DOCS_DIR, paste0("Oficio2_",      SUFIXO, ".docx"))
 

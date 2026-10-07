@@ -13,9 +13,15 @@ format:
       top: 4.0cm
       bottom: 3.0cm
     include-in-header:
-      - custom_styles.typ
+      - templates/custom_styles.typ
+  docx:
+    reference-doc: templates/TML_Informacao_pandoc.docx
+    number-sections: false # a numeração dos títulos vem do estilo Word (Título 1/2/3)
+    fig-dpi: 300
 filters:
-  - linebreaks.lua
+  - templates/linebreaks.lua
+  - quarto
+  - templates/docx_styles.lua
 number-sections: true
 section-numbering: 1.1.1.
 execute:
@@ -115,6 +121,19 @@ pincent_cm  <- tg_pi("AT TML - CM")
 pincent_bt  <- tg_pi("BT Oeste")
 ```
 
+::: {.content-visible when-format="docx"}
+
+::: {custom-style="Bloco Pequeno"}
+**N/Ref.ª - `r numero_oficio2`**\
+**Estudos e Planeamento `r data_documento`**
+:::
+
+::: {custom-style="Subject"}
+Assunto: Pagamento da 2.ª parcela dos montantes a transferir em `r mes_transf_nome` de `r ano_transf` aos operadores de transporte público de passageiros da área metropolitana de Lisboa que disponibilizam o título intermodal Navegante, no âmbito do Regulamento n.º 278-A/2019 da AML
+:::
+:::
+
+::: {.content-visible when-format="typst"}
 :::::: {style="font-size: 0.7em;"}
 ::::: {layout-ncol="2"}
 ::: {}
@@ -153,6 +172,8 @@ Assunto: Pagamento da 2.ª parcela dos montantes a transferir em `r mes_transf_n
 #v(1cm)
 #set list(marker: [–])
 ```
+:::
+
 No âmbito das competências delegadas e subdelegadas pela Área Metropolitana de Lisboa (“AML”) na TML – Transportes Metropolitanos de Lisboa, E.M.T., S.A. (“TML”) ao abrigo do Contrato Interadministrativo de Delegação e Subdelegação de Competências e respetivo Aditamento em vigor, a TML comunicou aos operadores de transporte público que disponibilizam o título intermodal Navegante, os **montantes a transferir em `r mes_transf_nome` de `r ano_transf`**, no âmbito do Regulamento n.º 278-A/2019 da AML, através do ofício n.º `r numero_oficio`.
 
 Dado que à data da referida comunicação não tinha sido disponibilizada à TML a verba proveniente do Programa «Incentiva +TP», foi aprovado pelo Conselho de Administração da TML autorizar a faturação da parcela correspondente às vendas em canais de receita partilhada, ficando o remanescente para faturar somente após o recebimento da verba referente ao montante financiado pelo Fundo Ambiental. 
@@ -233,10 +254,8 @@ De acordo com o n.º 3 do artigo 18.º do Regulamento n.º 278-A/2019, é obriga
 
 Colocamo-nos à disposição para qualquer esclarecimento que entendam necessário, através do endereço de correio eletrónico [transportes@tmlmobilidade.pt](mailto:transportes@tmlmobilidade.pt).
 
-```{=typst}
-#v(0.5cm)
-```
 Com os melhores cumprimentos,
+
 
 ```{=typst}
 #v(1.5cm)

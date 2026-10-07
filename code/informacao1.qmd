@@ -12,9 +12,15 @@ format:
       top: 4.0cm
       bottom: 3.0cm
     include-in-header:
-      - custom_styles.typ
+      - templates/custom_styles.typ
+  docx:
+    reference-doc: templates/TML_Informacao_pandoc.docx
+    number-sections: false # a numeração dos títulos vem do estilo Word (Título 1/2/3)
+    fig-dpi: 300
 filters:
-  - linebreaks.lua
+  - templates/linebreaks.lua
+  - quarto
+  - templates/docx_styles.lua
 number-sections: true
 section-numbering: 1.1.1.
 execute:
@@ -262,6 +268,16 @@ if (!ja_existe_mes) {
 
 <!-- # Informação n.º `r numero_informacao` {.unnumbered} -->
 
+::: {.content-visible when-format="docx"}
+::: {custom-style="Title"}
+Informação n.º `r numero_informacao`
+:::
+
+::: {custom-style="Subject"}
+Assunto: Apuramento provisório do mês de `r mes_nome` de `r ANO` e cálculo dos montantes a transferir aos operadores de transporte público ou às autoridades de transporte, em `r mes_transf_nome` de `r ano_transf`, no âmbito do Regulamento n.º 278-A/2019 da AML, na sua redação atual
+:::
+:::
+
 ```{=typst}
 #align(right)[
   #heading(level: 1, numbering: none)[
@@ -270,7 +286,7 @@ if (!ja_existe_mes) {
 ]
 #v(1cm)
 ```
-::::: {style="font-size: 0.7em;"}
+::::: {style="font-size: 0.7em;" .content-visible when-format="typst"}
 
 :::: {layout-ncol=2}
 
@@ -305,19 +321,24 @@ Assunto: Apuramento provisório do mês de `r mes_nome` de `r ANO` e cálculo do
 #v(1cm)
 ```
 
+::: {.content-visible when-format="typst"}
 **PARECER/VISTO:**
+:::
 
 ```{=typst}
 #v(1.5cm)
 #line(length: 100%)
 ```
 
+::: {.content-visible when-format="typst"}
 **DESPACHOS:**
+:::
 
 ```{=typst}
 #v(1.5cm)
 #line(length: 100%)
 ```
+
 
 # Enquadramento
 
@@ -325,9 +346,9 @@ O Regulamento n.º 278-A/2019, de 19 de março, designado “Regulamento Metropo
 
 Na presente informação procede-se ao apuramento dos montantes a transferir, no atual mês de `r mes_transf_nome` de `r ano_transf`, aos Operadores que disponibilizaram os Passes Navegante no mês de `r mes_nome` de `r ANO`, na sequência do apuramento provisório desse mês, de acordo com as regras estabelecidas no Anexo V do Regulamento n.º 278-A/2019 da AML, na sua redação atual.
 
-Os cálculos realizados tiveram por base dados de passageiros e vendas disponibilizados pelo DITS a `r data_dados_dits` (ficheiros equivalentes a recibos B finais + Receitas PV e ATM e passageiros transportados agregados na tabela `DW_PROC.F_VALIDATIONS` em `PDBDDWPROD`) e as distâncias percorridas pelos passageiros transportados na Carris Metropolitana calculadas e disponibilizadas pelo ITS na tabela `r sprintf("\x60gold_pks_cases_agg run_id = %s\x60", load_version)` (esquema `GOLD_prod.dbo` da base de dados fabric) a `r data_dados_its`.
+Os cálculos realizados tiveram por base dados de passageiros e vendas disponibilizados pelo DITS a `r data_dados_dits` (ficheiros equivalentes a recibos B finais + Receitas PV e ATM e passageiros transportados agregados na tabela `DW_PROC.F_VALIDATIONS` em `PDBDDWPROD`) e as distâncias percorridas pelos passageiros transportados na Carris Metropolitana e AT Cascais calculadas e disponibilizadas pelo ITS na tabela `r sprintf("\x60gold_pks_cases_agg run_id = %s\x60", load_version)` (esquema `GOLD_prod.dbo` da base de dados fabric) a `r data_dados_its`.
 
-Importa referir que a implementação de validações com cartão virtual nas linhas da Carris Metropolitana, a 19 de setembro de 2025, tece implicações, quer ao nível das transações de venda, quer ao nível das validações:
+Importa referir que a implementação de validações com cartão virtual nas linhas da Carris Metropolitana, a 19 de setembro de 2025, teve implicações, quer ao nível das transações de venda, quer ao nível das validações:
 
 - Nas transações de venda: o carregamento de um cartão virtual pressupõe o carregamento prévio de um cartão físico, ficando ambas as transações registadas no sistema de bilhética como transações de tipologia 3 (venda e carregamento). Isto significa a existência de 2 registos de venda: 1 com o título efetivamente comprado e carregado no cartão físico; e outro, invariavelmente, com o título Navegante Metropolitano Normal (`ticket_code 900`) carregado no cartão virtual. A equipa de DITS utilizou o campo "`CARD_PHYSICAL_TYPE_ID=31`" e o “`PRICE=0`” para excluir os carregamentos do cartão virtual no apuramento das receitas.
 
@@ -391,7 +412,14 @@ Em `r mes_nome` de `r ANO`, a receita na posse dos operadores totaliza um valor 
 
 ### Receitas de passes Navegante devidas a cada Operador \[B`r MES`\] em `r mes_nome` de `r ANO`
 
+::: {.content-visible when-format="typst"}
 A receita devida a cada Operador foi determinada aplicando a quota de repartição definida em -@sec-quota-reparticao. às receitas do sistema apresentadas no ponto -@sec-receitasak.
+:::
+
+::: {.content-visible when-format="docx"}
+A receita devida a cada Operador foi determinada aplicando a quota de repartição definida no ponto “Quota de Repartição Dinâmica de `r mes_nome` de `r ANO`” às receitas do sistema apresentadas no ponto “Receitas de passes Navegante na posse de cada Operador \[A`r MES`\] e nos canais de receita partilhada \[K`r MES`\]”.
+:::
+
 
 A Tabela 4 do ficheiro “`r paste0("Anexo_Calculos_", SUFIXO, ".xlsx")`” resume as receitas de passes Navegante devidas a cada Operador, relativas ao mês de `r mes_nome` de `r ANO`.
 
@@ -459,7 +487,18 @@ tab2 <- tibble(
     "Retenção regulamento",
     paste0("Pagamento por conta mensal\nCOSP tarifária em ", mes_nome, " de ", ANO)
   ),
-  `Fórmula` = c(
+  `Fórmula` = if (is_docx_output()) c(
+    "[a]",
+    "[b]",
+    "[c] = [a] / [b]",
+    "NumNavExc",
+    "[d] = NumNavExc / [c]",
+    "[e] = [a] × [d]",
+    "VMC",
+    "CompNav = VMC / NumNavExc",
+    "[f]",
+    "[g] = [e] × CompNav × (1 − [f])"
+  ) else c(
     "$[a]$",
     "$[b]$",
     "$[c] = [a] slash [b]$",
@@ -485,9 +524,10 @@ tab2 <- tibble(
   )
 )
 
-tml_table(tab2, align = c("l", "c", "r"),
+tml_table(tab2, align = c("l", "c", "r"), alignv = "m",
  notes = list(a = list(i = 6, j = 1, 
-          text = "Arredondado, por tipologia de passe, a 0 casas decimais."))) |> style_tt(alignv = "m")
+          text = "Arredondado, por tipologia de passe, a 0 casas decimais.")))
+
 ```
 
 ```{=typst}
@@ -714,12 +754,19 @@ ggplot(merged_plot, aes(x = data)) +
   labs(x = NULL)
 ```
 
+::: {.content-visible when-format="docx"}
+```{=openxml}
+<w:p><w:pPr><w:spacing w:before="0" w:after="0"/><w:sectPr><w:pgSz w:w="11900" w:h="16820"/><w:pgMar w:top="2268" w:right="1701" w:bottom="1701" w:left="1701" w:header="720" w:footer="720" w:gutter="0"/><w:cols w:space="720"/></w:sectPr></w:pPr></w:p>
+```
+:::
+
 ```{=typst}
 #pagebreak()
 #set page(paper: "a4", flipped: true, margin: (x: 1.5cm, top: 2.2cm, bottom: 1.5cm))
 #set text(size: 8.5pt)
 #set table(inset: (x: 4pt, y: 3pt))
 ```
+
 
 ```{r}
 #| label: tbl-7
@@ -810,6 +857,14 @@ if (is_typst) {
   tab7_df[[1]][n_pax + 1] <- "**Receitas**"
 }
 
+if (is_docx_output()) {
+  # Word: sem células fundidas; linha de variação homóloga e coluna TOTAL a negrito
+  bold_md <- function(v) ifelse(nzchar(v) & !grepl("^\\*\\*", v), paste0("**", v, "**"), v)
+  if (has_var) tab7_df[n_pax, -1] <- lapply(tab7_df[n_pax, -1], bold_md)
+  tab7_df[[3]] <- bold_md(tab7_df[[3]])
+  tab7 <- tml_table(tab7_df, align = c("c", "l", rep("r", 12)),
+                    bold_total = FALSE, fontsize = 0.7)
+} else {
 # Criar tabela com tml_table e tinytable
 tab7 <- tml_table(
   tab7_df,
@@ -831,9 +886,17 @@ if (has_var) {
   tab7 <- tab7 |>
     style_tt(i = n_pax, j = 2:ncol(tab7_df), background = "#f0f0f0", bold = TRUE)
 }
+}
 
 tab7
+
 ```
+
+::: {.content-visible when-format="docx"}
+```{=openxml}
+<w:p><w:pPr><w:spacing w:before="0" w:after="0"/><w:sectPr><w:pgSz w:w="16820" w:h="11900" w:orient="landscape"/><w:pgMar w:top="1247" w:right="850" w:bottom="850" w:left="850" w:header="720" w:footer="720" w:gutter="0"/><w:cols w:space="720"/></w:sectPr></w:pPr></w:p>
+```
+:::
 
 ```{=typst}
 #pagebreak()
@@ -841,6 +904,7 @@ tab7
 #set text(size: 11pt)
 #set table(inset: (x: 3pt, y: 6pt))
 ```
+
 
 # Proposta
 
@@ -909,13 +973,3 @@ Quando aprovado o seu pagamento, os operadores e respetivas autoridades deverão
 ```
 
 `r data_documento`
-
-```{=typst}
-#v(0.3cm)
-```
-
-**`r de_pessoa1_nome`**\
-`r de_pessoa1_cargo`
-
-**`r de_pessoa2_nome`**\
-`r de_pessoa2_cargo`

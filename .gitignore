@@ -21,6 +21,7 @@
 # RStudio and VS Code files
 .Rproj.user/
 .vscode/
+*.code-workspace
 
 # produced vignettes
 vignettes/*.html
@@ -62,3 +63,5 @@ lists/receitas_anteriores.csv
 # tests
 scratch/
 /.luarc.json
+
+/.quarto/
