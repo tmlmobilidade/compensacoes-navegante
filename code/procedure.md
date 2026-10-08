@@ -31,7 +31,7 @@ flowchart TD
         P01["01_recibos_b.R\n- Limpeza e filtros regulamentares\n- Separação direta TT e SL (Recibos B APEX)\n- Integração fiscais móveis CM (A1 a A4)\n→ Gera PT_ij e Validações VaT_i"]
         P02["02_distancias.R\n- Hierarquia regulamentar de distâncias:\n  1. APEX dinâmicas (CM e CAP)\n  2. Distâncias ref estáticas (verão/outros)\n→ Gera Distância Média d_ij"]
         P03["03_quotas.R\n- PKM_ij = PT_ij × d_ij\n- Quota Raw_ij = Peso_j × PKM_ij\n- Quota_ij = Raw_ij / ∑ Raw_ik\n(com fallback para Quota Global se PKM = 0)\n→ Gera Quota Dinâmica Quota_ij"]
-    
+  
         P01 --> P03
         P02 --> P03
     end
@@ -66,12 +66,12 @@ flowchart TD
     subgraph TRANSF_STEP["6. Apuramento de Transferências Finais (F)"]
         direction TB
         P07["07_transferencias_F.R & 08_tables.R\n- Saldo Global: SG_j = C_j - D_j = A_j - B_j - D_j\n- Transferência líquida: F_j = -SG_j = B_j + D_j - A_j\n- Total a transferir: Total_j = F_j + CongNav[B]_j\n- Reconciliação de saldos excedentes (MTS para Fertagus)\n- Ajuste pelo Método dos Maiores Restos (Total K exato)"]
-    
+  
         SPLIT{"Segregação das Vias de Liquidação"}
-    
+  
         PAY_IMEDIATO["Pagamento Imediato (Posse TML)\n- Parcela financiada pelas receitas dos canais K\n(Portal VIVA e SIBS / Multibanco)\n→ Ofício 1"]
         PAY_INCENTIVA["Pagamento Diferido (Incentiva +TP)\n- Parcela financiada pelo Fundo Ambiental\n(Compensação COSP D + Congelamento Navegante)\n→ Ofício 2"]
-    
+  
         P07 --> SPLIT
         SPLIT --> PAY_IMEDIATO
         SPLIT --> PAY_INCENTIVA
@@ -83,7 +83,7 @@ flowchart TD
     subgraph OUT_STEP["7. Documentação e Relatórios Finais"]
         direction TB
         OUT_EXCEL["Workbook Excel Consolidado\nAnexo_Calculos_{SUFIXO}.xlsx\n(Folhas: 0 - Global, 1 - Quotas, 2 - Vendas AK,\n4 - Receita B, 5 - COSP D, 6 - Transferencias F)"]
-        OUT_REPORTS["Documentos Oficiais (Quarto / Typst / DOCX)\n- Informacao_{SUFIXO}.pdf (Nota técnica interna)\n- Anexo_Metodologia_{SUFIXO}.pdf (Documento timbrado oficial)\n- Oficio1_{SUFIXO}.pdf & Oficio2_{SUFIXO}.pdf\n- Versões Word .docx (nativas via Quarto)"]
+        OUT_REPORTS["Documentos Oficiais (Quarto / Typst / DOCX)\n- Informacao_{SUFIXO}.pdf (Nota técnica interna)\n- Anexo_Metodologia_{SUFIXO}.pdf \n- Oficio1_{SUFIXO}.pdf & Oficio2_{SUFIXO}.pdf\n- Versões Word .docx"]
     end
 
     %% Ligações entre etapas
@@ -174,28 +174,28 @@ code/
 ## Variáveis principais em `config.R`
 
 
-| Variável            | Exemplo                              | Descrição                                                                                 |
-| ---------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `ANO`                | `2026`                               | Ano de distribuição                                                                       |
-| `MES`                | `5`                                  | Mês de distribuição (inteiro)                                                            |
-| `SUFIXO`             | `"mai26"`                            | Sufixo para nomes de ficheiros:`paste0(mes_abrev, ano_curto)`                               |
-| `DATA_DIR`           | `data/05_mai_2026/input/`            | Pasta com dados do mês (Recibos B, etc.)                                                   |
-| `MONTH_DIR`          | `data/05_mai_2026/`                  | Pasta do mês (dentro de `data/`, gitignored)                                               |
-| `INPUT_DIR`          | `data/05_mai_2026/input/`       | Pasta de inputs específicos do mês (ex: APEX distâncias)                                 |
-| `OUT_DIR`            | `data/05_mai_2026/output/`      | Pasta de outputs gerados pelos scripts                                                      |
-| `DOCS_DIR`           | `data/05_mai_2026/output/docs/` | Pasta de destino para relatórios e ofícios gerados                                        |
-| `RENDER_INFORMACAO1` | `TRUE`                               | Booleano: controla a renderização da Informação 1                                       |
-| `RENDER_OFICIO1`     | `FALSE`                              | Booleano: controla a renderização do Ofício 1                                            |
-| `RENDER_OFICIO2`     | `FALSE`                              | Booleano: controla a renderização do Ofício 2                                            |
-| `RENDER_DOCX`        | `TRUE`                               | Booleano: `TRUE` gera também versões Word (DOCX) nativas via Quarto                       |
-| `LISTS_DIR`          | `lists/`                             | Tabelas estáticas de referência                                                           |
-| `DIST_REF_FILE`      | `distanciasref_out21_incompleto.csv` | Distâncias de referência (verão →`ago21`)                                               |
-| `APEX_ENTITY_IDS`    | `c(75, 22)`                          | Entidades com distâncias dinâmicas (CM, CAP)                                              |
-| `CM_SUBOPS`          | `c("A1","A2","A3","A4")`             | Sub-operadores da Carris Metropolitana                                                      |
-| `VMC_2023`           | `112562432.41`                       | Valor Máximo Compensação COSP regulado                                                   |
-| `N_PASSES_COMPENSAR` | `8472279`                            | Nº máximo passes anuais a compensar (regulamentar)                                        |
-| `RETENCAO_TML`       | `0.025`                              | Retenção TML sobre COSP (2.5%)                                                            |
-| `TAT_FILE`           | `lists/tat.csv`                      | Taxa de Atualização Tarifária por ano                                                    |
+| Variável            | Exemplo                              | Descrição                                                          |
+| ---------------------- | -------------------------------------- | ---------------------------------------------------------------------- |
+| `ANO`                | `2026`                               | Ano de distribuição                                                |
+| `MES`                | `5`                                  | Mês de distribuição (inteiro)                                     |
+| `SUFIXO`             | `"mai26"`                            | Sufixo para nomes de ficheiros:`paste0(mes_abrev, ano_curto)`        |
+| `DATA_DIR`           | `data/05_mai_2026/input/`            | Pasta com dados do mês (Recibos B, etc.)                            |
+| `MONTH_DIR`          | `data/05_mai_2026/`                  | Pasta do mês (dentro de`data/`, gitignored)                         |
+| `INPUT_DIR`          | `data/05_mai_2026/input/`            | Pasta de inputs específicos do mês (ex: APEX distâncias)          |
+| `OUT_DIR`            | `data/05_mai_2026/output/`           | Pasta de outputs gerados pelos scripts                               |
+| `DOCS_DIR`           | `data/05_mai_2026/output/docs/`      | Pasta de destino para relatórios e ofícios gerados                 |
+| `RENDER_INFORMACAO1` | `TRUE`                               | Booleano: controla a renderização da Informação 1                |
+| `RENDER_OFICIO1`     | `FALSE`                              | Booleano: controla a renderização do Ofício 1                     |
+| `RENDER_OFICIO2`     | `FALSE`                              | Booleano: controla a renderização do Ofício 2                     |
+| `RENDER_DOCX`        | `TRUE`                               | Booleano:`TRUE` gera também versões Word (DOCX) nativas via Quarto |
+| `LISTS_DIR`          | `lists/`                             | Tabelas estáticas de referência                                    |
+| `DIST_REF_FILE`      | `distanciasref_out21_incompleto.csv` | Distâncias de referência (verão →`ago21`)                        |
+| `APEX_ENTITY_IDS`    | `c(75, 22)`                          | Entidades com distâncias dinâmicas (CM, CAP)                       |
+| `CM_SUBOPS`          | `c("A1","A2","A3","A4")`             | Sub-operadores da Carris Metropolitana                               |
+| `VMC_2023`           | `112562432.41`                       | Valor Máximo Compensação COSP regulado                            |
+| `N_PASSES_COMPENSAR` | `8472279`                            | Nº máximo passes anuais a compensar (regulamentar)                 |
+| `RETENCAO_TML`       | `0.025`                              | Retenção TML sobre COSP (2.5%)                                     |
+| `TAT_FILE`           | `lists/tat.csv`                      | Taxa de Atualização Tarifária por ano                             |
 
 ## Ficheiros de output (em `OUT_DIR`)
 
@@ -297,16 +297,19 @@ O Recibo B entregue pela Transtejo (**TT**) contém na coluna `OPERADOR_TOTAL` o
 
 > [!NOTE]
 > **Metodologia de Separação no R ([`code/01_recibos_b.R`](file:///c:/GIS/Compensacoes/code/01_recibos_b.R)):**
-> 
+>
 > * **Soflusa ($PT_{\text{SL}}$)**: retirado diretamente do Recibo B de Soflusa (`reg_SL_reciboB_PTconsideredByProduct_*.csv`).
 > * **Transtejo ($PT_{\text{TT}}$)**: calculado por subtração título a título:
->   $$PT_{\text{TT}} = PT_{\text{Recibo B (TT)}} - PT_{\text{Recibo B (SL)}}$$
-> 
+>   $$
+>   PT_{\text{TT}} = PT_{\text{Recibo B (TT)}} - PT_{\text{Recibo B (SL)}}
+>
+>   $$
+>
 > Desta forma, assegura-se rigorosamente que $PT_{\text{TT}} + PT_{\text{SL}} = PT_{\text{Recibo B (TT)}}$ ao passageiro unitário em todos os títulos, sem truncaturas nem distorções de arredondamento.
 
 > [!WARNING]
 > **Descontinuação da Regra Antiga (`RUN_CODE = 7`) e da Query 2b:**
-> 
+>
 > * **O que acontecia antes:** Na fórmula Excel prévia, a Soflusa era filtrada apenas por `RUN_CODE = 7` (ferry Barreiro – Terreiro do Paço) a partir de uma query Oracle (`code/code-old/query_SL_TT.sql`).
 > * **Porque foi corrigido:** Na tabela `DW_PROC.F_VALIDATIONS`, a Soflusa (`ENTITY_ID = 8`) tem validações com `RUN_CODE = 7` e também com `RUN_CODE = 0` (validações fixas de cais no terminal do Barreiro não associadas a uma viagem específica). A regra antiga desconsiderava essas validações de `RUN_CODE = 0`, subtraindo-as erradamente para a Transtejo (~22.000 a 26.000 validações mensais em falta na Soflusa).
 > * **Nova abordagem:** Os Recibos B do APEX já filtram a Soflusa com base em `ENTITY_ID = 8` (incluindo `RUN_CODE = 0` e `7`). Por isso, a separação direta dos Recibos B no R é mais precisa, elimina trabalho manual e torna desnecessário executar o script SQL mensalmente.
@@ -323,12 +326,16 @@ O Recibo B entregue pela Transtejo (**TT**) contém na coluna `OPERADOR_TOTAL` o
 > **Regras essenciais da reconciliação:**
 >
 > 1. As validações móveis são distribuídas pelas 4 sub-áreas da CM através do cálculo de `RUN_CODE`:
->    $$\text{Área CM} = \lfloor \text{RUN} / 1000 \rfloor + 40$$
+>
+>    $$
+>    \text{Área CM} = \lfloor \text{RUN} / 1000 \rfloor + 40
+>
+>    $$
+>
 >    - `1xxx` → Código 41 → **Área 1 (A1)**
 >    - `2xxx` → Código 42 → **Área 2 (A2)**
 >    - `3xxx` → Código 43 → **Área 3 (A3)**
 >    - `4xxx` → Código 44 → **Área 4 (A4)**
->
 > 2. **Apenas são considerados os títulos que já existem no Recibo B da CM**. Títulos não-Navegante (ex: ticket 33592) são automaticamente ignorados.
 
 **Query 2c ([`code/sql/query_CM_fiscaismoveis.sql`](file:///c:/GIS/Compensacoes/code/sql/query_CM_fiscaismoveis.sql)):**
@@ -370,7 +377,7 @@ ORDER BY TICKET_CODE, AREA_CM;
 #### 3. Cuidados no Oracle SQL Developer e Versionamento
 
 > [!WARNING]
-> **Armadilha do Limite de 200 Linhas no Oracle SQL Developer:**Por omissão, o SQL Developer limita a busca em grelha a 200 registos. Se uma consulta devolver mais de 200 linhas e for exportada sem fazer scroll até ao fim, **o ficheiro CSV fica truncado em 200 linhas**, corrompendo os dados!**Como foi resolvido**:
+> **Cuidado com Limite de 200 Linhas no Oracle SQL Developer:** Por omissão, o SQL Developer limita a busca em grelha a 200 registos. Se uma consulta devolver mais de 200 linhas e for exportada sem fazer scroll até ao fim, **o ficheiro CSV fica truncado em 200 linhas**, corrompendo os dados!**Como foi resolvido**:
 > As consultas foram pré-agrupadas e otimizadas no SQL:
 >
 > - `code/sql/query_CM_fiscaismoveis.sql` devolve apenas ~47 linhas (muito abaixo do limite de 200 linhas).
@@ -470,6 +477,7 @@ $$
 \text{Quota}_{i, j} &= \text{Peso}_{i, j} \times \text{PKM}_{i, j} \\[8pt]
 \sum_{j} \text{Quota}_{i, j} &= 1 \quad \forall i
 \end{aligned}
+
 $$
 
 > *Onde:*
@@ -484,6 +492,7 @@ Em percentagem. A soma para cada título é 1. Quando não há PKM para um títu
 
 $$
 \text{Quota Global}_j = \frac{\sum_i \text{Quota Raw}_{i,j}}{\sum_j \sum_i \text{Quota Raw}_{i,j}}
+
 $$
 
 Esta regra garante que todos os 145 títulos de `titulos.csv` (mesmo os que não tiveram validações no mês, ex.: PACs) têm quotas bem definidas somando 100%, em exata conformidade com a Tabela 1 da folha de validação da TML.
@@ -550,6 +559,7 @@ se Valor = `dist_receita_operador_titulo(i, j)`:
 
 $$
 \text{ReceitaCompensar}_{i,j} = \text{Valor} \times \left[ (1 + \text{TAT}_{2024})(1 + \text{TAT}_{2025})(1 + \text{TAT}_{2026}) - 1 \right]
+
 $$
 
  A parcela de congelamento por operador j é somada (Congelamento Navegante)
@@ -582,41 +592,46 @@ Há um valor máximo de compensação (VMC), atualizado à TAT todos os anos, qu
 
 $$
 \text{Qty Total Mês} = \sum_i (\text{qty}_{A,i} + \text{qty}_{K,i} + \text{qty}_{\text{VaT},i})
+
 $$
 
 2. **Estimativa anual de passes**:
 
 $$
 \text{Estimativa Anual} = \frac{\text{Qty Total Mês}}{\text{Sazonalidade Mês}}
+
 $$
 
 3. **Percentagem de passes a compensar**:
 
 $$
 \text{Pct Compensar} = \min\left(1, \frac{N_{\text{máx}}}{\text{Estimativa Anual}}\right)
+
 $$
 
 4. **N.º de passes a compensar por título $i$**:
 
 $$
 \text{Passes Compensar}_i = \text{round}(\text{Pct Compensar} \times \text{Qty Total}_i)
+
 $$
 
 5. **COSP por título $i$**:
 
 $$
 \text{COSP}_i = \text{Passes Compensar}_i \times \text{Valor Médio Passe} \times (1 - \text{Retenção TML})
+
 $$
 
 6. **Distribuição por operador $j$ (D)**:
 
 $$
 \text{COSP}_{i,j} = \text{Quota}_{i,j} \times \text{COSP}_i \quad \Longrightarrow \quad D_j = \sum_i \text{COSP}_{i,j}
+
 $$
 
 > [!IMPORTANT]
-> **Esclarecimento metodológico: N.º de passes a compensar vs. volume real de passes do mês:**  
-> A quantidade total de **passes a compensar no mês** (total apurado na coluna de passes a compensar da Folha 5 / Tabela 5) **difere do volume real de passes** emitidos ou validados no mês:
+> **Esclarecimento metodológico: N.º de passes a compensar vs. volume real de passes do mês:**A quantidade total de **passes a compensar no mês** (total apurado na coluna de passes a compensar da Folha 5 / Tabela 5) **difere do volume real de passes** emitidos ou validados no mês:
 >
 > 1. Resulta da aplicação da **percentagem regulamentar de passes a compensar** ($\text{Pct Compensar} \le 100\%$) sobre o total real de passes do mês, sempre que a procura anual estimada (anualização pela sazonalidade mensal) excede o limite máximo regulamentar anual (`N_PASSES_COMPENSAR`, fixado em 8 472 279 passes).
 > 2. **Impacto crítico dos títulos gratuitos sem carregamento prévio (`Validations as Transactions` — VaT):**
@@ -624,8 +639,7 @@ $$
 >    Se estes títulos fossem omitidos do volume mensal, a procura anualizada estimada ficaria artificialmente reduzida (ficando abaixo do teto regulamentar anual), o que levaria o sistema a aplicar erradamente uma taxa de compensação de $100\%$ em vez do rácio proporcional inferior a $100\%$, desvirtuando os montantes regulamentares de compensação devidos a todos os operadores.
 
 > [!NOTE]
-> **Transtejo (TT) e Soflusa (SL) — Agregação vs. Detalhe por Rubrica:**  
-> Na Tabela 6 (Transferências Finais), a Transtejo (TT) e a Soflusa (SL) são apresentadas de forma consolidada num único montante conjunto (`TT + SL`). No entanto, no detalhe das etapas anteriores:
+> **Transtejo (TT) e Soflusa (SL) — Agregação vs. Detalhe por Rubrica:**Na Tabela 6 (Transferências Finais), a Transtejo (TT) e a Soflusa (SL) são apresentadas de forma consolidada num único montante conjunto (`TT + SL`). No entanto, no detalhe das etapas anteriores:
 >
 > - **Tabela 4 (Receita Bilheteira B devida):** TT e SL são apuradas individualmente por operador a partir das respetivas quotas dinâmicas;
 > - **Tabela 5 (COSP D por conta):** TT e SL são igualmente calculadas e discriminadas em separado.
@@ -649,7 +663,7 @@ $$
 >    - Os valores de `receita_B`, `congelamento_B` e `cosp_D` por operador são guardados em CSV com **precisão total** (sem `round(..., 2)` prematuro).
 >    - Isto evita que erros de truncatura se propaguem e acumulem discrepâncias de cêntimos nas somas finais.
 > 2. **Folha "5 - Pag Conta COSP D"**:
->    - **Total de Passes a Compensar no Mês**: É calculado como a **soma dos passes arredondados à unidade por título** ($\sum_i \text{round}(\text{passes}_i)$), e não arredondando a soma global. Isto assegura que o total oficial da tabela coincide rigorosamente com o somatório dos passes arredondados de cada título individual.
+>    - **Total de Passes a Compensar no Mês**: É calculado como a **soma dos passes arredondados à unidade por título** ( $\sum_i\text{round}(\text{passes}_i)$ ), e não arredondando a soma global. Isto assegura que o total oficial da tabela coincide rigorosamente com o somatório dos passes arredondados de cada título individual.
 >    - **Tabela Resumo por Operador**: Mostra `Operador`, `Nome Completo`, `Pagamento COSP Devido [D] (€)` e `% do COSP Total`.
 >    - **Tabela Detalhada (Abaixo do Resumo)**: Apresenta o detalhe em formato *wide* por título × operador (`COSP_ij`), com as colunas base do título e as colunas de cada operador, totalizando na linha de rodapé.
 > 3. **Folha "0 - Global" (Tabela Síntese de Transferências)**:
@@ -756,18 +770,21 @@ A produção dos relatórios é automatizada com **Quarto** e compilada através
   quarto render code/oficio1.qmd --to docx
   quarto render code/oficio2.qmd --to docx
   ```
+
   *(Nota: `metodologia.qmd` é gerado exclusivamente em PDF via Typst com papel timbrado oficial).*
 
 > [!IMPORTANT]
 > **Alterações aos estilos Word (`build_reference_doc.R`):**
-> O Quarto/Pandoc utiliza o ficheiro compilado `code/templates/TML_Informacao_pandoc.docx` como `--reference-doc`.  
+> O Quarto/Pandoc utiliza o ficheiro compilado `code/templates/TML_Informacao_pandoc.docx` como `--reference-doc`.
 > Se alterares fontes, tamanhos, entrelinhas, margens de tabelas (`tblCellMar`) ou regras de formatação em [`code/templates/build_reference_doc.R`](templates/build_reference_doc.R), deves **sempre regerar o template** antes de renderizar:
+>
 > ```powershell
 > Rscript code/templates/build_reference_doc.R
 > # ou na consola R:
 > source("code/templates/build_reference_doc.R")
 > ```
-> *(Certifica-te de fechar o Microsoft Word antes de correr o script para não bloquear o ficheiro com erro de permissão).*  
+>
+> *(Certifica-te de fechar o Microsoft Word antes de correr o script para não bloquear o ficheiro com erro de permissão).*
 > De seguida, executa o comando `quarto render ... --to docx` do documento pretendido para ver as alterações refletidas no Word. O script de pós-processamento (`code/templates/postprocess_docx.ps1`) é invocado automaticamente pelo Quarto no final.
 
 - **Outputs gerados** (em `data/{MES_ANO}/output/docs/`):
@@ -782,7 +799,7 @@ A produção dos relatórios é automatizada com **Quarto** e compilada através
 
 Nas receitas, excluir os "Validators as Transactions", senão vai dar quantidades duplicadas.
 
-# Importante
+# To do
 
 Seria bom ter alguns testes de comparação, para ver se a coisa está a fazer sentido. Por exemplo, comparar com o mês anterior para ver se há grande discrepância, ou com o mês homólogo do ano anterior.
 
@@ -798,7 +815,7 @@ Seria bom ter alguns testes de comparação, para ver se a coisa está a fazer s
 | `titulos.csv`                        | Títulos Navegante:`ticket_code`, `titulo_nome`, `modalidade`, `pvp`, `titulo_nome_base`, `preco_base` |
 | `titulos2.csv`                       | Versão alternativa/expandida da lista de títulos                                                     |
 | `titulos_alternativas.csv`           | Mapeamento de alternativas de títulos                                                                 |
-| `distanciasref_out21_incompleto.csv` | Distâncias médias de referência (Outubro 2021) — formato wide por operador                         |
+| `distanciasref_out21_incompleto.csv` | Distâncias médias de referência (Outubro 2021)                                                     |
 | `distanciasref_ago21_incompleto.csv` | Distâncias médias de referência (Agosto 2021) — para meses de verão                               |
 | `pesos_pkm.csv`                      | Pesos por operador (sem header):`operador_nome_navegante;peso`                                         |
 | `sazonalidade.csv`                   | Sazonalidade mensal (12 meses):`mes;sazonalidade`                                                      |
