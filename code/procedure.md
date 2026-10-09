@@ -18,7 +18,7 @@ flowchart TD
     subgraph IN["1. Fontes de Dados e Entradas"]
         direction TB
         IN_RECIBOS["Recibos B dos Operadores (APEX)\n- Validações de passageiros (PT)\n- Separação direta TT e SL via Recibos B\n- Vendas de bilheteira (Canais A)\n- Títulos sem carregamento prévio (VaT)"]
-        IN_ORACLE["Extrações Oracle PDBDWPROD\n- Distâncias médias APEX (CM e CAP)\n- Fiscais móveis CM / Portal VIVA (Query 2c)\n- (Rateio TT / SL descontinuado / fallback)"]
+        IN_ORACLE["Extrações Oracle PDBDWPROD\n- Distâncias médias APEX (CM e CAP)\n- Fiscais móveis CM / Portal VIVA (Query 2c)"]
         IN_K["Canais Partilhados TML (K)\n- Ficheiro de separação PV e ATM\n(Portal VIVA e SIBS / Multibanco)"]
         IN_LISTS["Tabelas Regulamentares (lists/)\n- Distâncias de referência (ago21 / out21)\n- Pesos operacionais PKM por operador\n- TAT anual, Sazonalidade COSP e VMC"]
     end
@@ -308,18 +308,17 @@ O Recibo B entregue pela Transtejo (**TT**) contém na coluna `OPERADOR_TOTAL` o
 > Desta forma, assegura-se rigorosamente que $PT_{\text{TT}} + PT_{\text{SL}} = PT_{\text{Recibo B (TT)}}$ ao passageiro unitário em todos os títulos, sem truncaturas nem distorções de arredondamento.
 
 > [!WARNING]
-> **Descontinuação da Regra Antiga (`RUN_CODE = 7`) e da Query 2b:**
+> **Descontinuação da Regra de filtro por `RUN_CODE`na SL e da Query 2b:**
 >
-> * **O que acontecia antes:** Na fórmula Excel prévia, a Soflusa era filtrada apenas por `RUN_CODE = 7` (ferry Barreiro – Terreiro do Paço) a partir de uma query Oracle (`code/code-old/query_SL_TT.sql`).
-> * **Porque foi corrigido:** Na tabela `DW_PROC.F_VALIDATIONS`, a Soflusa (`ENTITY_ID = 8`) tem validações com `RUN_CODE = 7` e também com `RUN_CODE = 0` (validações fixas de cais no terminal do Barreiro não associadas a uma viagem específica). A regra antiga desconsiderava essas validações de `RUN_CODE = 0`, subtraindo-as erradamente para a Transtejo (~22.000 a 26.000 validações mensais em falta na Soflusa).
-> * **Nova abordagem:** Os Recibos B do APEX já filtram a Soflusa com base em `ENTITY_ID = 8` (incluindo `RUN_CODE = 0` e `7`). Por isso, a separação direta dos Recibos B no R é mais precisa, elimina trabalho manual e torna desnecessário executar o script SQL mensalmente.
+> * **O que acontecia antes:** Na fórmula Excel prévia, a Soflusa era filtrada apenas por `RUN_CODE = 7` (ferry Barreiro – Terreiro do Paço).
+> * **Nova abordagem:** Os Recibos B do APEX já filtram a Soflusa com base em `ENTITY_ID = 8`. A separação direta pelos Recibos B elimina a execução mensal de scripts SQL para esta operação.
 
 ---
 
 #### 2. Validações Fiscais Móveis CM (Portal VIVA, `ENTITY_ID = 23`) — Query 2c
 
 > [!IMPORTANT]
-> **Armadilha das validações em falta na Carris Metropolitana:**
+> **Caso das validações em falta na Carris Metropolitana:**
 > Os Recibos B das 4 áreas operacionais da CM (A1 a A4) não contêm as validações efetuadas nos terminais móveis dos fiscais. Estas validações ficam registadas no Portal VIVA (`ENTITY_ID = 23`).
 > Se não forem somadas, a CM apresenta uma diferença negativa (ficando com validações em falta face ao total oficial do sistema).
 >
@@ -757,14 +756,17 @@ A produção dos relatórios é automatizada com **Quarto** e compilada através
 ### Como Executar
 
 - **Em conjunto com toda a pipeline**:
+
   ```bash
   Rscript code/99_run_all.R
   ```
 - **Apenas a geração de documentos (PDF + DOCX)**:
+
   ```bash
   Rscript code/10_documentos.R
   ```
 - **Renderização isolada de um documento individual para Word (DOCX)**:
+
   ```powershell
   quarto render code/informacao1.qmd --to docx
   quarto render code/oficio1.qmd --to docx
@@ -815,7 +817,7 @@ Seria bom ter alguns testes de comparação, para ver se a coisa está a fazer s
 | `titulos.csv`                        | Títulos Navegante:`ticket_code`, `titulo_nome`, `modalidade`, `pvp`, `titulo_nome_base`, `preco_base` |
 | `titulos2.csv`                       | Versão alternativa/expandida da lista de títulos                                                     |
 | `titulos_alternativas.csv`           | Mapeamento de alternativas de títulos                                                                 |
-| `distanciasref_out21_incompleto.csv` | Distâncias médias de referência (Outubro 2021)                                                     |
+| `distanciasref_out21_incompleto.csv` | Distâncias médias de referência (Outubro 2021)                                                      |
 | `distanciasref_ago21_incompleto.csv` | Distâncias médias de referência (Agosto 2021) — para meses de verão                               |
 | `pesos_pkm.csv`                      | Pesos por operador (sem header):`operador_nome_navegante;peso`                                         |
 | `sazonalidade.csv`                   | Sazonalidade mensal (12 meses):`mes;sazonalidade`                                                      |
