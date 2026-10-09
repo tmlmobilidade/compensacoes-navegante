@@ -46,6 +46,7 @@ docs/
 
 # quarto rendering
 .quarto/
+_book/
 **/*.quarto_ipynb
 
 # translation temp files

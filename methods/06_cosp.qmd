@@ -1,0 +1,87 @@
+# Compensação COSP Tarifária (D)
+
+A **Compensação por Obrigação de Serviço Público (COSP)** consubstancia o mecanismo financeiro através do qual a Autoridade de Transportes (TML) compensa os operadores pelo diferencial entre as tarifas sociais em vigor e os custos reais de prestação do serviço público.
+
+---
+
+## Parâmetros e Constantes Regulamentares
+
+A COSP é limitada superiormente por um **Valor Máximo de Compensação (VMC)** anual fixado na lei, atualizado anualmente pela taxa da TAT:
+
+* **VMC Regulado Base (2023)**: $112\,562\,432{,}41\text{ €}$
+* **Teto Máximo Anual de Passes a Compensar** ($N_{\text{máx}}$): **$8\,472\,279$ passes** (`N_PASSES_COMPENSAR`)
+* **Sazonalidade Mensal**: Coeficiente regulamentar da procura anual esperada para cada mês (constante em [`lists/sazonalidade.csv`](../lists/sazonalidade.csv), ex.: Maio = $0{,}087$ ou $8{,}7\%$)
+* **Retenção Institucional TML**: $2{,}5\%$ (`RETENCAO_TML = 0.025`) destinada a suportar os custos de gestão e bilhética metropolitana
+* **VMC Atualizado**:
+  $$\text{VMC}_{\text{ano}} = \text{VMC}_{2023} \times \prod (1 + \text{TAT}_{\text{ano}})$$
+  *(Para 2026: $125\,006\,780{,}46\text{ €}$)*
+* **Valor Médio Regulamentar de Compensação por Passe**:
+  $$\text{Valor Médio Passe} = \frac{\text{VMC}_{\text{ano}}}{N_{\text{máx}}} = 14{,}754800\text{ €}$$
+
+---
+
+## Algoritmo de Cálculo Passo a Passo
+
+O cálculo processa-se em seis etapas sucessivas:
+
+### 1. Quantidade Total de Passes do Mês
+Soma o volume de vendas próprias ($A$), canais partilhados ($K$) e títulos gratuitos sem carregamento ($\text{VaT}$):
+$$
+\text{Qty Total Mês} = \sum_i (\text{qty}_{A,i} + \text{qty}_{K,i} + \text{qty}_{\text{VaT},i})
+$$
+
+### 2. Estimativa da Procura Anualizada
+Expande o volume mensal pela curva de sazonalidade regulamentar:
+$$
+\text{Estimativa Anual} = \frac{\text{Qty Total Mês}}{\text{Sazonalidade Mês}}
+$$
+
+### 3. Percentagem de Passes a Compensar
+Se a estimativa anual exceder o teto regulamentar ($8\,472\,279$), aplica-se um fator de corte proporcional:
+$$
+\text{Pct Compensar} = \min\left(1, \; \frac{N_{\text{máx}}}{\text{Estimativa Anual}}\right)
+$$
+
+### 4. N.º de Passes a Compensar por Título $i$
+Arredonda-se à unidade o número de passes compensáveis por título:
+$$
+\text{Passes Compensar}_i = \text{round}(\text{Pct Compensar} \times \text{Qty Total}_i)
+$$
+
+### 5. Montante COSP por Título $i$
+Deduz a retenção de $2{,}5\%$ da TML ao valor médio compensatório:
+$$
+\text{COSP}_i = \text{Passes Compensar}_i \times \text{Valor Médio Passe} \times (1 - \text{Retenção TML})
+$$
+
+### 6. Repartição por Operador $j$ (Parcela D)
+Aplica a quota dinâmica de cada operador sobre a compensação do título:
+$$
+\text{COSP}_{i,j} = \text{Quota}_{i,j} \times \text{COSP}_i \quad \Longrightarrow \quad D_j = \sum_i \text{COSP}_{i,j}
+$$
+
+---
+
+## Esclarecimentos Metodológicos
+
+::: {.callout-important}
+## Passes a Compensar vs. Volume Real
+A quantidade total de passes a compensar no mês difere do volume real de passes validados sempre que a procura anualizada estimada ultrapassa o teto de 8,47 milhões. A inclusão estrita dos títulos gratuitos sem carregamento (VaT) é indispensável para assegurar que a taxa de compensação reflita o volume global de procura de mobilidade da AML.
+:::
+
+::: {.callout-note}
+## Transtejo (TT) e Soflusa (SL)
+Na Tabela 5 (COSP D por conta), a Transtejo e a Soflusa são calculadas e discriminadas em separado com as suas respetivas quotas. A consolidação num único montante conjunto (`TT + SL`) ocorre unicamente na fase seguinte de transferências líquidas (Tabela 6).
+:::
+
+---
+
+### Script: `06_cosp_D.R` {.unnumbered}
+
+O script [`code/06_cosp_D.R`](../code/06_cosp_D.R) implementa todo o fluxo da COSP com precisão decimal contínua.
+
+**Outputs gerados:**
+
+* `5a_cosp_{SUFIXO}.csv`: Detalhe da compensação por título e operador;
+* `5_cosp_operador_{SUFIXO}.csv`: Compensação total $D_j$ por operador.
+

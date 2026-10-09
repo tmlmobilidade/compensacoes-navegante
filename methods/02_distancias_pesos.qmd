@@ -1,0 +1,70 @@
+# Distâncias Médias e Pesos Operacionais
+
+Para converter o número de passageiros transportados na unidade de trabalho do sistema de transportes — o **Passageiro-Quilómetro (PKM)** — é necessário associar a cada par operador-título a respetiva **distância média percorrida** ($\bar{d}_{i,j}$, em km) e o **peso operacional ponderador** ($\text{Peso}_j$).
+
+---
+
+## Hierarquia Regulamentar de Distâncias Médias
+
+O Regulamento n.º 1362-C/2023 define uma hierarquia rigorosa de cinco níveis para a seleção da distância média:
+
+1. **Nível 1**: Distância média calculada para a mesma tipologia de título, no mesmo operador, em mês semelhante:
+   * Grupo de verão: meses de junho, julho e agosto;
+   * Grupo restante: meses de janeiro a maio e de setembro a dezembro.
+2. **Nível 2**: Distância média calculada para a mesma tipologia de título, no mesmo operador, em meses não semelhantes;
+3. **Nível 3**: Distância média calculada de outro título com o mesmo título base e modalidade, no mesmo operador e mês;
+4. **Nível 4**: Distância média calculada do título base, no mesmo operador e no mesmo mês;
+5. **Nível 5**: Distância média estática fixada nas tabelas regulamentares de referência de Agosto e Outubro de 2021.
+
+### 1. Distâncias Estáticas de Referência
+
+Para os operadores sem telemetria contínua ou cálculo dinâmico de distâncias, aplicam-se as tabelas de referência históricas:
+
+* **Meses de Verão** (junho, julho, agosto): [`lists/distanciasref_ago21_incompleto.csv`](../lists/distanciasref_ago21_incompleto.csv);
+* **Restantes Meses do Ano**: [`lists/distanciasref_out21_incompleto.csv`](../lists/distanciasref_out21_incompleto.csv).
+
+A seleção é efetuada automaticamente pelo script [`code/config.R`](../code/config.R) com base no valor da variável `MES`.
+
+### 2. Distâncias Dinâmicas APEX (Fabrik)
+
+Para os operadores integrados no sistema centralizado APEX com rastreamento GPS e matrizes de paragens, o cálculo da distância média é apurado mensalmente:
+
+* **Carris Metropolitana** (`ENTITY_ID = 75`)
+* **Cascais Próxima** (`ENTITY_ID = 22`)
+
+Os dados são extraídos da base Oracle `PDBDWPROD` através da vista:
+
+```sql
+SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL 
+WHERE distribution_month = <MES> AND distribution_year = <ANO>;
+```
+
+Desta vista, o sistema utiliza as colunas `TICKET_CODE_REF`, `ENTITY_ID` e `CALC_FINAL_VALUE`.
+
+::: {.callout-tip}
+## Seleção Automática de Ficheiros
+O script pesquisa na pasta `data/{MES_ANO}/input/` ficheiros contendo `AVERAGE_DISTANCE` no nome (ex.: `V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv`), dando prioridade ao ficheiro com o timestamp mais recente ou com a etiqueta `_update`.
+:::
+
+---
+
+### Script: `02_distancias.R` {.unnumbered}
+
+O script [`code/02_distancias.R`](../code/02_distancias.R) consolida a matriz de distâncias para todos os operadores e títulos ativos no mês.
+
+**Output gerado:**
+
+* `1e_distancias_{SUFIXO}.csv`: Contém as colunas `operador`, `ticket_code`, `distancia_km` e `fonte` (`"APEX"`, `"ref_estatica"`, ou `"nao_encontrada"`).
+
+---
+
+## Pesos Operacionais PKM
+
+Para além da distância física percorrida, o regulamento atribui a cada operador um **fator de ponderação operacional** ($\text{Peso}_j$).
+
+Os pesos encontram-se fixados em [`lists/pesos_pkm.csv`](../lists/pesos_pkm.csv):
+
+* São valores fixos ao longo do ano;
+* A sua soma entre operadores não perfaz $1$;
+* Operadores com redes mais densas e viagens mais curtas (como a Carris ou o Metropolitano de Lisboa) possuem fatores mais elevados para reequilibrar a remuneração por quilómetro face a operadores ferroviários suburbanos (como a CP ou a Fertagus), cujas distâncias médias por viagem são naturalmente muito superiores.
+

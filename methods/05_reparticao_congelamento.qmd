@@ -1,0 +1,68 @@
+# Repartição de Receitas (B) e Congelamento TAT
+
+Nesta fase apura-se a receita tarifária a que cada operador tem legitimamente direito em função do serviço prestado (Receita $B$) e a respetiva compensação financeira pelo congelamento tarifário do passe Navegante.
+
+---
+
+## Repartição da Receita Bilheteira (B)
+
+A receita global do sistema apurada para cada título ($R_i = A_i + K_i$) é distribuída pelos operadores de acordo com as suas quotas dinâmicas de repartição:
+
+$$B_{i, j} = \text{Quota}_{i, j} \times R_i$$
+
+A receita bilheteira devida ao operador $j$ ($B_j$) resulta do somatório de todos os títulos:
+
+$$B_j = \sum_i B_{i, j}$$
+
+::: {.callout-note}
+## Princípio de Conservação da Receita
+O somatório da receita devida a todos os operadores coincide obrigatoriamente com o somatório de todas as vendas registadas nos canais próprios e partilhados:
+
+$$\sum_j B_j = \sum_j A_j + \sum K = \sum_i R_i$$
+
+O **saldo provisório de bilheteira** de cada operador ($C_j$) mede a diferença entre a receita na sua posse física e a que lhe é devida:
+
+$$C_j = A_j - B_j$$
+:::
+
+---
+
+## Compensação pelo Congelamento Tarifário (TAT)
+
+Desde o lançamento do passe Navegante em 2019, o preço final pago pelo utilizador mantém-se congelado, não refletindo a inflação nem os aumentos dos custos de exploração.
+
+Para compensar esta perda de receita nos operadores, o Estado instituiu o mecanismo de compensação por congelamento tarifário indexado à **Taxa de Atualização Tarifária (TAT)**, calculada anualmente pela AMT (Autoridade da Mobilidade e dos Transportes) em final de outubro.
+
+### Taxas Históricas e Acumulação
+
+A compensação aplica-se em cadeia acumulada desde o ano base de 2023:
+
+* **2024**: $6{,}43\%$ (`0.0643`)
+* **2025**: $2{,}02\%$ (`0.0202`)
+* **2026**: $2{,}28\%$ (`0.0228`)
+
+Os valores encontram-se em [`lists/tat.csv`](../lists/tat.csv).
+
+### Fórmula Regulamentar
+
+Para cada título $i$ e operador $j$, a compensação monetária calcula-se por:
+
+$$
+\text{ReceitaCompensar}_{i,j} = B_{i,j} \times \left[ \prod_{\text{ano}=2024}^{\text{ANO}} (1 + \text{TAT}_{\text{ano}}) - 1 \right]
+$$
+
+O valor total de congelamento devido ao operador $j$ ($\text{CongNav}[B]_j$) corresponde à soma de todos os seus títulos:
+
+$$\text{CongNav}[B]_j = \sum_i \text{ReceitaCompensar}_{i,j}$$
+
+---
+
+### Script: `05_reparticao_B.R` {.unnumbered}
+
+O script [`code/05_reparticao_B.R`](../code/05_reparticao_B.R) aplica as quotas à receita distribuível e acumula as taxas da TAT.
+
+**Outputs gerados:**
+
+* `4b_reparticao_B_{SUFIXO}.csv`: Repartição detalhada por título e operador (`dist_receita` e `receita_compensar`);
+* `4_receitaB_congelamento_{SUFIXO}.csv`: Totais consolidados por operador (`receita_B` e `congelamento_B`).
+

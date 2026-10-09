@@ -1,0 +1,130 @@
+# Validações, Passageiros e Recibos B
+
+O apuramento da repartição de receitas tem como ponto de partida a recolha dos registos de bilhética enviados mensalmente por todos os operadores aderentes ao sistema Navegante, sintetizados nos chamados **Recibos B**.
+
+---
+
+## Estrutura dos Recibos B dos Operadores
+
+Cada operador disponibiliza um conjunto de três ficheiros de extração direta do sistema bilhético:
+
+1. **Passageiros Transportados por título**: `reg_[OPERADOR]_reciboB_PTconsideredByProduct_*.csv`
+
+   * `DISTRIBUTION_YEAR` e `DISTRIBUTION_MONTH`: Ano e mês de apuramento;
+   * `TICKET_OPERATOR_CODE`: Código do operador do título (o código `31` identifica o tarifário Navegante);
+   * `TICKET_CODE`: Código regulamentar do título de transporte;
+   * `OPERADOR_TOTAL`: Volume total de validações / passageiros transportados por esse operador com aquele título ($PT_{i,j}$);
+   * `SISTEMA_TOTAL`: Soma global de passageiros transportados em todo o sistema com aquele título (informativo).
+
+2. **Títulos Vendidos e Receitas**: `reg_[OPERADOR]_reciboB_transactionsOperatorSystem_*.csv`
+
+   * `SOURCE`: Contém dois tipos de registos:
+     * `"Transaction"`: Transações regulares de venda com carregamento de passe;
+     * `"Validations as Transactions"`: Títulos bonificados ou gratuitos que não requerem carregamento monetário, mas que registaram validações no mês.
+   * `TICKET_CODE`: Código do título;
+   * `OPERADOR_QUANTITY`: Quantidade de passes vendidos nas bilheteiras próprias do operador;
+   * `OPERADOR_PRICE`: Montante bruto de receita arrecadada (em euros);
+   * `SIIT_QTY` e `SIIT_PRICE`: Devoluções, acertos operacionais e correções do sistema bilhético (devem ser somados às variáveis anteriores para obter o valor líquido exato de venda);
+   * `SISTEMA_QUANTITY` e `SISTEMA_TOTAL_PRICE`: Valores globais do sistema.
+
+3. **Validações Incoerentes / Descartadas**: `reg_[OPERADOR]_reciboB_validationsUnconsidered_*.csv`
+
+   * Regista validações corrompidas ou tecnicamente incoerentes nas máquinas de bordo e cais (descartadas dos cálculos regulamentares).
+
+::: {.callout-note}
+## Agregação da Carris Metropolitana (CM)
+A Carris Metropolitana é operada por quatro concessões zonais (`A1`, `A2`, `A3` e `A4`). O operador **CM** nos cálculos corresponde à agregação destas 4 concessões, associada às validações nos terminais dos fiscais. A correspondência de códigos pode ser consultada em [`lists/operadores.csv`](../lists/operadores.csv).
+:::
+
+---
+
+### Script: `01_recibos_b.R` {.unnumbered}
+
+O script [`code/01_recibos_b.R`](../code/01_recibos_b.R) realiza a leitura em lote de todos os ficheiros de Recibo B da pasta `data/{MES_ANO}/input/Recibos B/`, aplicando os seguintes filtros regulamentares:
+
+* `SOURCE == "Transaction"` (os títulos VaT são tratados separadamente para a COSP);
+* `TICKET_OPERATOR_CODE == 31` (apenas títulos do ecossistema Navegante);
+* `TICKET_CODE > 0` (elimina registos sintéticos ou linhas de totais);
+* Exclusão da Scotturb (`SC`), que opera fora da convenção Navegante metropolitana regular.
+
+**Outputs gerados:**
+
+* `1a_PT_{SUFIXO}.csv`: Tabela detalhada de passageiros transportados por título e operador;
+* `1b_PT_CM_{SUFIXO}.csv`: Agregação consolidada das 4 sub-áreas da Carris Metropolitana;
+* `1c_receitas_titulo_{SUFIXO}.csv`: Vendas de bilheteira próprias de cada operador ($A_j$);
+* `1d_validacoes_{SUFIXO}.csv`: Validações de títulos sem carregamento prévio (VaT).
+
+---
+
+## Reconciliações e Casos Especiais
+
+### Separação Transtejo (TT) / Soflusa (SL)
+
+A Transtejo (**TT**) e a Soflusa (**SL**) partilham equipamentos de bilhética de cais no terminal fluvial do Barreiro. Por essa razão histórica, o ficheiro de Recibo B da Transtejo reporta o valor conjunto (`TT + SL`). Em contrapartida, o Recibo B da Soflusa discrimina estritamente os passageiros transportados pela frota da Soflusa (`ENTITY_ID = 8`).
+
+::: {.callout-note}
+## Separação Direta no R
+O cálculo no R realiza a separação por dedução direta ao passageiro unitário:
+$$PT_{\text{TT}} = PT_{\text{Recibo B (TT)}} - PT_{\text{Recibo B (SL)}}$$
+
+Desta forma, assegura-se rigorosamente que $PT_{\text{TT}} + PT_{\text{SL}} = PT_{\text{Recibo B (TT)}}$ ao passageiro unitário em todos os títulos, sem truncaturas nem distorções de arredondamento.
+:::
+
+::: {.callout-warning}
+## Descontinuação da Regra de filtro por `RUN_CODE` na SL e da Query 2b
+* **O que acontecia antes:** Na fórmula Excel prévia, a Soflusa era filtrada apenas por `RUN_CODE = 7` (ferry Barreiro – Terreiro do Paço).
+* **Nova abordagem:** Os Recibos B do APEX já filtram a Soflusa com base em `ENTITY_ID = 8`. A separação direta pelos Recibos B elimina a execução mensal de scripts SQL para esta operação.
+:::
+
+### Validações dos Fiscais Móveis CM (Portal VIVA)
+
+Os Recibos B das 4 áreas operacionais da CM (A1 a A4) não contêm as validações efetuadas nos terminais móveis dos fiscais.
+Estas validações ficam registadas no Portal VIVA (`ENTITY_ID = 23`). Se não forem somadas, a CM apresenta uma diferença negativa (ficando com validações em falta face ao total oficial do sistema).
+
+**Regras essenciais da reconciliação:**
+1. As validações móveis são distribuídas pelas 4 sub-áreas da CM através do cálculo de `RUN_CODE`:
+
+$$\text{Área CM} = \lfloor \text{RUN} / 1000 \rfloor + 40$$
+
+* Linhas `1xxx` $\to$ Área 1 (A1 - Amadora, Cascais, Lisboa, Oeiras, Sintra)
+* Linhas `2xxx` $\to$ Área 2 (A2 - Loures, Mafra, Odivelas, Vila Franca de Xira)
+* Linhas `3xxx` $\to$ Área 3 (A3 - Almada, Seixal, Sesimbra)
+* Linhas `4xxx` $\to$ Área 4 (A4 - Alcochete, Barreiro, Moita, Montijo, Palmela, Setúbal)
+
+2. Filtro de títulos existentes: 
+
+Apenas são considerados os títulos que já existem no Recibo B da CM.
+Títulos não-Navegante (ex.: ticket 33592 ou bilhética própria de bordo) são automaticamente ignorados no cruzamento.
+
+**Query 2c ([`code/sql/query_CM_fiscaismoveis.sql`](../code/sql/query_CM_fiscaismoveis.sql)):**
+
+```sql
+SELECT
+    DISTRIBUTION_YEAR,
+    DISTRIBUTION_MONTH,
+    TICKET_OPERATOR_CODE,
+    TICKET_CODE,
+    23 AS ENTITY_ID,
+    FLOOR(RUN_CODE / 1000) + 40 AS AREA_CM,
+    VALID_TYPE_ID,
+    VALBYPROF,
+    SUM(QNT_VALIDATION) AS PT_VALIDACOES
+FROM DW_PROC.F_VALIDATIONS
+WHERE DISTRIBUTION_YEAR  = <ANO>
+  AND DISTRIBUTION_MONTH = <MES>
+  AND ENTITY_ID = 23
+  AND TICKET_OPERATOR_CODE = 31
+  AND VALID_TYPE_ID = 0
+  AND VALBYPROF = 0
+  AND RUN_CODE BETWEEN 1000 AND 4999
+GROUP BY
+    DISTRIBUTION_YEAR,
+    DISTRIBUTION_MONTH,
+    TICKET_OPERATOR_CODE,
+    TICKET_CODE,
+    FLOOR(RUN_CODE / 1000) + 40,
+    VALID_TYPE_ID,
+    VALBYPROF
+ORDER BY TICKET_CODE, AREA_CM;
+```
+

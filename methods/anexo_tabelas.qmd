@@ -1,0 +1,30 @@
+# Tabelas Estáticas de Referência (`lists/`) {.appendix}
+
+O diretório [`lists/`](../lists/) contém as tabelas de suporte regulamentares e estruturais utilizadas pelos scripts de cálculo. Estas tabelas raramente sofrem alterações entre meses.
+
+---
+
+## Catálogo de Ficheiros em `lists/`
+
+| Ficheiro | Descrição e Estrutura | Utilizado em |
+| :--- | :--- | :--- |
+| [`operadores.csv`](../lists/operadores.csv) | Mapeamento completo dos operadores de transporte da AML: colunas `ENTITY_ID`, `ENTITY_ABBREVIATION` e `OPERATOR_NAME_NAVEGANTE`. | `01_recibos_b.R`, `07_transferencias_F.R`, `08_tables.R` |
+| [`titulos.csv`](../lists/titulos.csv) | Catálogo oficial dos 145 títulos de transporte Navegante: `ticket_code`, `titulo_nome`, `modalidade`, `pvp`, `titulo_nome_base` e `preco_base`. | `03_quotas.R`, `04_vendas_AK.R`, `05_reparticao_B.R` |
+| [`titulos2.csv`](../lists/titulos2.csv) | Versão expandida do catálogo de títulos com descrições alargadas. | Consulta e auditoria |
+| [`titulos_alternativas.csv`](../lists/titulos_alternativas.csv) | Mapeamento de títulos equivalentes para regras de fallback de distâncias médias. | `02_distancias.R` |
+| [`distanciasref_out21_incompleto.csv`](../lists/distanciasref_out21_incompleto.csv) | Distâncias médias de referência históricas de Outubro de 2021 (aplicáveis nos meses de janeiro a maio e de setembro a dezembro). | `02_distancias.R` |
+| [`distanciasref_ago21_incompleto.csv`](../lists/distanciasref_ago21_incompleto.csv) | Distâncias médias de referência históricas de Agosto de 2021 (aplicáveis aos meses de verão: junho, julho e agosto). | `02_distancias.R` |
+| [`pesos_pkm.csv`](../lists/pesos_pkm.csv) | Fatores de ponderação operacional por operador (formato sem cabeçalho: `operador_nome;peso`). Calibrados para reequilibrar modos pesados vs. modos urbanos densos. | `03_quotas.R` |
+| [`sazonalidade.csv`](../lists/sazonalidade.csv) | Coeficientes de sazonalidade mensal regulamentares para os 12 meses do ano (`mes;sazonalidade`), utilizados para estimar a procura anualizada. | `06_cosp_D.R` |
+| [`tat.csv`](../lists/tat.csv) | Série histórica das Taxas de Atualização Tarifária homologadas pela AMT por ano (`ano;tat`), para o cálculo do congelamento tarifário e atualização do VMC. | `05_reparticao_B.R`, `06_cosp_D.R` |
+| [`load_versions.csv`](../lists/load_versions.csv) | Registo cronológico das versões do processamento de distâncias Trino/APEX da Carris Metropolitana fornecidas pelo Dept. ITS (`mes;ano;load_version`). | `10_documentos.R`, `informacao1.qmd` |
+| [`receitas_anteriores.csv`](../lists/receitas_anteriores.csv) | Repositório histórico consolidado de receitas e validações dos meses transatos, para produção automática dos quadros comparativos e séries homólogas. | `10_documentos.R`, `informacao1.qmd` |
+
+---
+
+## Formato e Cuidados de Manutenção
+
+* **Codificação**: Todos os ficheiros devem ser mantidos em codificação **UTF-8 sem BOM**.
+* **Separador**: O separador padrão utilizado nas listas é o ponto e vírgula (`;`), com exceção dos ficheiros com formato numérico internacional onde pode ser utilizada vírgula (`,`).
+* **Valores Decimais**: Nos ficheiros de parâmetros (`tat.csv`, `pesos_pkm.csv`, `sazonalidade.csv`), os valores decimais são expressos com ponto (`.`).
+

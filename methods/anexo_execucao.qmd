@@ -1,0 +1,163 @@
+# Guia de Preparação Mensal e Execução {.appendix}
+
+Este anexo sintetiza o guia prático passo a passo para a preparação e execução mensal da rotina de apuramento das compensações e distribuição de receitas Navegante.
+
+---
+
+## 🗓️ Como Preparar um Novo Mês
+
+Antes de executar o pipeline pela primeira vez para um novo mês, deves seguir rigorosamente estes passos por ordem:
+
+### 1. Criar a pasta de dados do mês (em `data/`)
+
+Cria a pasta do mês dentro de `data/` (exemplo para Agosto de 2026: `data/08_ago_2026/input/`).
+Dentro de `input/`, cria a subpasta `Recibos B/`.
+
+A pasta `output/` e as suas subpastas são criadas automaticamente pelos scripts.
+
+> *Nota: A pasta `data/` encontra-se no `.gitignore`, pelo que os ficheiros brutos de bilhética nunca são enviados para o repositório remoto.*
+
+### 2. Recolher e colocar os ficheiros de dados
+
+#### 2a. Recibos B dos operadores
+Descompactar as pastas dos Recibos B de cada operador para `data/{MES_ANO}/input/Recibos B/`:
+
+```text
+data/08_ago_2026/input/Recibos B/
+├── reg_CP_reciboB_082026_<DATA>/
+├── reg_ML_reciboB_082026_<DATA>/
+├── reg_Carris_reciboB_082026_<DATA>/
+├── ...   (operadores: CP, ML, Carris, FT, MS, TB, CAP, BQ, A1–A4, TT, SL)
+└── ReciboB_082026_Separa_receita_PV_e_ATM.xlsx
+```
+
+O ficheiro `ReciboB_*_Separa_receita_PV_e_ATM.xlsx` é fornecido pelo Dept. ITS / SIBS e **é obrigatório** para separar as receitas do Portal VIVA (PV) das do Multibanco (ATM).
+
+#### 2b. Exportações Oracle (`PDBDWPROD`)
+Executar as seguintes consultas e guardar os CSVs (delimitados por ponto e vírgula `;`) na pasta `data/{MES_ANO}/input/`:
+
+| Ficheiro a gravar em `input/` | Consulta / Script | Objetivo |
+| :--- | :--- | :--- |
+| `V_REG_AVERAGE_DISTANCE_FINAL_ALL_<timestamp>.csv` | `SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = <MES> AND distribution_year = <ANO>;` | Distâncias médias dinâmicas APEX para Carris Metropolitana (`75`) e Cascais Próxima (`22`). |
+| `entity23_<timestamp>.csv` | [`code/sql/query_CM_fiscaismoveis.sql`](../code/sql/query_CM_fiscaismoveis.sql) | Validações em terminais móveis dos fiscais da Carris Metropolitana (`ENTITY_ID = 23`). |
+
+::: {.callout-tip}
+## Prioridade Automática `_update`
+O script seleciona automaticamente o ficheiro com o timestamp numérico mais recente. Para substituir um ficheiro sem apagar o anterior, adiciona `_update` ao nome (ex: `entity23_202608151400_update.csv`) — os ficheiros com `_update` têm prioridade máxima automática.
+:::
+
+### 3. Registar a `load_version` em `lists/load_versions.csv`
+
+A `load_version` identifica a versão do processamento de distâncias da Carris Metropolitana (Trino/APEX), disponibilizada pelo Dept. ITS.
+
+Abrir [`lists/load_versions.csv`](../lists/load_versions.csv) e adicionar a linha do novo mês:
+
+```csv
+mes;ano;load_version
+...
+6;2026;31
+8;2026;XX    ← adicionar esta linha com o número fornecido
+```
+
+### 4. Atualizar `code/config.R`
+
+Editar [`code/config.R`](../code/config.R) e definir o mês, ano e as opções documentais:
+
+```r
+ANO <- 2026
+MES <- 8       # ← alterar para o mês pretendido
+
+# Ativar/desativar os documentos a gerar:
+RENDER_INFORMACAO1 <- TRUE
+RENDER_METODOLOGIA <- TRUE
+RENDER_OFICIO1     <- TRUE
+RENDER_OFICIO2     <- TRUE
+RENDER_DOCX        <- TRUE    # TRUE gera também versões Word (.docx) nativas via Quarto
+```
+
+### 5. Atualizar os parâmetros de emissão em `code/doc_params.R`
+
+Todos os parâmetros administrativos de emissão estão centralizados em [`code/doc_params.R`](../code/doc_params.R):
+
+```r
+# Datas de receção dos dados de bilhética:
+data_dados_dits <- "XX de setembro de 2026"
+data_dados_its  <- "XX de setembro de 2026"
+
+# Financiamento do Fundo Ambiental (Incentiva +TP):
+# TRUE  = verba ainda NÃO transferida → faturação parcelar
+# FALSE = verba já disponível → faturação imediata total
+incentiva_tp_pendente <- TRUE
+
+# Números de referência oficial:
+numero_informacao <- "TML-XXXX-XXXX-INF-XXXX-DEP"
+numero_oficio     <- "TML-XXXX-XXXX-OF-XXXX-DEP"
+numero_oficio2    <- "TML-YYYY-YYYY-OF-YYYY-DEP"
+```
+
+### 6. Restaurar o ambiente R (`renv`)
+
+O projeto utiliza `renv` para garantir a replicabilidade dos pacotes e versões exatas:
+
+```r
+# Na consola R:
+renv::restore()
+```
+
+---
+
+## 🚀 Como Executar
+
+### 1. Execução do Pipeline Completo
+
+Concluídos os passos de preparação, corre o pipeline a partir da raiz do projeto:
+
+```bash
+Rscript code/99_run_all.R
+```
+
+O pipeline calcula todas as fases (passos 01 a 08) em ~3 segundos e compila os relatórios ativos em Quarto/Typst (passo 10) em ~10 segundos.
+
+Também podes definir as variáveis por linha de comandos sem alterar o ficheiro `config.R`:
+
+```powershell
+$env:MES=8; $env:ANO=2026; Rscript code/99_run_all.R
+```
+
+---
+
+## 📄 Geração e Recompilação de Documentos
+
+### Opção A: No Pipeline Geral
+Ao executar `Rscript code/99_run_all.R`, o script mestre executa automaticamente `code/10_documentos.R` para todos os documentos ativos.
+
+### Opção B: Renderização Isolada
+Se os cálculos já foram efetuados e apenas pretendes recompilar os documentos (após rever textos ou números de ofício):
+
+```bash
+# Todos os documentos ativos:
+Rscript code/10_documentos.R
+
+# Ou renderizar isoladamente para Word (DOCX):
+quarto render code/informacao1.qmd --to docx
+quarto render code/oficio1.qmd --to docx
+quarto render code/oficio2.qmd --to docx
+```
+
+::: {.callout-note}
+## Alterações aos Estilos do Word
+Se modificares estilos ou margens em `code/templates/build_reference_doc.R`, deves regerar o modelo antes de renderizar:
+```powershell
+Rscript code/templates/build_reference_doc.R
+```
+*(Certifica-te de fechar o Microsoft Word antes para não ocorrer erro de ficheiro bloqueado).*
+:::
+
+Os documentos finais são guardados na pasta `data/{MES_ANO}/output/docs/`:
+
+* `Informacao_{SUFIXO}.pdf` e `Informacao_{SUFIXO}.docx`
+* `Anexo_Metodologia_{SUFIXO}.pdf`
+* `Oficio1_{SUFIXO}.pdf` e `Oficio1_{SUFIXO}.docx`
+* `Oficio2_{SUFIXO}.pdf` e `Oficio2_{SUFIXO}.docx`
+* `Anexo_Calculos_{SUFIXO}.xlsx` (Livro oficial de cálculo em Excel)
+

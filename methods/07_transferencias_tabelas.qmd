@@ -1,0 +1,82 @@
+# Transferências Finais e Relatório Excel
+
+O apuramento de transferências sintetiza as relações financeiras multilaterais entre a TML e os operadores de transporte público, apurando o saldo líquido a transferir e gerando o livro oficial em Excel.
+
+---
+
+## Fórmulas de Apuramento Financeiro
+
+Para cada operador $j$, o cálculo combina as parcelas apuradas nas fases anteriores:
+
+1. **Saldo Provisório de Bilheteira** ($C_j$):
+   $$C_j = A_j - B_j$$
+   *(Receita física cobrada menos receita devida pelo serviço)*
+
+2. **Saldo Global do Operador** ($SG_j$):
+   $$SG_j = C_j - D_j = A_j - B_j - D_j$$
+
+3. **Transferência Líquida da TML** ($F_j$):
+   $$F_j = -SG_j = B_j + D_j - A_j$$
+
+4. **Montante Total a Transferir** ($\text{Total}_j$):
+   $$\text{Total}_j = F_j + \text{CongNav}[B]_j$$
+
+::: {.callout-note}
+## Saldos Excedentes e Casos Especiais
+
+* **Operadores Credores (Transferência Negativa)**: Quando um operador arrecada nas suas bilheteiras mais receita do que aquela a que tem direito (ex.: MTS), procura-se que esse saldo seja reconciliado no seio do mesmo grupo económico (transferindo o excedente diretamente para a Fertagus).
+* **Município de Cascais**: Os montantes mensais devidos à Cascais Próxima não são liquidados mensalmente, ficando retidos para o acerto global anual em virtude do regime municipal de gratuitidade.
+:::
+
+---
+
+## Segregação das Vias de Liquidação
+
+A TML não aguarda pela transferência integral das verbas do Orçamento do Estado para iniciar os pagamentos aos operadores. A liquidação divide-se em dois fluxos financeiros:
+
+1. **Pagamento Imediato (Posse TML)**:
+
+   * Financiado pelas receitas arrecadadas nos canais partilhados $K$ (Portal VIVA e SIBS/ATM);
+   * Processado nos dias imediatamente seguintes ao fecho de contas;
+   * Comunicado através do **Ofício 1**.
+
+2. **Pagamento Diferido (Incentiva +TP / Fundo Ambiental)**:
+
+   * Financiado pelas dotações do Fundo Ambiental para a compensação COSP ($D$) e Congelamento Navegante;
+   * Liquidado assim que as transferências governamentais são creditadas na TML;
+   * Comunicado através do **Ofício 2**.
+
+---
+
+## Convenções de Arredondamento: Método dos Maiores Restos
+
+Para evitar que erros de arredondamento de cêntimos se acumulem e criem divergências contabilísticas face aos extratos bancários, o pipeline adota regras estritas:
+
+1. **Precisão Contínua Intermédia**: Os cálculos intermédios em R mantêm precisão em vírgula flutuante (sem `round(..., 2)` prematuro).
+2. **Método dos Maiores Restos (Largest Remainder Method)**:
+
+   * Ao ratear o montante global dos canais partilhados ($K$) pelos operadores, a soma dos arredondamentos a 2 casas decimais pode diferir do valor total do extrato em $\pm 1$ ou $2$ cêntimos.
+   * O algoritmo em [`code/08_tables.R`](../code/08_tables.R) deteta esse resíduo e ajusta automaticamente $0{,}01\text{ €}$ nos operadores com a maior fração decimal não arredondada.
+   * Desta forma, a soma da coluna coincide **rigorosamente a 100% ao cêntimo** com as Vendas K e o total do sistema fecha com perfeição matemática.
+
+---
+
+### Script: `07_transferencias_F.R` {.unnumbered}
+
+Gera a tabela final de síntese em formato CSV:
+* **Output**: `6_transferencias_{SUFIXO}.csv` (colunas `operador`, `receita_A`, `receita_B`, `cosp_D`, `congelamento_B`, `F_transferencia`, `total_transferir`, `pagamento_imediato`, `pagamento_incentiva`).
+
+### Script: `08_tables.R` {.unnumbered}
+
+Constrói o workbook oficial em Excel formatado:
+* **Output**: `docs/Anexo_Calculos_{SUFIXO}.xlsx`
+
+O livro contém 6 folhas de cálculo completas:
+
+* **Folha 0 - Global**: Tabela síntese das transferências e segregação das vias de pagamento;
+* **Folha 1 - Quotas**: Matriz detalhada de passageiros, distâncias, pesos e quotas por título;
+* **Folha 2 - Vendas AK**: Discriminação das vendas em bilheteira e canais partilhados;
+* **Folha 4 - Receita B e CongNav**: Distribuição da receita de venda e congelamento TAT;
+* **Folha 5 - Pag Conta COSP D**: Resumo e tabela *wide* da compensação de serviço público;
+* **Folha 6 - Transferencias F**: Detalhe das componentes de saldo e transferências líquidas.
+

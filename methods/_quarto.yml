@@ -1,0 +1,43 @@
+project:
+  type: book
+  output-dir: _book
+
+lang: pt
+
+book:
+  title: "Distribuição de Receitas Navegante"
+  subtitle: "Procedimento Operacional e Metodologia de Cálculo"
+  author: "TML — Transportes Metropolitanos de Lisboa"
+  date: last-modified
+  chapters:
+    - index.qmd
+    - part: "Cálculo"
+      chapters:
+        - 01_passageiros.qmd
+        - 02_distancias_pesos.qmd
+        - 03_quotas.qmd
+        - 04_vendas.qmd
+        - 05_reparticao_congelamento.qmd
+        - 06_cosp.qmd
+        - 07_transferencias_tabelas.qmd
+    - part: "Documentos"
+      chapters:
+        - 08_documentos.qmd
+  appendices:
+    - anexo_tabelas.qmd
+    - anexo_execucao.qmd
+
+format:
+  html:
+    theme:
+      light: cosmo
+    toc: true
+    toc-depth: 3
+    toc-title: "Nesta página"
+    number-sections: true
+    smooth-scroll: true
+    code-copy: true
+    code-fold: show
+    code-overflow: wrap
+    html-math-method: mathjax
+

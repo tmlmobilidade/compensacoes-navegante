@@ -1,0 +1,96 @@
+# Relatórios Oficiais e Informações Técnicas
+
+A fase final do procedimento consiste na produção automatizada dos documentos formais de validação interna e comunicação externa aos operadores, assegurada pelo Quarto e compilada através do motor **Typst** para PDF e **Pandoc** para Word (DOCX).
+
+---
+
+## Tipologia de Documentos Oficiais
+
+São gerados mensalmente quatro documentos principais:
+
+1. **Informação Técnica Interna** ([`code/informacao1.qmd`](../code/informacao1.qmd)):
+   * Documento interno de apoio à decisão do Conselho de Administração da TML;
+   * Apresenta a síntese dos resultados mensais, evolução homóloga da procura e receitas, e as propostas de liquidação;
+   * Utiliza cabeçalho simples com o logótipo oficial da TML ([`code/templates/logo_tml.svg`](../code/templates/logo_tml.svg)).
+
+2. **Anexo Metodologia** ([`code/metodologia.qmd`](../code/metodologia.qmd)):
+   * Documento externo anexo à Informação, destinado aos operadores e entidades de tutela;
+   * Descreve detalhadamente as fórmulas regulamentares e hipóteses de cálculo do mês;
+   * Utiliza papel timbrado institucional oficial em todas as páginas.
+
+3. **Ofício 1 — Pagamentos Imediatos** ([`code/oficio1.qmd`](../code/oficio1.qmd)):
+   * Comunicação formal a cada operador com a discriminação dos montantes a liquidar de imediato (financiados pelos canais partilhados $K$).
+
+4. **Ofício 2 — Pagamentos Incentiva +TP** ([`code/oficio2.qmd`](../code/oficio2.qmd)):
+   * Comunicação formal relativa às verbas do Fundo Ambiental (Compensação COSP e Congelamento Tarifário), a liquidar assim que a verba governamental for transferida.
+
+---
+
+## Arquitetura de Publicação e Estilos
+
+A qualidade visual e tipográfica dos documentos assenta em quatro pilares técnicos:
+
+### 1. Papel Timbrado Vetorial Oficial
+Nos documentos externos (`doc-tipo: externo`), o filtro Pandoc [`code/templates/linebreaks.lua`](../code/templates/linebreaks.lua) deteta o cabeçalho e aplica as regras do ficheiro [`code/templates/custom_styles.typ`](../code/templates/custom_styles.typ):
+
+* **1.ª Página**: Aplica como fundo o modelo vetorial [`code/templates/folha_1.pdf`](../code/templates/folha_1.pdf) (logótipo institucional TML, contactos e marcas de furação);
+* **Páginas Seguintes**: Aplica o modelo [`code/templates/folha_restantes.pdf`](../code/templates/folha_restantes.pdf).
+
+### 2. Formatação de Tabelas com `tinytable`
+As tabelas regulamentares são formatadas através das funções utilitárias em [`code/utils_tables.R`](../code/utils_tables.R):
+
+* Cabeçalhos com fundo escuro institucional (`#2c3e50`) e texto branco;
+* Linhas zebradas subtis (`#f8f9fa`) para leitura confortável de tabelas densas;
+* Totais destacados a negrito com linha dupla de fecho;
+* Quebras de linha manuais em cabeçalhos longos e rotação de títulos em tabelas de grande largura (modo paisagem).
+
+### 3. Integração com Microsoft Word (DOCX)
+Quando a opção `RENDER_DOCX = TRUE` está ativada:
+
+* O Quarto compila o documento utilizando o modelo de estilos [`code/templates/TML_Informacao_pandoc.docx`](../code/templates/TML_Informacao_pandoc.docx);
+* No final da compilação, o script PowerShell [`code/templates/postprocess_docx.ps1`](../code/templates/postprocess_docx.ps1) injeta automaticamente no XML do ficheiro `.docx` as margens compactas e propriedades avançadas de tabela.
+
+---
+
+## Parâmetros Centralizados de Emissão (`doc_params.R`)
+
+Para evitar editar código estrutural todos os meses, os dados de emissão estão concentrados em [`code/doc_params.R`](../code/doc_params.R):
+
+```r
+# Datas de receção dos dados de bilhética:
+data_dados_dits <- "XX de setembro de 2026"
+data_dados_its  <- "XX de setembro de 2026"
+
+# Financiamento do Fundo Ambiental (Incentiva +TP):
+# TRUE  = verba ainda NÃO transferida → faturação parcelar
+# FALSE = verba já disponível → faturação imediata total
+incentiva_tp_pendente <- TRUE
+
+# Números de referência oficial:
+numero_informacao <- "TML-XXXX-XXXX-INF-XXXX-DEP"
+numero_oficio     <- "TML-XXXX-XXXX-OF-XXXX-DEP"
+numero_oficio2    <- "TML-YYYY-YYYY-OF-YYYY-DEP"
+```
+
+---
+
+### Script: `10_documentos.R` {.unnumbered}
+
+## Como Renderizar Documentos
+
+### Execução no Pipeline Completo
+```bash
+Rscript code/99_run_all.R
+```
+
+### Compilação Isolada de Documentos
+```bash
+# Renderiza todos os documentos com flag TRUE em config.R:
+Rscript code/10_documentos.R
+
+# Renderizar isoladamente um documento específico para Word:
+quarto render code/informacao1.qmd --to docx
+quarto render code/oficio1.qmd --to docx
+quarto render code/oficio2.qmd --to docx
+```
+
