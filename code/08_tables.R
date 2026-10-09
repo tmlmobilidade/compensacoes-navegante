@@ -102,6 +102,18 @@ vendas_a_raw <- if (file.exists(F_VENDAS_A)) {
   transf_raw |> select(operador, receita_A) |> mutate(qty_A = 0)
 }
 
+# 1.4b Receitas e Quantidades de Venda A por título e operador (Tabela 2 detalhe)
+receitas_raw <- if (file.exists(F_RECEITAS)) {
+  df_rec <- read.csv2(F_RECEITAS, stringsAsFactors = FALSE)
+  for (c in c("qty_operador", "receita_operador")) {
+    if (c %in% names(df_rec)) df_rec[[c]] <- as.numeric(gsub(",", ".", df_rec[[c]]))
+  }
+  df_rec$ticket_code <- as.integer(df_rec$ticket_code)
+  df_rec
+} else {
+  NULL
+}
+
 # 1.5 Vendas K por canal (PV / ATM)
 vendas_k_raw <- if (file.exists(F_VENDAS_K)) {
   df_vk <- read.csv2(F_VENDAS_K, stringsAsFactors = FALSE, dec = ",")
@@ -161,6 +173,7 @@ cor_border_soft <- "#D9D9D9"  # Cinzento suave para grelha
 cor_neg         <- "#FFC7CE"  # Fundo para excedentes negativos
 cor_zero        <- "#C6EFCE"  # Fundo para linhas a zero (MTS)
 cor_gray_text   <- "#A6A6A6"  # Cinzento mais claro para zeros e títulos sem atividade
+cor_k_head      <- "#d1cab1"  # Castanho suave para canais K (Portal Viva e SIBS)
 
 
 # Identificar títulos sem qualquer venda, receita ou validação no mês
@@ -200,6 +213,13 @@ st_title <- createStyle(
 
 st_header_gold <- createStyle(
   fgFill = cor_gold_dark, fontColour = cor_darkgray,
+  halign = "center", valign = "center",
+  textDecoration = "bold", border = "TopBottomLeftRight",
+  borderColour = cor_border, wrapText = TRUE, fontSize = 9
+)
+
+st_header_k <- createStyle(
+  fgFill = cor_k_head, fontColour = cor_darkgray,
   halign = "center", valign = "center",
   textDecoration = "bold", border = "TopBottomLeftRight",
   borderColour = cor_border, wrapText = TRUE, fontSize = 9
@@ -853,6 +873,7 @@ addStyle(wb, ws_ak, st_desig, rows = r_data, cols = 2, gridExpand = TRUE)
 addStyle(wb, ws_ak, st_curr,  rows = r_data, cols = c(3, 5, 7, 9), gridExpand = TRUE)
 addStyle(wb, ws_ak, st_int,   rows = r_data, cols = c(4, 6, 8), gridExpand = TRUE)
 addStyle(wb, ws_ak, st_alt,   rows = even_rd, cols = 1:9, gridExpand = TRUE, stack = TRUE)
+conditionalFormatting(wb, ws_ak, cols = 4:9, rows = r_data, rule = "==0", style = st_zero)
 
 idx_inact <- which(detalhe_ak_full$ticket_code[1:n_data] %in% titulos_inativos)
 if (length(idx_inact) > 0) {
@@ -868,6 +889,120 @@ setColWidths(wb, ws_ak, cols = 2, widths = 32)
 setColWidths(wb, ws_ak, cols = 3, widths = 10)
 setColWidths(wb, ws_ak, cols = c(4, 6, 8), widths = 14)
 setColWidths(wb, ws_ak, cols = c(5, 7, 9), widths = 18)
+
+# =============================================================================
+# Tabelas detalhadas adicionais: Quantidades e Receitas A e K por Operador
+# =============================================================================
+if (!is.null(receitas_raw)) {
+  receitas_raw$nome_op <- nome_op_sep[receitas_raw$operador]
+
+  # 1. Tabela 2a: Quantidades de Vendas A e K por Operador (cols 11:24)
+  w_qtd_a <- receitas_raw |>
+    filter(!is.na(nome_op)) |>
+    select(ticket_code, nome_op, qty_operador) |>
+    pivot_wider(names_from = nome_op, values_from = qty_operador, values_fill = 0)
+  for (op in ordem_ops_sep) {
+    if (!op %in% names(w_qtd_a)) w_qtd_a[[op]] <- 0
+  }
+
+  vk_cols_qtd <- if (!is.null(vendas_k_raw)) {
+    vendas_k_raw |> select(ticket_code, `Portal Viva` = qty_K_pv, `SIBS` = qty_K_atm)
+  } else {
+    tibble(ticket_code = titulos_df$ticket_code, `Portal Viva` = 0, `SIBS` = 0)
+  }
+
+  tab_qtd <- titulos_df |>
+    select(ticket_code) |>
+    left_join(w_qtd_a, by = "ticket_code") |>
+    left_join(vk_cols_qtd, by = "ticket_code") |>
+    mutate(across(all_of(c(ordem_ops_sep, "Portal Viva", "SIBS")), ~ replace_na(.x, 0))) |>
+    arrange(ticket_code)
+
+  cols_ak_ops <- c(ordem_ops_sep, "Portal Viva", "SIBS")
+  tab_qtd_out <- tab_qtd |> select(all_of(cols_ak_ops))
+  tot_qtd_row <- as.data.frame(as.list(colSums(tab_qtd_out, na.rm = TRUE)), check.names = FALSE)
+  tab_qtd_full <- bind_rows(tab_qtd_out, tot_qtd_row)
+
+  col_q_start <- 11
+  col_q_end   <- 23
+
+  mergeCells(wb, ws_ak, rows = row_det, cols = col_q_start:col_q_end)
+  writeData(wb, ws_ak, x = "Detalhe por Título: Quantidades de Vendas A e K por Operador",
+            startRow = row_det, startCol = col_q_start)
+  addStyle(wb, ws_ak, st_sub_header, rows = row_det, cols = col_q_start:col_q_end, gridExpand = TRUE)
+
+  names_q_ops <- c(ordem_ops_sep, "Portal Viva", "SIBS")
+  writeData(wb, ws_ak, x = as.data.frame(t(names_q_ops)), startRow = row_det + 1, startCol = col_q_start, colNames = FALSE)
+  addStyle(wb, ws_ak, st_header_gold, rows = row_det + 1, cols = 11:21, gridExpand = TRUE)
+  addStyle(wb, ws_ak, st_header_k,    rows = row_det + 1, cols = 22:23, gridExpand = TRUE)
+
+  writeData(wb, ws_ak, x = tab_qtd_full, startRow = row_det + 2, startCol = col_q_start, colNames = FALSE)
+  addStyle(wb, ws_ak, st_int, rows = r_data, cols = col_q_start:col_q_end, gridExpand = TRUE)
+  addStyle(wb, ws_ak, st_alt, rows = even_rd, cols = col_q_start:col_q_end, gridExpand = TRUE, stack = TRUE)
+  conditionalFormatting(wb, ws_ak, cols = col_q_start:col_q_end, rows = r_data, rule = "==0", style = st_zero)
+  if (length(idx_inact) > 0) {
+    addStyle(wb, ws_ak, st_inact, rows = r_data[idx_inact], cols = col_q_start:col_q_end, gridExpand = TRUE, stack = TRUE)
+  }
+  addStyle(wb, ws_ak, st_total_int, rows = rw_tot, cols = col_q_start:col_q_end, gridExpand = TRUE)
+
+  setColWidths(wb, ws_ak, cols = 10, widths = 4)
+  setColWidths(wb, ws_ak, cols = col_q_start:col_q_end, widths = 12)
+  setColWidths(wb, ws_ak, cols = c(19, 20, 22), widths = 14)
+
+  # 2. Tabela 2b: Receitas de Vendas A e K por Operador (cols 25:37)
+  w_rec_a <- receitas_raw |>
+    filter(!is.na(nome_op)) |>
+    select(ticket_code, nome_op, receita_operador) |>
+    pivot_wider(names_from = nome_op, values_from = receita_operador, values_fill = 0)
+  for (op in ordem_ops_sep) {
+    if (!op %in% names(w_rec_a)) w_rec_a[[op]] <- 0
+  }
+
+  vk_cols_rec <- if (!is.null(vendas_k_raw)) {
+    vendas_k_raw |> select(ticket_code, `Portal Viva` = receita_K_pv, `SIBS` = receita_K_atm)
+  } else {
+    tibble(ticket_code = titulos_df$ticket_code, `Portal Viva` = 0, `SIBS` = 0)
+  }
+
+  tab_rec <- titulos_df |>
+    select(ticket_code) |>
+    left_join(w_rec_a, by = "ticket_code") |>
+    left_join(vk_cols_rec, by = "ticket_code") |>
+    mutate(across(all_of(c(ordem_ops_sep, "Portal Viva", "SIBS")), ~ replace_na(.x, 0))) |>
+    arrange(ticket_code)
+
+  tab_rec_out <- tab_rec |> select(all_of(cols_ak_ops))
+  tot_rec_row <- as.data.frame(as.list(colSums(tab_rec_out, na.rm = TRUE)), check.names = FALSE)
+  tab_rec_full <- bind_rows(tab_rec_out, tot_rec_row)
+
+  col_r_start <- 25
+  col_r_end   <- 37
+
+  mergeCells(wb, ws_ak, rows = row_det, cols = col_r_start:col_r_end)
+  writeData(wb, ws_ak, x = "Detalhe por Título: Receitas de Vendas A e K por Operador (€)",
+            startRow = row_det, startCol = col_r_start)
+  addStyle(wb, ws_ak, st_sub_header, rows = row_det, cols = col_r_start:col_r_end, gridExpand = TRUE)
+
+  names_r_ops <- c(ordem_ops_sep, "Portal Viva", "SIBS")
+  writeData(wb, ws_ak, x = as.data.frame(t(names_r_ops)), startRow = row_det + 1, startCol = col_r_start, colNames = FALSE)
+  addStyle(wb, ws_ak, st_header_gold, rows = row_det + 1, cols = 25:35, gridExpand = TRUE)
+  addStyle(wb, ws_ak, st_header_k,    rows = row_det + 1, cols = 36:37, gridExpand = TRUE)
+
+  writeData(wb, ws_ak, x = tab_rec_full, startRow = row_det + 2, startCol = col_r_start, colNames = FALSE)
+  addStyle(wb, ws_ak, st_curr, rows = r_data, cols = col_r_start:col_r_end, gridExpand = TRUE)
+  addStyle(wb, ws_ak, st_alt, rows = even_rd, cols = col_r_start:col_r_end, gridExpand = TRUE, stack = TRUE)
+  conditionalFormatting(wb, ws_ak, cols = col_r_start:col_r_end, rows = r_data, rule = "==0", style = st_zero)
+  if (length(idx_inact) > 0) {
+    addStyle(wb, ws_ak, st_inact, rows = r_data[idx_inact], cols = col_r_start:col_r_end, gridExpand = TRUE, stack = TRUE)
+  }
+  addStyle(wb, ws_ak, st_total_num, rows = rw_tot, cols = col_r_start:col_r_end, gridExpand = TRUE)
+
+  setColWidths(wb, ws_ak, cols = 24, widths = 4)
+  setColWidths(wb, ws_ak, cols = col_r_start:col_r_end, widths = 14)
+  setColWidths(wb, ws_ak, cols = c(33, 34, 36), widths = 15)
+}
+
+freezePane(wb, ws_ak, firstActiveCol = 4)
 
 
 # =============================================================================
