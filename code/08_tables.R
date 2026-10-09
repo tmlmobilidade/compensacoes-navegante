@@ -1250,12 +1250,17 @@ titulo_passes <- cosp_detail_raw |>
   select(ticket_code, qty_total_i, passes_compensar_i, COSP_i) |>
   distinct()
 
+cols_det_cosp <- c("ticket_code", "titulo_nome",
+                   "qty_total_i", "passes_compensar_i", "COSP_i",
+                   ordem_ops_sep)
+
 cosp_wide <- titulos_df |>
   select(ticket_code, titulo_nome) |>
   left_join(titulo_passes, by = "ticket_code") |>
   left_join(cosp_wide |> select(-titulo_nome), by = "ticket_code") |>
-  mutate(across(all_of(ordem_ops_sep), ~ replace_na(.x, 0))) |>
-  arrange(ticket_code)
+  mutate(across(c(qty_total_i, passes_compensar_i, COSP_i, all_of(ordem_ops_sep)), ~ replace_na(.x, 0))) |>
+  arrange(ticket_code) |>
+  select(all_of(cols_det_cosp))
 
 # Linha de totais
 cosp_wide_totais <- tibble(
@@ -1267,7 +1272,10 @@ cosp_wide_totais <- tibble(
 )
 for (op in ordem_ops_sep) cosp_wide_totais[[op]] <- sum(cosp_wide[[op]], na.rm = TRUE)
 
-cosp_wide_out <- bind_rows(cosp_wide, cosp_wide_totais)
+cosp_wide_out <- bind_rows(
+  cosp_wide |> select(all_of(cols_det_cosp)),
+  cosp_wide_totais |> select(all_of(cols_det_cosp))
+)
 
 # Colunas: código, nome, qty, passes, COSP_i, [11 ops] = 5 + 11 = 16 cols
 n_det_cols <- 5 + length(ordem_ops_sep)
