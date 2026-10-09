@@ -4,16 +4,6 @@ Este manual documenta o procedimento metodológico e operacional para a **distri
 
 O modelo implementado reproduz fielmente as regras estipuladas no [Regulamento n.º 1362-C/2023](https://diariodarepublica.pt/dr/detalhe/regulamento/1362-c-2023-835674356), publicado em Diário da República a 27 de dezembro de 2023.
 
-::: {.callout-tip}
-## Pipeline Automatizado em R
-* **Script Mestre**: [`code/99_run_all.R`](../code/99_run_all.R)
-* **Parâmetros Mensais**: Para calcular um novo mês, ajusta `ANO` e `MES` em [`code/config.R`](../code/config.R) e corre:
-  ```bash
-  Rscript code/99_run_all.R
-  ```
-* **Destino dos Resultados**: Os dados de saída são gerados em `data/{MES_ANO}/output/` com o sufixo do mês (ex.: `mai26`, `jun26`).
-:::
-
 ---
 
 ## Fluxograma Metodológico
@@ -89,8 +79,7 @@ flowchart TD
 | Etapa | Script(s) | Designação Regulamentar | Entradas Principais | Saídas Principais |
 | :--- | :--- | :--- | :--- | :--- |
 | **Passageiros e Recibos B** | [`01_recibos_b.R`](../code/01_recibos_b.R) | Passageiros Transportados ($PT$) e Reconciliação | Recibos B APEX, Oracle Fiscais Móveis CM | `1a_PT_{SUFIXO}.csv`, `1b_PT_CM_{SUFIXO}.csv`, `1d_validacoes_{SUFIXO}.csv` (VaT) |
-| **Distâncias Médias** | [`02_distancias.R`](../code/02_distancias.R) | Distâncias Médias Percorridas ($\bar{d}_{i,j}$) | Oracle APEX, tabelas de referência sazonal | `1e_distancias_{SUFIXO}.csv` |
-| **Quotas de Repartição** | [`03_quotas.R`](../code/03_quotas.R) | Quota de Repartição Dinâmica ($\text{Quota}_{i,j}$) | Passageiros ($PT$), Distâncias ($\bar{d}$), Pesos PKM | `1_quotas_{SUFIXO}.csv` |
+| **Distâncias, Pesos e Quotas** | [`02_distancias.R`](../code/02_distancias.R), [`03_quotas.R`](../code/03_quotas.R) | Distâncias Médias ($\bar{d}$) e Quotas Dinâmicas ($\text{Quota}$) | Oracle APEX, distâncias de referência, pesos PKM | `1e_distancias_{SUFIXO}.csv`, `1_quotas_{SUFIXO}.csv` |
 | **Vendas A e K** | [`04_vendas_AK.R`](../code/04_vendas_AK.R) | Apuramento de Vendas e Volume Global | Recibos B, Separação PV/ATM | `2_vendas_A_{SUFIXO}.csv`, `2_vendas_K_{SUFIXO}.csv`, `4a_receita_titulo_distribuir_{SUFIXO}.csv` |
 | **Repartição B e TAT** | [`05_reparticao_B.R`](../code/05_reparticao_B.R) | Receita Devida ($B$) e Congelamento Navegante | Quotas, Receita a distribuir ($R_i$), Taxa TAT | `4b_reparticao_B_{SUFIXO}.csv`, `4_receitaB_congelamento_{SUFIXO}.csv` |
 | **Compensação COSP** | [`06_cosp_D.R`](../code/06_cosp_D.R) | Pagamento por Conta da COSP Tarifária ($D$) | Volume total passes ($Q$), Sazonalidade, VMC | `5a_cosp_{SUFIXO}.csv`, `5_cosp_operador_{SUFIXO}.csv` |
@@ -98,6 +87,19 @@ flowchart TD
 | **Documentos Oficiais** | [`10_documentos.R`](../code/10_documentos.R) | Informação Técnica e Ofícios de Liquidação | Tabelas consolidadas, parâmetros de emissão | `Informacao_{SUFIXO}.pdf`, `Anexo_Metodologia_{SUFIXO}.pdf`, `Oficios.pdf` |
 
 ---
+
+
+::: {.callout-tip}
+## Pipeline Automatizado em R
+
+* **Script Mestre**: [`code/99_run_all.R`](../code/99_run_all.R)
+* **Parâmetros Mensais**: Para calcular um novo mês, ajusta `ANO` e `MES` em [`code/config.R`](../code/config.R) e correr:
+  ```bash
+  Rscript code/99_run_all.R
+  ```
+* **Destino dos Resultados**: Os dados de saída são gerados em `data/{MES_ANO}/output/` com o sufixo do mês (ex.: `mai26`, `jun26`).
+:::
+
 
 ## Configuração Global (`config.R`)
 

@@ -30,13 +30,13 @@ São gerados mensalmente quatro documentos principais:
 
 A qualidade visual e tipográfica dos documentos assenta em quatro pilares técnicos:
 
-### 1. Papel Timbrado Vetorial Oficial
+### Papel Timbrado Vetorial Oficial
 Nos documentos externos (`doc-tipo: externo`), o filtro Pandoc [`code/templates/linebreaks.lua`](../code/templates/linebreaks.lua) deteta o cabeçalho e aplica as regras do ficheiro [`code/templates/custom_styles.typ`](../code/templates/custom_styles.typ):
 
 * **1.ª Página**: Aplica como fundo o modelo vetorial [`code/templates/folha_1.pdf`](../code/templates/folha_1.pdf) (logótipo institucional TML, contactos e marcas de furação);
 * **Páginas Seguintes**: Aplica o modelo [`code/templates/folha_restantes.pdf`](../code/templates/folha_restantes.pdf).
 
-### 2. Formatação de Tabelas com `tinytable`
+### Formatação de Tabelas com `tinytable`
 As tabelas regulamentares são formatadas através das funções utilitárias em [`code/utils_tables.R`](../code/utils_tables.R):
 
 * Cabeçalhos com fundo escuro institucional (`#2c3e50`) e texto branco;
@@ -44,7 +44,7 @@ As tabelas regulamentares são formatadas através das funções utilitárias em
 * Totais destacados a negrito com linha dupla de fecho;
 * Quebras de linha manuais em cabeçalhos longos e rotação de títulos em tabelas de grande largura (modo paisagem).
 
-### 3. Integração com Microsoft Word (DOCX)
+### Integração com Microsoft Word (DOCX)
 Quando a opção `RENDER_DOCX = TRUE` está ativada:
 
 * O Quarto compila o documento utilizando o modelo de estilos [`code/templates/TML_Informacao_pandoc.docx`](../code/templates/TML_Informacao_pandoc.docx);
@@ -65,11 +65,6 @@ data_dados_its  <- "XX de setembro de 2026"
 # TRUE  = verba ainda NÃO transferida → faturação parcelar
 # FALSE = verba já disponível → faturação imediata total
 incentiva_tp_pendente <- TRUE
-
-# Números de referência oficial:
-numero_informacao <- "TML-XXXX-XXXX-INF-XXXX-DEP"
-numero_oficio     <- "TML-XXXX-XXXX-OF-XXXX-DEP"
-numero_oficio2    <- "TML-YYYY-YYYY-OF-YYYY-DEP"
 ```
 
 ---

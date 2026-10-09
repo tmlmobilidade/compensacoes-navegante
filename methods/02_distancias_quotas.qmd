@@ -1,6 +1,6 @@
-# Distâncias Médias e Pesos Operacionais
+# Distâncias, Pesos e Quotas de Repartição
 
-Para converter o número de passageiros transportados na unidade de trabalho do sistema de transportes — o **Passageiro-Quilómetro (PKM)** — é necessário associar a cada par operador-título a respetiva **distância média percorrida** ($\bar{d}_{i,j}$, em km) e o **peso operacional ponderador** ($\text{Peso}_j$).
+Para converter o número de passageiros transportados na unidade de trabalho do sistema de transportes — o **Passageiro-Quilómetro (PKM)** — é necessário associar a cada par operador-título a respetiva **distância média percorrida** ($\bar{d}_{i,j}$, em km) e o **peso operacional ponderador** ($\text{Peso}_j$), apurando em seguida as **quotas dinâmicas de repartição**.
 
 ---
 
@@ -16,7 +16,7 @@ O Regulamento n.º 1362-C/2023 define uma hierarquia rigorosa de cinco níveis p
 4. **Nível 4**: Distância média calculada do título base, no mesmo operador e no mesmo mês;
 5. **Nível 5**: Distância média estática fixada nas tabelas regulamentares de referência de Agosto e Outubro de 2021.
 
-### 1. Distâncias Estáticas de Referência
+### Distâncias Estáticas de Referência
 
 Para os operadores sem telemetria contínua ou cálculo dinâmico de distâncias, aplicam-se as tabelas de referência históricas:
 
@@ -25,7 +25,7 @@ Para os operadores sem telemetria contínua ou cálculo dinâmico de distâncias
 
 A seleção é efetuada automaticamente pelo script [`code/config.R`](../code/config.R) com base no valor da variável `MES`.
 
-### 2. Distâncias Dinâmicas APEX (Fabrik)
+### Distâncias Dinâmicas APEX (Fabrik)
 
 Para os operadores integrados no sistema centralizado APEX com rastreamento GPS e matrizes de paragens, o cálculo da distância média é apurado mensalmente:
 
@@ -67,4 +67,59 @@ Os pesos encontram-se fixados em [`lists/pesos_pkm.csv`](../lists/pesos_pkm.csv)
 * São valores fixos ao longo do ano;
 * A sua soma entre operadores não perfaz $1$;
 * Operadores com redes mais densas e viagens mais curtas (como a Carris ou o Metropolitano de Lisboa) possuem fatores mais elevados para reequilibrar a remuneração por quilómetro face a operadores ferroviários suburbanos (como a CP ou a Fertagus), cujas distâncias médias por viagem são naturalmente muito superiores.
+
+---
+
+## Quotas de Repartição Dinâmica
+
+As quotas de repartição determinam a proporção de receita tarifária e de compensação financeira a que cada operador tem direito por cada título de transporte Navegante utilizado na Área Metropolitana de Lisboa.
+
+### Metodologia de Cálculo
+
+O cálculo das quotas é efetuado a nível de cada **título** ($i$) e de cada **operador** ($j$), combinando as três grandezas fundamentais:
+
+1. **Passageiros Transportados** ($\text{PT}_{i, j}$): Validações registadas no mês;
+2. **Distância Média** ($\bar{d}_{i, j}$): Distância média por viagem (em km);
+3. **Peso do Operador** ($\text{Peso}_j$): Fator de ponderação do modo de transporte.
+
+### Fórmulas Regulamentares
+
+Para cada título $i$ e operador $j$, o cálculo processa-se sequencialmente:
+
+$$
+\begin{aligned}
+\text{PKM}_{i, j} &= \text{PT}_{i, j} \times \bar{d}_{i, j} \\[8pt]
+\text{Quota Raw}_{i, j} &= \text{Peso}_j \times \text{PKM}_{i, j} \\[8pt]
+\text{Quota}_{i, j} &= \frac{\text{Quota Raw}_{i, j}}{\sum_{k} \text{Quota Raw}_{i, k}}
+\end{aligned}
+$$
+
+A quota final $\text{Quota}_{i, j}$ é expressa em percentagem e obedece rigorosamente à propriedade:
+
+$$\sum_{j} \text{Quota}_{i, j} = 1 \quad (100\%) \quad \forall i$$
+
+<!-- ## Mecanismo de Fallback: Quota Global
+
+Existem títulos de transporte com procura sazonal ou rara (como certos Passes de Acompanhante ou PACs) que podem registar zero validações ou distância nula de passageiros transportados num determinado mês.
+
+Para garantir que todos os 145 títulos do catálogo oficial possuem quotas bem definidas somando $100\%$, o algoritmo aplica a **Quota Global de PKM** como salvaguarda:
+
+$$
+\text{Quota Global}_j = \frac{\sum_i \text{Quota Raw}_{i,j}}{\sum_k \sum_i \text{Quota Raw}_{i,k}}
+$$
+
+::: {.callout-note}
+## Conformidade Regulamentar
+Esta regra de fallback assegura que a matriz de quotas coincide a 100% com a Tabela 1 da folha oficial de cálculo da TML, prevenindo qualquer divisão por zero e mantendo a consistência do modelo financeiro.
+::: -->
+
+---
+
+### Script: `03_quotas.R` {.unnumbered}
+
+O script [`code/03_quotas.R`](../code/03_quotas.R) junta os passageiros apurados no passo 1 com as distâncias resolvidas no passo 2 e os pesos regulamentares.
+
+**Output gerado:**
+
+* `1_quotas_{SUFIXO}.csv`: Contém as colunas `operador`, `ticket_code`, `pt_operador`, `distancia_km`, `peso`, `pkm`, `quota_raw`, `quota` e `quota_fonte` (`"pkm"` ou `"global_fallback"`).
 

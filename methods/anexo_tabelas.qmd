@@ -1,4 +1,8 @@
-# Tabelas Estáticas de Referência (`lists/`) {.appendix}
+---
+number-sections: false
+---
+
+# Tabelas Estáticas de Referência (`lists/`) {.unnumbered}
 
 O diretório [`lists/`](../lists/) contém as tabelas de suporte regulamentares e estruturais utilizadas pelos scripts de cálculo. Estas tabelas raramente sofrem alterações entre meses.
 

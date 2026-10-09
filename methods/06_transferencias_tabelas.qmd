@@ -64,11 +64,13 @@ Para evitar que erros de arredondamento de cêntimos se acumulem e criem diverg�
 ### Script: `07_transferencias_F.R` {.unnumbered}
 
 Gera a tabela final de síntese em formato CSV:
+
 * **Output**: `6_transferencias_{SUFIXO}.csv` (colunas `operador`, `receita_A`, `receita_B`, `cosp_D`, `congelamento_B`, `F_transferencia`, `total_transferir`, `pagamento_imediato`, `pagamento_incentiva`).
 
 ### Script: `08_tables.R` {.unnumbered}
 
-Constrói o workbook oficial em Excel formatado:
+Constroi o workbook oficial em Excel formatado:
+
 * **Output**: `docs/Anexo_Calculos_{SUFIXO}.xlsx`
 
 O livro contém 6 folhas de cálculo completas:

@@ -2,15 +2,15 @@
 
 O volume mensal de títulos e a receita tarifária global do sistema Navegante estruturam-se em três vertentes distintas:
 
-1. **Vendas em Bilheteiras dos Operadores (Canais A)**;
-2. **Vendas em Canais Partilhados TML (Canais K)**;
-3. **Títulos Gratuitos sem Carregamento Mensal (VaT)**.
+1. Vendas em Bilheteiras dos Operadores (Canais **A**);
+2. Vendas em Canais Partilhados TML (Canais **K**);
+3. Títulos Gratuitos sem Carregamento Mensal (Canais **VaT**).
 
 ---
 
 ## Tipologias de Venda e Fontes de Dados
 
-### 1. Vendas A (Bilheteiras dos Operadores)
+### Vendas A (Bilheteiras dos Operadores)
 
 Correspondem às receitas tarifárias diretamente cobradas aos utentes nos postos de venda e máquinas automáticas de cada operador:
 
@@ -20,7 +20,7 @@ Correspondem às receitas tarifárias diretamente cobradas aos utentes nos posto
 
 Esta receita permanece temporariamente na posse física de cada operador até à liquidação de saldos da TML.
 
-### 2. Vendas K (Canais Partilhados da TML)
+### Vendas K (Canais Partilhados da TML)
 
 A TML disponibiliza dois canais de carregamento independentes e transversais a toda a Área Metropolitana:
 
@@ -32,12 +32,12 @@ Os montantes destes canais são reportados no ficheiro mensal do Departamento IT
 
 A receita dos canais K dá entrada diretamente nas contas bancárias da TML e serve de fundo de maneio para os pagamentos imediatos aos operadores.
 
-### 3. Títulos sem Carregamento Prévio (VaT — Validations as Transactions)
+### Títulos sem Carregamento Prévio (VaT — Validations as Transactions)
 
 Determinadas categorias de títulos bonificados ou com gratuitidade integral para o utilizador final (tais como o Navegante Sub 18+TP, Sub 23+TP, Navegante 12 Criança e passes sociais especiais) não geram receita de venda direta nas bilheteiras ($A = 0\text{ €}$).
 
 ::: {.callout-important}
-## Contabilização Crítica para a COSP
+## Contabilização para a COSP
 Apesar de terem receita de venda direta nula, o número de passes ativos destas tipologias **tem obrigatoriamente de ser somado à quantidade total de passes vendidos no mês**:
 
 $$Q_{\text{total}} = \sum_i \left( \text{qty}_{A, i} + \text{qty}_{K, i} + \text{qty}_{\text{VaT}, i} \right)$$

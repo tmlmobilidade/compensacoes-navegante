@@ -1,4 +1,8 @@
-# Guia de Preparação Mensal e Execução {.appendix}
+---
+number-sections: false
+---
+
+# Guia de Preparação Mensal e Execução {.unnumbered}
 
 Este anexo sintetiza o guia prático passo a passo para a preparação e execução mensal da rotina de apuramento das compensações e distribuição de receitas Navegante.
 
