@@ -412,14 +412,7 @@ Em `r mes_nome` de `r ANO`, a receita na posse dos operadores totaliza um valor 
 
 ### Receitas de passes Navegante devidas a cada Operador \[B`r MES`\] em `r mes_nome` de `r ANO`
 
-::: {.content-visible when-format="typst"}
 A receita devida a cada Operador foi determinada aplicando a quota de repartição definida em -@sec-quota-reparticao. às receitas do sistema apresentadas no ponto -@sec-receitasak.
-:::
-
-::: {.content-visible when-format="docx"}
-A receita devida a cada Operador foi determinada aplicando a quota de repartição definida no ponto “Quota de Repartição Dinâmica de `r mes_nome` de `r ANO`” às receitas do sistema apresentadas no ponto “Receitas de passes Navegante na posse de cada Operador \[A`r MES`\] e nos canais de receita partilhada \[K`r MES`\]”.
-:::
-
 
 A Tabela 4 do ficheiro “`r paste0("Anexo_Calculos_", SUFIXO, ".xlsx")`” resume as receitas de passes Navegante devidas a cada Operador, relativas ao mês de `r mes_nome` de `r ANO`.
 
