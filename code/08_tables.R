@@ -265,8 +265,8 @@ st_int <- createStyle(
   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9
 )
 st_alt   <- createStyle(fgFill = cor_alt_row)
-st_zero  <- createStyle(fontColour = cor_gray_text)
-st_inact <- createStyle(fontColour = cor_gray_text)
+st_zero  <- createStyle(fontColour = cor_gray_text, fontSize = 9)
+st_inact <- createStyle(fontColour = cor_gray_text, fontSize = 9)
 
 st_param_lbl <- createStyle(
   fgFill = cor_op_col, textDecoration = "bold",
