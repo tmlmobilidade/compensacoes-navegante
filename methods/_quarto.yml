@@ -13,7 +13,7 @@ book:
   date: last-modified
   chapters:
     - index.qmd
-    - part: "**Cálculo**"
+    - part: "**Cálculos**"
       chapters:
         - 01_passageiros.qmd
         - 02_distancias_quotas.qmd
