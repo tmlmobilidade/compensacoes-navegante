@@ -79,6 +79,6 @@ O livro contém 6 folhas de cálculo completas:
 * **Folha 1 - Quotas**: Matriz detalhada de passageiros, distâncias, pesos e quotas por título;
 * **Folha 2 - Vendas AK**: Discriminação das vendas em bilheteira e canais partilhados;
 * **Folha 4 - Receita B e CongNav**: Distribuição da receita de venda e congelamento TAT;
-* **Folha 5 - Pag Conta COSP D**: Resumo e tabela *wide* da compensação de serviço público;
+* **Folha 5 - Pag Conta COSP D**: Resumo e tabela da compensação de serviço público;
 * **Folha 6 - Transferencias F**: Detalhe das componentes de saldo e transferências líquidas.
 
