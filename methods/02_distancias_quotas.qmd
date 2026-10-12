@@ -16,7 +16,7 @@ O Regulamento n.º 1362-C/2023 define uma hierarquia rigorosa de cinco níveis p
 4. **Nível 4**: Distância média calculada do título base, no mesmo operador e no mesmo mês;
 5. **Nível 5**: Distância média estática fixada nas tabelas regulamentares de referência de Agosto e Outubro de 2021.
 
-### Distâncias Estáticas de Referência
+### Distâncias Médias de Referência
 
 Para os operadores sem telemetria contínua ou cálculo dinâmico de distâncias, aplicam-se as tabelas de referência históricas:
 
@@ -25,7 +25,7 @@ Para os operadores sem telemetria contínua ou cálculo dinâmico de distâncias
 
 A seleção é efetuada automaticamente pelo script [`code/config.R`](../code/config.R) com base no valor da variável `MES`.
 
-### Distâncias Dinâmicas APEX (Fabrik)
+### Distâncias Médias Dinâmicas APEX (Fabric)
 
 Para os operadores integrados no sistema centralizado APEX com rastreamento GPS e matrizes de paragens, o cálculo da distância média é apurado mensalmente:
 

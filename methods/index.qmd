@@ -1,27 +1,30 @@
-
 # Introdução e Visão Geral {.unnumbered}
 
-Este manual documenta o procedimento metodológico e operacional para a **distribuição de receitas tarifárias e apuramento de compensações financeiras** aos operadores de transporte público coletivo de passageiros da Área Metropolitana de Lisboa (AML), gerido pela **TML — Transportes Metropolitanos de Lisboa**.
+Este manual documenta o procedimento metodológico e operacional, gerido pela **TML — Transportes Metropolitanos de Lisboa** para a **distribuição de receitas tarifárias e apuramento de compensações financeiras** aos operadores de transporte público coletivo de passageiros da Área Metropolitana de Lisboa (AML), que disponibilizam os Passes Navegante.
 
-O modelo implementado reproduz as regras estipuladas no [Regulamento n.º 1362-C/2023](https://diariodarepublica.pt/dr/detalhe/regulamento/1362-c-2023-835674356), publicado em Diário da República a 27 de dezembro de 2023.
-
+O modelo implementado reproduz as regras estipuladas no [Regulamento n.º 1362-C/2023](https://diariodarepublica.pt/dr/detalhe/regulamento/1362-c-2023-835674356), publicado em Diário da República a 27 de dezembro de 2023, a 6ª alteração ao Regulamento Tarifário da AML n. 278-A/2019.
+ 
 ---
 
 ## Fluxograma Metodológico
 
-O diagrama seguinte ilustra a arquitetura completa do sistema: desde as fontes de dados brutas (Recibos B, Oracle, canais partilhados), passando pelos scripts de processamento modular em R, até à geração do relatório consolidado em Excel e documentos PDF/Word.
+O diagrama seguinte ilustra a arquitetura completa do sistema: desde as fontes de dados provinientes do DITS (Recibos B, Oracle, canais partilhados), passando pelos scripts de processamento modular em R, até à geração do relatório consolidado em Excel e documentos PDF/Word.
 
 ```{mermaid}
+---
+config:
+  layout: elk
+---
 flowchart TD
     %% -------------------------------------------------------------------------
     %% 1. FONTES DE DADOS E ENTRADAS
     %% -------------------------------------------------------------------------
     subgraph IN["1. Fontes de Dados e Entradas"]
         direction TB
-        IN_RECIBOS("**Recibos B dos Operadores** (APEX)<br/>- Validações de passageiros (PT)<br/>- Recibos B<br/>- Vendas de bilheteira (Canais A)<br/>- Títulos sem carregamento prévio (VaT)")
-        IN_ORACLE("**Extrações Oracle PDBDWPROD**<br/>- Distâncias médias APEX (CM e CAP)<br/>- Fiscais móveis CM / Portal VIVA (Query 2c)")
-        IN_K("**Canais Partilhados TML (K)**<br/>- Ficheiro de separação PV e ATM<br/>(Portal VIVA e SIBS / Multibanco)")
-        IN_LISTS("**Tabelas Regulamentares (lists/)**<br/>- Distâncias de referência (ago21 / out21)<br/>- Pesos operacionais PKM por operador<br/>- TAT anual, Sazonalidade COSP e VMC")
+        IN_RECIBOS("**Recibos B dos Operadores**<br/>- Validações de passageiros (PT)<br/>- Vendas de bilheteira (Canais A)<br/>- Títulos sem carregamento prévio (VaT)")
+        IN_ORACLE("**Extrações Oracle PDBDWPROD**<br/>- Distâncias médias dinâmicas<br/>- Fiscais móveis CM / Portal VIVA")
+        IN_K("**Canais Partilhados TML (K)**<br/>- Ficheiro de separação PV e ATM<br/>(Portal VIVA e SIBS)")
+        IN_LISTS("**Tabelas Regulamentares (lists/)**<br/>- Distâncias médias de referência (ago21 / out21)<br/>- Pesos operacionais PKM por operador<br/>- TAT anual, Sazonalidade COSP e VMC")
     end
 
     %% -------------------------------------------------------------------------
@@ -29,8 +32,8 @@ flowchart TD
     %% -------------------------------------------------------------------------
     subgraph CALC_STEP["2. Pipeline Modular de Cálculo (R)"]
         direction TB
-        P01["**01_recibos_b.R**<br/>- Limpeza e filtros regulamentares<br/>- Separação TT / SL (Recibos B APEX)<br/>- Fiscais móveis CM<br/>→ Gera PT_ij e VaT_i"]
-        P02["**02_distancias.R**<br/>- Distâncias dinâmicas APEX (CM/CAP)<br/>- Distâncias de referência estáticas<br/>→ Gera Distância d_ij"]
+        P01["**01_recibos_b.R**<br/>- Limpeza e filtros regulamentares<br/>- Separação TT / SL (Recibos B)<br/>- Fiscais móveis CM<br/>→ Gera PT_ij e VaT_i"]
+        P02["**02_distancias.R**<br/>- Distâncias médias dinâmicas<br/>- Distâncias médias de referência<br/>→ Gera Distância d_ij"]
         P03["**03_quotas.R**<br/>- PKM_ij = PT_ij × d_ij<br/>- Quota_ij com pesos operacionais<br/>→ Gera Quotas Dinâmicas"]
         P04["**04_vendas_AK.R**<br/>- Receita operadores A_j + canais K<br/>- Volume global de passes Q_total"]
         P05["**05_reparticao_B.R**<br/>- Receita bilheteira devida B_ij<br/>- Congelamento Tarifário TAT"]
@@ -42,8 +45,10 @@ flowchart TD
         P02 --> P03
         P03 --> P05
         P03 --> P06
+        P01 --> P04
         P04 --> P05
         P04 --> P06
+        P04 --> P07
         P05 --> P07
         P06 --> P07
         P07 --> P08
