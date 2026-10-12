@@ -1,14 +1,15 @@
+
 # Introdução e Visão Geral {.unnumbered}
 
 Este manual documenta o procedimento metodológico e operacional para a **distribuição de receitas tarifárias e apuramento de compensações financeiras** aos operadores de transporte público coletivo de passageiros da Área Metropolitana de Lisboa (AML), gerido pela **TML — Transportes Metropolitanos de Lisboa**.
 
-O modelo implementado reproduz fielmente as regras estipuladas no [Regulamento n.º 1362-C/2023](https://diariodarepublica.pt/dr/detalhe/regulamento/1362-c-2023-835674356), publicado em Diário da República a 27 de dezembro de 2023.
+O modelo implementado reproduz as regras estipuladas no [Regulamento n.º 1362-C/2023](https://diariodarepublica.pt/dr/detalhe/regulamento/1362-c-2023-835674356), publicado em Diário da República a 27 de dezembro de 2023.
 
 ---
 
 ## Fluxograma Metodológico
 
-O diagrama seguinte ilustra a arquitetura completa do sistema: desde as fontes de dados brutas (Recibos B, Oracle, canais partilhados), passando pelos scripts de processamento modular em R, até à geração do relatório consolidado em Excel e documentos oficiais em PDF/Word.
+O diagrama seguinte ilustra a arquitetura completa do sistema: desde as fontes de dados brutas (Recibos B, Oracle, canais partilhados), passando pelos scripts de processamento modular em R, até à geração do relatório consolidado em Excel e documentos PDF/Word.
 
 ```{mermaid}
 flowchart TD
@@ -17,10 +18,10 @@ flowchart TD
     %% -------------------------------------------------------------------------
     subgraph IN["1. Fontes de Dados e Entradas"]
         direction TB
-        IN_RECIBOS["Recibos B dos Operadores (APEX)<br/>- Validações de passageiros (PT)<br/>- Separação direta TT e SL via Recibos B<br/>- Vendas de bilheteira (Canais A)<br/>- Títulos sem carregamento prévio (VaT)"]
-        IN_ORACLE["Extrações Oracle PDBDWPROD<br/>- Distâncias médias APEX (CM e CAP)<br/>- Fiscais móveis CM / Portal VIVA (Query 2c)<br/>- (Rateio TT / SL descontinuado / fallback)"]
-        IN_K["Canais Partilhados TML (K)<br/>- Ficheiro de separação PV e ATM<br/>(Portal VIVA e SIBS / Multibanco)"]
-        IN_LISTS["Tabelas Regulamentares (lists/)<br/>- Distâncias de referência (ago21 / out21)<br/>- Pesos operacionais PKM por operador<br/>- TAT anual, Sazonalidade COSP e VMC"]
+        IN_RECIBOS("**Recibos B dos Operadores** (APEX)<br/>- Validações de passageiros (PT)<br/>- Recibos B<br/>- Vendas de bilheteira (Canais A)<br/>- Títulos sem carregamento prévio (VaT)")
+        IN_ORACLE("**Extrações Oracle PDBDWPROD**<br/>- Distâncias médias APEX (CM e CAP)<br/>- Fiscais móveis CM / Portal VIVA (Query 2c)")
+        IN_K("**Canais Partilhados TML (K)**<br/>- Ficheiro de separação PV e ATM<br/>(Portal VIVA e SIBS / Multibanco)")
+        IN_LISTS("**Tabelas Regulamentares (lists/)**<br/>- Distâncias de referência (ago21 / out21)<br/>- Pesos operacionais PKM por operador<br/>- TAT anual, Sazonalidade COSP e VMC")
     end
 
     %% -------------------------------------------------------------------------
@@ -28,14 +29,14 @@ flowchart TD
     %% -------------------------------------------------------------------------
     subgraph CALC_STEP["2. Pipeline Modular de Cálculo (R)"]
         direction TB
-        P01["01_recibos_b.R<br/>- Limpeza e filtros regulamentares<br/>- Separação TT / SL (Recibos B APEX)<br/>- Fiscais móveis CM (A1 a A4)<br/>→ Gera PT_ij e VaT_i"]
-        P02["02_distancias.R<br/>- Distâncias dinâmicas APEX (CM/CAP)<br/>- Distâncias de referência estáticas<br/>→ Gera Distância d_ij"]
-        P03["03_quotas.R<br/>- PKM_ij = PT_ij × d_ij<br/>- Quota_ij com pesos operacionais<br/>→ Gera Quotas Dinâmicas"]
-        P04["04_vendas_AK.R<br/>- Receita operadores A_j + canais K<br/>- Volume global de passes Q_total"]
-        P05["05_reparticao_B.R<br/>- Receita bilheteira devida B_ij<br/>- Congelamento Tarifário TAT"]
-        P06["06_cosp_D.R<br/>- Procura anualizada estimada<br/>- Compensação COSP Tarifária D_ij"]
-        P07["07_transferencias_F.R<br/>- Saldo global e transferências líquidas F_j<br/>- Segregação Imediato (K) vs Incentiva (+TP)"]
-        P08["08_tables.R<br/>- Reconciliação dos Maiores Restos (Total K)<br/>- Exportação do Livro Excel Oficial"]
+        P01["**01_recibos_b.R**<br/>- Limpeza e filtros regulamentares<br/>- Separação TT / SL (Recibos B APEX)<br/>- Fiscais móveis CM<br/>→ Gera PT_ij e VaT_i"]
+        P02["**02_distancias.R**<br/>- Distâncias dinâmicas APEX (CM/CAP)<br/>- Distâncias de referência estáticas<br/>→ Gera Distância d_ij"]
+        P03["**03_quotas.R**<br/>- PKM_ij = PT_ij × d_ij<br/>- Quota_ij com pesos operacionais<br/>→ Gera Quotas Dinâmicas"]
+        P04["**04_vendas_AK.R**<br/>- Receita operadores A_j + canais K<br/>- Volume global de passes Q_total"]
+        P05["**05_reparticao_B.R**<br/>- Receita bilheteira devida B_ij<br/>- Congelamento Tarifário TAT"]
+        P06["**06_cosp_D.R**<br/>- Procura anualizada estimada<br/>- Compensação COSP Tarifária D_ij"]
+        P07["**07_transferencias_F.R**<br/>- Saldo global e transferências líquidas F_j<br/>- Segregação Imediato (K) vs Incentiva (+TP)"]
+        P08["**08_tables.R**<br/>- Reconciliação dos Maiores Restos (Total K)<br/>- Exportação do Livro Excel"]
 
         P01 --> P03
         P02 --> P03
@@ -53,8 +54,9 @@ flowchart TD
     %% -------------------------------------------------------------------------
     subgraph OUT_STEP["3. Produtos Finais e Documentos"]
         direction TB
-        OUT_EXCEL["Workbook Excel Consolidado<br/>Anexo_Calculos_{SUFIXO}.xlsx<br/>(6 folhas de cálculo oficiais)"]
-        OUT_REPORTS["Documentos Oficiais (Quarto / Typst / DOCX)<br/>- Informacao_{SUFIXO}.pdf / .docx<br/>- Anexo_Metodologia_{SUFIXO}.pdf<br/>- Oficio1_{SUFIXO}.pdf & Oficio2_{SUFIXO}.pdf"]
+        OUT_EXCEL["**Workbook Excel Consolidado**<br/>Anexo_Calculos_{SUFIXO}.xlsx<br/>(6 folhas de cálculo)"]
+        OUT_REPORTS["**Documentos**<br/>- Informacao_{SUFIXO}<br/>- Anexo_Metodologia_{SUFIXO}<br/>- Oficio1_{SUFIXO}<br/>- Oficio2_{SUFIXO}"]
+        %% <div style='min-width:220px;'> control the width of the node
     end
 
     %% Ligações principais
@@ -70,6 +72,24 @@ flowchart TD
 
     P08 --> OUT_EXCEL
     P08 --> OUT_REPORTS
+
+
+
+    %% Styling
+    classDef inputStyle fill:#e1f5ff,stroke:#0288d1,stroke-width:2px,color:#111827
+    classDef processStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#111827
+    classDef outputStyle fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#111827
+    classDef calcStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#111827
+    
+    class IN_RECIBOS,IN_ORACLE,IN_K,IN_LISTS inputStyle
+    class P01,P02,P03,P04,P05,P06,P07 processStyle
+    class P08 calcStyle
+    class OUT_EXCEL,OUT_REPORTS outputStyle
+
+    %% Subgraph styling (transparent background, light gray border, dark text)
+    style IN fill:none,stroke:#d0d7de,stroke-width:1.5px,color:#111827
+    style CALC_STEP fill:none,stroke:#d0d7de,stroke-width:1.5px,color:#111827
+    style OUT_STEP fill:none,stroke:#d0d7de,stroke-width:1.5px,color:#111827
 ```
 
 ---
@@ -93,7 +113,7 @@ flowchart TD
 ## Pipeline Automatizado em R
 
 * **Script Mestre**: [`code/99_run_all.R`](../code/99_run_all.R)
-* **Parâmetros Mensais**: Para calcular um novo mês, ajusta `ANO` e `MES` em [`code/config.R`](../code/config.R) e correr:
+* **Parâmetros Mensais**: Para calcular um novo mês, ajustar `ANO` e `MES` em [`code/config.R`](../code/config.R) e correr:
   ```bash
   Rscript code/99_run_all.R
   ```
