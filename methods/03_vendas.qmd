@@ -2,7 +2,7 @@
 
 O volume mensal de títulos e a receita tarifária global do sistema Navegante estruturam-se em três vertentes distintas:
 
-1. Vendas em Bilheteiras dos Operadores (Canais **A**);
+1. Vendas nos Canais Próprios dos Operadores (Canais **A**);
 2. Vendas em Canais Partilhados TML (Canais **K**);
 3. Títulos Gratuitos sem Carregamento Mensal (Canais **VaT**).
 
@@ -10,9 +10,9 @@ O volume mensal de títulos e a receita tarifária global do sistema Navegante e
 
 ## Tipologias de Venda e Fontes de Dados
 
-### Vendas A (Bilheteiras dos Operadores)
+### Vendas A (Canais Próprios dos Operadores)
 
-Correspondem às receitas tarifárias diretamente cobradas aos utentes nos postos de venda e máquinas automáticas de cada operador:
+Correspondem às receitas tarifárias diretamente cobradas aos utentes nas bilheteiras, máquinas automáticas de venda e Apps de cada operador:
 
 * Extraídas da tabela de transações dos Recibos B (`SOURCE == "Transaction"`);
 * Quantidade líquida: $\text{qty}_A = \text{OPERADOR\_QUANTITY} + \text{SIIT\_QTY}$;
@@ -24,17 +24,17 @@ Esta receita permanece temporariamente na posse física de cada operador até à
 
 A TML disponibiliza dois canais de carregamento independentes e transversais a toda a Área Metropolitana:
 
-* **Portal VIVA (PV)**: Carregamentos online;
-* **Rede Multibanco / SIBS (ATM)**: Carregamentos nos terminais bancários.
+* **Portal VIVA (PV)**: Carregamentos em Comissionistas, Portal Empresa, Kiosks, App Navegante;
+* **Rede Multibanco / SIBS**: Carregamentos nos terminais ATM.
 
 Os montantes destes canais são reportados no ficheiro mensal do Departamento ITS:
 `data/{MES_ANO}/input/Recibos B/ReciboB_{ANOMES}_Separação_PV_ATM.xlsx`.
 
-A receita dos canais K dá entrada diretamente nas contas bancárias da TML e serve de fundo de maneio para os pagamentos imediatos aos operadores.
+A receita dos canais K dá entrada diretamente nas contas bancárias da TML e é posteriormente repartida pelos operadores.
 
-### Títulos sem Carregamento Prévio (VaT — Validations as Transactions)
+### Títulos sem Carregamento Mensal (VaT — Validations as Transactions)
 
-Determinadas categorias de títulos bonificados ou com gratuitidade integral para o utilizador final (tais como o Navegante Sub 18+TP, Sub 23+TP, Navegante 12 Criança e passes sociais especiais) não geram receita de venda direta nas bilheteiras ($A = 0\text{ €}$).
+Determinadas categorias de títulos bonificados ou com gratuitidade integral para o utilizador final (tais como o Navegante Sub 18+TP, Sub 23+TP, Navegante 12 Criança e passes sociais especiais) não geram receita de venda direta ($A = 0\text{ €}$).
 
 ::: {.callout-important}
 ## Contabilização para a COSP
@@ -49,11 +49,11 @@ Se estes passes fossem desconsiderados, a estimativa da procura anualizada do si
 
 ### Script: `04_vendas_AK.R` {.unnumbered}
 
-O script [`code/04_vendas_AK.R`](../code/04_vendas_AK.R) agrega as vendas das bilheteiras, cruza com os canais K e apura as quantidades de títulos VaT.
+O script [`code/04_vendas_AK.R`](../code/04_vendas_AK.R) agrega as vendas dos canais próprios dos operadores A, cruza com os canais partilhados K e apura as quantidades de títulos VaT.
 
 **Outputs gerados:**
 
 * `2_vendas_A_{SUFIXO}.csv`: Receita $A_j$ na posse de cada operador e volume de passes vendidos;
-* `2_vendas_K_{SUFIXO}.csv`: Vendas segregadas pelos canais Portal VIVA e SIBS/ATM;
+* `2_vendas_K_{SUFIXO}.csv`: Vendas segregadas pelos canais Portal VIVA e SIBS;
 * `4a_receita_titulo_distribuir_{SUFIXO}.csv`: Receita global do sistema por título ($R_i = A_i + K_i$) e volume total de passes ($Q_i$).
 

@@ -31,7 +31,7 @@ $$C_j = A_j - B_j$$
 
 Desde o lançamento do passe Navegante em 2019, o preço final pago pelo utilizador mantém-se congelado, não refletindo a inflação nem os aumentos dos custos de exploração.
 
-Para compensar esta perda de receita nos operadores, o Estado instituiu o mecanismo de compensação por congelamento tarifário indexado à **Taxa de Atualização Tarifária (TAT)**, calculada anualmente pela AMT (Autoridade da Mobilidade e dos Transportes) em final de outubro.
+Para compensar esta perda de receita nos operadores, instituiu-se um mecanismo de compensação por congelamento tarifário indexado à **Taxa de Atualização Tarifária (TAT)**, calculada anualmente pela AMT (Autoridade da Mobilidade e dos Transportes) em final de outubro.
 
 ### Taxas Históricas e Acumulação
 
@@ -54,6 +54,7 @@ $$
 O valor total de congelamento devido ao operador $j$ ($\text{CongNav}[B]_j$) corresponde à soma de todos os seus títulos:
 
 $$\text{CongNav}[B]_j = \sum_i \text{ReceitaCompensar}_{i,j}$$
+
 
 ---
 

@@ -22,7 +22,7 @@ São gerados mensalmente quatro documentos principais:
    * Comunicação formal a cada operador com a discriminação dos montantes a liquidar de imediato (financiados pelos canais partilhados $K$).
 
 4. **Ofício 2 — Pagamentos Incentiva +TP** ([`code/oficio2.qmd`](../code/oficio2.qmd)):
-   * Comunicação formal relativa às verbas do Fundo Ambiental (Compensação COSP e Congelamento Tarifário), a liquidar assim que a verba governamental for transferida.
+   * Comunicação formal relativa às verbas do Fundo Ambiental (Incentiva +TP), a liquidar assim que a verba governamental for transferida.
 
 ---
 

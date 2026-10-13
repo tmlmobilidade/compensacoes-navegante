@@ -1,30 +1,30 @@
 # Validações, Passageiros e Recibos B
 
-O apuramento da repartição de receitas tem como ponto de partida a recolha dos registos de bilhética enviados mensalmente por todos os operadores aderentes ao sistema Navegante, sintetizados nos chamados **Recibos B**.
+O apuramento da repartição de receitas tem como ponto de partida a recolha dos registos de bilhética enviados diariamente por todos os operadores aderentes ao sistema Navegante e sintetizados mensalmente pelo DITS nos chamados **Recibos B**.
 
 ---
 
 ## Estrutura dos Recibos B dos Operadores
 
-Cada operador disponibiliza um conjunto de três ficheiros de extração direta do sistema bilhético:
+O DITS disponibiliza um conjunto de três ficheiros resultado do tratamento que realiza sobre os dados de transações de venda e de validações do sistema de bilhética:
 
 1. **Passageiros Transportados por título**: `reg_[OPERADOR]_reciboB_PTconsideredByProduct_*.csv`
 
    * `DISTRIBUTION_YEAR` e `DISTRIBUTION_MONTH`: Ano e mês de apuramento;
    * `TICKET_OPERATOR_CODE`: Código do operador do título (o código `31` identifica o tarifário Navegante);
-   * `TICKET_CODE`: Código regulamentar do título de transporte;
-   * `OPERADOR_TOTAL`: Volume total de validações / passageiros transportados por esse operador com aquele título ($PT_{i,j}$);
+   * `TICKET_CODE`: Código do título de transporte;
+   * `OPERADOR_TOTAL`: Volume total de passageiros transportados por esse operador com aquele título ($PT_{i,j}$);
    * `SISTEMA_TOTAL`: Soma global de passageiros transportados em todo o sistema com aquele título (informativo).
 
 2. **Títulos Vendidos e Receitas**: `reg_[OPERADOR]_reciboB_transactionsOperatorSystem_*.csv`
 
    * `SOURCE`: Contém dois tipos de registos:
-     * `"Transaction"`: Transações regulares de venda com carregamento de passe;
-     * `"Validations as Transactions"`: Títulos bonificados ou gratuitos que não requerem carregamento monetário, mas que registaram validações no mês.
-   * `TICKET_CODE`: Código do título;
-   * `OPERADOR_QUANTITY`: Quantidade de passes vendidos nas bilheteiras próprias do operador;
+     * `"Transaction"`: Transações regulares de venda e carregamento de passe;
+     * `"Validations as Transactions"`: Títulos bonificados ou gratuitos que não requerem carregamento mensal, uma vez que o passe previamente carregado tem validade superior, mas que registaram pelo menos uma validação no mês.
+   * `TICKET_CODE`: Código do título de transporte;
+   * `OPERADOR_QUANTITY`: Quantidade de passes vendidos nos canais próprios do operador (bilheteiras, máquinas autmáticas e aplicações);
    * `OPERADOR_PRICE`: Montante bruto de receita arrecadada (em euros);
-   * `SIIT_QTY` e `SIIT_PRICE`: Devoluções, acertos operacionais e correções do sistema bilhético (devem ser somados às variáveis anteriores para obter o valor líquido exato de venda);
+   * `SIIT_QTY` e `SIIT_PRICE`: Devoluções, acertos operacionais e correções realizadas pelo operador diretamente no SIIT (devem ser somados às variáveis anteriores para obter a quantiddade e o valor líquido exato de venda do operador);
    * `SISTEMA_QUANTITY` e `SISTEMA_TOTAL_PRICE`: Valores globais do sistema.
 
 3. **Validações Incoerentes / Descartadas**: `reg_[OPERADOR]_reciboB_validationsUnconsidered_*.csv`
@@ -42,17 +42,17 @@ A Carris Metropolitana é operada por quatro concessões zonais (`A1`, `A2`, `A3
 
 O script [`code/01_recibos_b.R`](../code/01_recibos_b.R) realiza a leitura em lote de todos os ficheiros de Recibo B da pasta `data/{MES_ANO}/input/Recibos B/`, aplicando os seguintes filtros regulamentares:
 
-* `SOURCE == "Transaction"` (os títulos VaT são tratados separadamente para a COSP);
-* `TICKET_OPERATOR_CODE == 31` (apenas títulos do ecossistema Navegante);
+* `SOURCE == "Transaction"` (os títulos VaT são tratados separadamente para a determinação do número total de passes carregados, necessário à COSP);
+* `TICKET_OPERATOR_CODE == 31` (apenas títulos do Regulamento Navegante);
 * `TICKET_CODE > 0` (elimina registos sintéticos ou linhas de totais);
-* Exclusão da Scotturb (`SC`), que opera fora da convenção Navegante metropolitana regular.
+* Exclusão da Scotturb (`SC`), que aceita a utilização de passes Navegante, mas não recebe receita nem compensação pela disponibilização destes título. 
 
 **Outputs gerados:**
 
 * `1a_PT_{SUFIXO}.csv`: Tabela detalhada de passageiros transportados por título e operador;
 * `1b_PT_CM_{SUFIXO}.csv`: Agregação consolidada das 4 sub-áreas da Carris Metropolitana;
-* `1c_receitas_titulo_{SUFIXO}.csv`: Vendas de bilheteira próprias de cada operador ($A_j$);
-* `1d_validacoes_{SUFIXO}.csv`: Validações de títulos sem carregamento prévio (VaT).
+* `1c_receitas_titulo_{SUFIXO}.csv`: Vendas de canais próprios de cada operador ($A_j$);
+* `1d_validacoes_{SUFIXO}.csv`: N.º de títulos sem carregamento mensal com pelo menos uma validação no mês (VaT).
 
 ---
 
@@ -60,7 +60,7 @@ O script [`code/01_recibos_b.R`](../code/01_recibos_b.R) realiza a leitura em lo
 
 ### Separação Transtejo (TT) / Soflusa (SL)
 
-A Transtejo (**TT**) e a Soflusa (**SL**) partilham equipamentos de bilhética de cais no terminal fluvial do Barreiro. Por essa razão histórica, o ficheiro de Recibo B da Transtejo reporta o valor conjunto (`TT + SL`). Em contrapartida, o Recibo B da Soflusa discrimina estritamente os passageiros transportados pela frota da Soflusa (`ENTITY_ID = 8`).
+A Transtejo (**TT**) e a Soflusa (**SL**) partilham equipamentos de bilhética, desde janeiro de 2024 após a fusão destes dois operadores. Por essa razão, o ficheiro de Recibo B da Transtejo reporta o valor conjunto (`TT + SL`). Em contrapartida, o Recibo B da Soflusa discrimina estritamente os passageiros transportados pela frota da Soflusa (`ENTITY_ID = 8`).
 
 ::: {.callout-note}
 ## Separação Direta no R
@@ -86,10 +86,10 @@ Estas validações ficam registadas no Portal VIVA (`ENTITY_ID = 23`). Se não f
 
 $$\text{Área CM} = \lfloor \text{RUN} / 1000 \rfloor + 40$$
 
-* Linhas `1xxx` $\to$ Área 1 (A1 - Amadora, Cascais, Lisboa, Oeiras, Sintra)
-* Linhas `2xxx` $\to$ Área 2 (A2 - Loures, Mafra, Odivelas, Vila Franca de Xira)
-* Linhas `3xxx` $\to$ Área 3 (A3 - Almada, Seixal, Sesimbra)
-* Linhas `4xxx` $\to$ Área 4 (A4 - Alcochete, Barreiro, Moita, Montijo, Palmela, Setúbal)
+* Linhas `1xxx` $\to$ Área 1 
+* Linhas `2xxx` $\to$ Área 2 
+* Linhas `3xxx` $\to$ Área 3 
+* Linhas `4xxx` $\to$ Área 4 
 
 2. Filtro de títulos existentes: 
 

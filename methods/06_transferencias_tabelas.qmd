@@ -28,6 +28,12 @@ Para cada operador $j$, o cálculo combina as parcelas apuradas nas fases anteri
 * **Município de Cascais**: Os montantes mensais devidos à Cascais Próxima não são liquidados mensalmente, ficando retidos para o acerto global anual em virtude do regime municipal de gratuitidade.
 :::
 
+::: {.callout-note}
+## Transtejo (TT) e Soflusa (SL)
+A Transtejo e a Soflusa são calculadas e discriminadas em separado com as suas respetivas quotas, em todos cálculos.
+A consolidação num único montante conjunto (`TT + SL`) ocorre unicamente na fase seguinte de transferências líquidas (Tabela 6).
+:::
+
 ---
 
 ## Segregação das Vias de Liquidação
@@ -36,13 +42,13 @@ A TML não aguarda pela transferência integral das verbas do Orçamento do Esta
 
 1. **Pagamento Imediato (Posse TML)**:
 
-   * Financiado pelas receitas arrecadadas nos canais partilhados $K$ (Portal VIVA e SIBS/ATM);
-   * Processado nos dias imediatamente seguintes ao fecho de contas;
+   * Financiado pelas receitas arrecadadas nos canais partilhados $K$ (Portal VIVA e SIBS);
+   * Processado nos dias imediatamente seguintes ao apuramento provisório do mês;
    * Comunicado através do **Ofício 1**.
 
 2. **Pagamento Diferido (Incentiva +TP / Fundo Ambiental)**:
 
-   * Financiado pelas dotações do Fundo Ambiental para a compensação COSP ($D$) e Congelamento Navegante;
+   * Financiado pelas dotações do Fundo Ambiental - Incentiva +TP - para o pagamento das compensação COSP ($D$) e Congelamento Navegante;
    * Liquidado assim que as transferências governamentais são creditadas na TML;
    * Comunicado através do **Ofício 2**.
 
@@ -76,9 +82,9 @@ Constroi o workbook oficial em Excel formatado:
 O livro contém 6 folhas de cálculo completas:
 
 * **Folha 0 - Global**: Tabela síntese das transferências e segregação das vias de pagamento;
-* **Folha 1 - Quotas**: Matriz detalhada de passageiros, distâncias, pesos e quotas por título;
-* **Folha 2 - Vendas AK**: Discriminação das vendas em bilheteira e canais partilhados;
-* **Folha 4 - Receita B e CongNav**: Distribuição da receita de venda e congelamento TAT;
-* **Folha 5 - Pag Conta COSP D**: Resumo e tabela da compensação de serviço público;
+* **Folha 1 - Quotas**: Matriz detalhada de passageiros, distâncias e quotas por título e operador;
+* **Folha 2 - Vendas AK**: Discriminação das vendas em canais próprios do operador e canais partilhados;
+* **Folha 4 - Receita B e CongNav**: Distribuição da receita de venda e da compensação pelo congelamento do preço;
+* **Folha 5 - Pag Conta COSP D**: Resumo e tabela da compensação de serviço público pela disponibilização dos passes Navegante;
 * **Folha 6 - Transferencias F**: Detalhe das componentes de saldo e transferências líquidas.
 

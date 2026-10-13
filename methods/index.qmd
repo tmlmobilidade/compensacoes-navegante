@@ -1,3 +1,4 @@
+
 # Introdução e Visão Geral {.unnumbered}
 
 Este manual documenta o procedimento metodológico e operacional, gerido pela **TML — Transportes Metropolitanos de Lisboa** para a **distribuição de receitas tarifárias e apuramento de compensações financeiras** aos operadores de transporte público coletivo de passageiros da Área Metropolitana de Lisboa (AML), que disponibilizam os Passes Navegante.

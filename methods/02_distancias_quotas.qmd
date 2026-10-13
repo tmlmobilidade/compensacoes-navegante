@@ -14,7 +14,7 @@ O Regulamento n.º 1362-C/2023 define uma hierarquia rigorosa de cinco níveis p
 2. **Nível 2**: Distância média calculada para a mesma tipologia de título, no mesmo operador, em meses não semelhantes;
 3. **Nível 3**: Distância média calculada de outro título com o mesmo título base e modalidade, no mesmo operador e mês;
 4. **Nível 4**: Distância média calculada do título base, no mesmo operador e no mesmo mês;
-5. **Nível 5**: Distância média estática fixada nas tabelas regulamentares de referência de Agosto e Outubro de 2021.
+5. **Nível 5**: Distância média de referência de agosto e outubro de 2021 fixada nas tabelas regulamentares.
 
 ### Distâncias Médias de Referência
 
@@ -66,7 +66,7 @@ Os pesos encontram-se fixados em [`lists/pesos_pkm.csv`](../lists/pesos_pkm.csv)
 
 * São valores fixos ao longo do ano;
 * A sua soma entre operadores não perfaz $1$;
-* Operadores com redes mais densas e viagens mais curtas (como a Carris ou o Metropolitano de Lisboa) possuem fatores mais elevados para reequilibrar a remuneração por quilómetro face a operadores ferroviários suburbanos (como a CP ou a Fertagus), cujas distâncias médias por viagem são naturalmente muito superiores.
+* Operadores com redes mais densas e viagens mais curtas (como a Carris) possuem fatores mais elevados para reequilibrar a remuneração por quilómetro face a operadores ferroviários suburbanos (como a CP ou a Fertagus), cujas distâncias médias por viagem são naturalmente muito superiores.
 
 ---
 
