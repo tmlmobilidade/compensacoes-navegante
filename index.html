@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt" xml:lang="pt"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="TML — Transportes Metropolitanos de Lisboa">
+<meta name="author" content="Departamento de Estudos e Planeamento">
+
+<title>Passe Navegante</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./01_passageiros.html" rel="next">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-c3de09f10dd778e0b4268b7d9c3359d4.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Nenhum resultado",
+    "search-matching-documents-text": "documentos correspondentes",
+    "search-copy-link-title": "Copiar link para a busca",
+    "search-hide-matches-text": "Esconder correspondências adicionais",
+    "search-more-match-text": "mais correspondência neste documento",
+    "search-more-matches-text": "mais correspondências neste documento",
+    "search-clear-button-title": "Limpar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Procurar"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+<script src="site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">Introdução e Visão Geral</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Procurar" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Passe Navegante</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Procurar"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Introdução e Visão Geral</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text"><strong>Cálculos</strong></span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Alternar seção">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01_passageiros.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Validações, Passageiros e Recibos B</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02_distancias_quotas.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Distâncias, Pesos e Quotas de Repartição</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_vendas.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Vendas A, K e Títulos sem Carregamento (VaT)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04_reparticao_congelamento.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Repartição de Receitas (B) e Congelamento TAT</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_cosp.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Compensação COSP Tarifária (D)</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06_transferencias_tabelas.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Transferências Finais e Relatório Excel</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text"><strong>Documentos</strong></span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="Alternar seção">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./07_documentos.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Relatórios Oficiais e Informações Técnicas</span></span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text"><strong>Anexos</strong></span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="Alternar seção">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./anexo_tabelas.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tabelas Estáticas de Referência (<code>lists/</code>)</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./anexo_execucao.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Guia de Preparação Mensal e Execução</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Nesta página</h2>
+   
+  <ul>
+  <li><a href="#introdução-e-visão-geral" id="toc-introdução-e-visão-geral" class="nav-link active" data-scroll-target="#introdução-e-visão-geral">Introdução e Visão Geral</a>
+  <ul class="collapse">
+  <li><a href="#fluxograma-metodológico" id="toc-fluxograma-metodológico" class="nav-link" data-scroll-target="#fluxograma-metodológico">Fluxograma Metodológico</a></li>
+  <li><a href="#síntese-metodológica" id="toc-síntese-metodológica" class="nav-link" data-scroll-target="#síntese-metodológica">Síntese Metodológica</a></li>
+  <li><a href="#configuração-global-config.r" id="toc-configuração-global-config.r" class="nav-link" data-scroll-target="#configuração-global-config.r">Configuração Global (<code>config.R</code>)</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Passe Navegante</h1>
+<p class="subtitle lead">Receitas e Compensações - Procedimento e Metodologia de Apuramento Provisório Mensal</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Autores</div>
+    <div class="quarto-title-meta-contents">
+             <p>TML — Transportes Metropolitanos de Lisboa </p>
+             <p>Departamento de Estudos e Planeamento </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Data de Publicação</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">14 de outubro de 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introdução-e-visão-geral" class="level1 unnumbered">
+<h1 class="unnumbered">Introdução e Visão Geral</h1>
+<p>Este manual documenta o procedimento metodológico e operacional, gerido pela <strong>TML — Transportes Metropolitanos de Lisboa</strong> para a <strong>distribuição de receitas tarifárias e apuramento de compensações financeiras</strong> aos operadores de transporte público coletivo de passageiros da Área Metropolitana de Lisboa (AML), que disponibilizam os Passes Navegante.</p>
+<p>O modelo implementado reproduz as regras estipuladas no <a href="https://diariodarepublica.pt/dr/detalhe/regulamento/1362-c-2023-835674356">Regulamento n.º 1362-C/2023</a>, publicado em Diário da República a 27 de dezembro de 2023, a 6ª alteração ao Regulamento Tarifário da AML n.&nbsp;278-A/2019.</p>
+<hr>
+<section id="fluxograma-metodológico" class="level2">
+<h2 class="anchored" data-anchor-id="fluxograma-metodológico">Fluxograma Metodológico</h2>
+<p>O diagrama seguinte ilustra a arquitetura completa do sistema: desde as fontes de dados provinientes do DITS (Recibos B, Oracle, canais partilhados), passando pelos scripts de processamento modular em R, até à geração do relatório consolidado em Excel e documentos PDF/Word.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">---
+config:
+  layout: elk
+---
+flowchart TD
+    %% -------------------------------------------------------------------------
+    %% 1. FONTES DE DADOS E ENTRADAS
+    %% -------------------------------------------------------------------------
+    subgraph IN["1. Fontes de Dados e Entradas"]
+        direction TB
+        IN_RECIBOS("**Recibos B dos Operadores**&lt;br/&gt;- Validações de passageiros (PT)&lt;br/&gt;- Vendas de bilheteira (Canais A)&lt;br/&gt;- Títulos sem carregamento prévio (VaT)")
+        IN_ORACLE("**Extrações Oracle PDBDWPROD**&lt;br/&gt;- Distâncias médias dinâmicas&lt;br/&gt;- Fiscais móveis CM / Portal VIVA")
+        IN_K("**Canais Partilhados TML (K)**&lt;br/&gt;- Ficheiro de separação PV e ATM&lt;br/&gt;(Portal VIVA e SIBS)")
+        IN_LISTS("**Tabelas Regulamentares (lists/)**&lt;br/&gt;- Distâncias médias de referência (ago21 / out21)&lt;br/&gt;- Pesos operacionais PKM por operador&lt;br/&gt;- TAT anual, Sazonalidade COSP e VMC")
+    end
+
+    %% -------------------------------------------------------------------------
+    %% 2. PROCESSAMENTO E CÁLCULO
+    %% -------------------------------------------------------------------------
+    subgraph CALC_STEP["2. Pipeline Modular de Cálculo (R)"]
+        direction TB
+        P01["**01_recibos_b.R**&lt;br/&gt;- Limpeza e filtros regulamentares&lt;br/&gt;- Separação TT / SL (Recibos B)&lt;br/&gt;- Fiscais móveis CM&lt;br/&gt;→ Gera PT_ij e VaT_i"]
+        P02["**02_distancias.R**&lt;br/&gt;- Distâncias médias dinâmicas&lt;br/&gt;- Distâncias médias de referência&lt;br/&gt;→ Gera Distância d_ij"]
+        P03["**03_quotas.R**&lt;br/&gt;- PKM_ij = PT_ij × d_ij&lt;br/&gt;- Quota_ij com pesos operacionais&lt;br/&gt;→ Gera Quotas Dinâmicas"]
+        P04["**04_vendas_AK.R**&lt;br/&gt;- Receita operadores A_j + canais K&lt;br/&gt;- Volume global de passes Q_total"]
+        P05["**05_reparticao_B.R**&lt;br/&gt;- Receita bilheteira devida B_ij&lt;br/&gt;- Congelamento Tarifário TAT"]
+        P06["**06_cosp_D.R**&lt;br/&gt;- Procura anualizada estimada&lt;br/&gt;- Compensação COSP Tarifária D_ij"]
+        P07["**07_transferencias_F.R**&lt;br/&gt;- Saldo global e transferências líquidas F_j&lt;br/&gt;- Segregação Imediato (K) vs Incentiva (+TP)"]
+        P08["**08_tables.R**&lt;br/&gt;- Reconciliação dos Maiores Restos (Total K)&lt;br/&gt;- Exportação do Livro Excel"]
+
+        P01 --&gt; P03
+        P02 --&gt; P03
+        P03 --&gt; P05
+        P03 --&gt; P06
+        P01 --&gt; P04
+        P04 --&gt; P05
+        P04 --&gt; P06
+        P04 --&gt; P07
+        P05 --&gt; P07
+        P06 --&gt; P07
+        P07 --&gt; P08
+    end
+
+    %% -------------------------------------------------------------------------
+    %% 3. PRODUTOS FINAIS
+    %% -------------------------------------------------------------------------
+    subgraph OUT_STEP["3. Produtos Finais e Documentos"]
+        direction TB
+        OUT_EXCEL["**Workbook Excel Consolidado**&lt;br/&gt;Anexo_Calculos_{SUFIXO}.xlsx&lt;br/&gt;(6 folhas de cálculo)"]
+        OUT_REPORTS["**Documentos**&lt;br/&gt;- Informacao_{SUFIXO}&lt;br/&gt;- Anexo_Metodologia_{SUFIXO}&lt;br/&gt;- Oficio1_{SUFIXO}&lt;br/&gt;- Oficio2_{SUFIXO}"]
+        %% &lt;div style='min-width:220px;'&gt; control the width of the node
+    end
+
+    %% Ligações principais
+    IN_RECIBOS --&gt; P01
+    IN_RECIBOS --&gt; P04
+    IN_ORACLE --&gt; P01
+    IN_ORACLE --&gt; P02
+    IN_K --&gt; P04
+    IN_LISTS --&gt; P02
+    IN_LISTS --&gt; P03
+    IN_LISTS --&gt; P05
+    IN_LISTS --&gt; P06
+
+    P08 --&gt; OUT_EXCEL
+    P08 --&gt; OUT_REPORTS
+
+
+
+    %% Styling
+    classDef inputStyle fill:#e1f5ff,stroke:#0288d1,stroke-width:2px,color:#111827
+    classDef processStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#111827
+    classDef outputStyle fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#111827
+    classDef calcStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#111827
+    
+    class IN_RECIBOS,IN_ORACLE,IN_K,IN_LISTS inputStyle
+    class P01,P02,P03,P04,P05,P06,P07 processStyle
+    class P08 calcStyle
+    class OUT_EXCEL,OUT_REPORTS outputStyle
+
+    %% Subgraph styling (transparent background, light gray border, dark text)
+    style IN fill:none,stroke:#d0d7de,stroke-width:1.5px,color:#111827
+    style CALC_STEP fill:none,stroke:#d0d7de,stroke-width:1.5px,color:#111827
+    style OUT_STEP fill:none,stroke:#d0d7de,stroke-width:1.5px,color:#111827
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<hr>
+</section>
+<section id="síntese-metodológica" class="level2">
+<h2 class="anchored" data-anchor-id="síntese-metodológica">Síntese Metodológica</h2>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Etapa</th>
+<th style="text-align: left;">Script(s)</th>
+<th style="text-align: left;">Designação Regulamentar</th>
+<th style="text-align: left;">Entradas Principais</th>
+<th style="text-align: left;">Saídas Principais</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Passageiros e Recibos B</strong></td>
+<td style="text-align: left;"><a href="../code/01_recibos_b.R"><code>01_recibos_b.R</code></a></td>
+<td style="text-align: left;">Passageiros Transportados (<span class="math inline">\(PT\)</span>) e Reconciliação</td>
+<td style="text-align: left;">Recibos B APEX, Oracle Fiscais Móveis CM</td>
+<td style="text-align: left;"><code>1a_PT_{SUFIXO}.csv</code>, <code>1b_PT_CM_{SUFIXO}.csv</code>, <code>1d_validacoes_{SUFIXO}.csv</code> (VaT)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Distâncias, Pesos e Quotas</strong></td>
+<td style="text-align: left;"><a href="../code/02_distancias.R"><code>02_distancias.R</code></a>, <a href="../code/03_quotas.R"><code>03_quotas.R</code></a></td>
+<td style="text-align: left;">Distâncias Médias (<span class="math inline">\(\bar{d}\)</span>) e Quotas Dinâmicas (<span class="math inline">\(\text{Quota}\)</span>)</td>
+<td style="text-align: left;">Oracle APEX, distâncias de referência, pesos PKM</td>
+<td style="text-align: left;"><code>1e_distancias_{SUFIXO}.csv</code>, <code>1_quotas_{SUFIXO}.csv</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Vendas A e K</strong></td>
+<td style="text-align: left;"><a href="../code/04_vendas_AK.R"><code>04_vendas_AK.R</code></a></td>
+<td style="text-align: left;">Apuramento de Vendas e Volume Global</td>
+<td style="text-align: left;">Recibos B, Separação PV/ATM</td>
+<td style="text-align: left;"><code>2_vendas_A_{SUFIXO}.csv</code>, <code>2_vendas_K_{SUFIXO}.csv</code>, <code>4a_receita_titulo_distribuir_{SUFIXO}.csv</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Repartição B e TAT</strong></td>
+<td style="text-align: left;"><a href="../code/05_reparticao_B.R"><code>05_reparticao_B.R</code></a></td>
+<td style="text-align: left;">Receita Devida (<span class="math inline">\(B\)</span>) e Congelamento Navegante</td>
+<td style="text-align: left;">Quotas, Receita a distribuir (<span class="math inline">\(R_i\)</span>), Taxa TAT</td>
+<td style="text-align: left;"><code>4b_reparticao_B_{SUFIXO}.csv</code>, <code>4_receitaB_congelamento_{SUFIXO}.csv</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Compensação COSP</strong></td>
+<td style="text-align: left;"><a href="../code/06_cosp_D.R"><code>06_cosp_D.R</code></a></td>
+<td style="text-align: left;">Pagamento por Conta da COSP Tarifária (<span class="math inline">\(D\)</span>)</td>
+<td style="text-align: left;">Volume total passes (<span class="math inline">\(Q\)</span>), Sazonalidade, VMC</td>
+<td style="text-align: left;"><code>5a_cosp_{SUFIXO}.csv</code>, <code>5_cosp_operador_{SUFIXO}.csv</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Transferências Finais</strong></td>
+<td style="text-align: left;"><a href="../code/07_transferencias_F.R"><code>07_transferencias_F.R</code></a>, <a href="../code/08_tables.R"><code>08_tables.R</code></a></td>
+<td style="text-align: left;">Apuramento de Transferências (<span class="math inline">\(F\)</span>) e Excel</td>
+<td style="text-align: left;">Receitas <span class="math inline">\(A\)</span>, <span class="math inline">\(B\)</span>, <span class="math inline">\(D\)</span>, TAT, canais partilhados <span class="math inline">\(K\)</span></td>
+<td style="text-align: left;"><code>6_transferencias_{SUFIXO}.csv</code>, <code>Anexo_Calculos_{SUFIXO}.xlsx</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Documentos Oficiais</strong></td>
+<td style="text-align: left;"><a href="../code/10_documentos.R"><code>10_documentos.R</code></a></td>
+<td style="text-align: left;">Informação Técnica e Ofícios de Liquidação</td>
+<td style="text-align: left;">Tabelas consolidadas, parâmetros de emissão</td>
+<td style="text-align: left;"><code>Informacao_{SUFIXO}.pdf</code>, <code>Anexo_Metodologia_{SUFIXO}.pdf</code>, <code>Oficios.pdf</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Dica</span>Pipeline Automatizado em R
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><p><strong>Script Mestre</strong>: <a href="../code/99_run_all.R"><code>code/99_run_all.R</code></a></p></li>
+<li><p><strong>Parâmetros Mensais</strong>: Para calcular um novo mês, ajustar <code>ANO</code> e <code>MES</code> em <a href="../code/config.R"><code>code/config.R</code></a> e correr:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> code/99_run_all.R</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div></li>
+<li><p><strong>Destino dos Resultados</strong>: Os dados de saída são gerados em <code>data/{MES_ANO}/output/</code> com o sufixo do mês (ex.: <code>mai26</code>, <code>jun26</code>).</p></li>
+</ul>
+</div>
+</div>
+</section>
+<section id="configuração-global-config.r" class="level2">
+<h2 class="anchored" data-anchor-id="configuração-global-config.r">Configuração Global (<code>config.R</code>)</h2>
+<p>Os parâmetros operacionais, diretórios e constantes do sistema estão centralizados em <a href="../code/config.R"><code>code/config.R</code></a>:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Variável</th>
+<th style="text-align: left;">Exemplo</th>
+<th style="text-align: left;">Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>ANO</code></td>
+<td style="text-align: left;"><code>2026</code></td>
+<td style="text-align: left;">Ano de distribuição</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>MES</code></td>
+<td style="text-align: left;"><code>5</code></td>
+<td style="text-align: left;">Mês de distribuição (1 a 12)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>SUFIXO</code></td>
+<td style="text-align: left;"><code>"mai26"</code></td>
+<td style="text-align: left;">Sufixo nos nomes de ficheiros (<code>paste0(mes_abrev, ano_curto)</code>)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>DATA_DIR</code></td>
+<td style="text-align: left;"><code>data/05_mai_2026/input/</code></td>
+<td style="text-align: left;">Diretório de inputs do mês</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>OUT_DIR</code></td>
+<td style="text-align: left;"><code>data/05_mai_2026/output/</code></td>
+<td style="text-align: left;">Diretório de outputs de dados</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>DOCS_DIR</code></td>
+<td style="text-align: left;"><code>data/05_mai_2026/output/docs/</code></td>
+<td style="text-align: left;">Diretório de relatórios técnicos gerados</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>LISTS_DIR</code></td>
+<td style="text-align: left;"><code>lists/</code></td>
+<td style="text-align: left;">Tabelas estáticas de referência</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>VMC_2023</code></td>
+<td style="text-align: left;"><code>112562432.41</code></td>
+<td style="text-align: left;">Valor Máximo de Compensação regulado base 2023 (€)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>N_PASSES_COMPENSAR</code></td>
+<td style="text-align: left;"><code>8472279</code></td>
+<td style="text-align: left;">Limite regulamentar anual de passes compensáveis</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>RETENCAO_TML</code></td>
+<td style="text-align: left;"><code>0.025</code></td>
+<td style="text-align: left;">Taxa regulamentar de retenção institucional da TML (2,5%)</td>
+</tr>
+</tbody>
+</table>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiada");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiada");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./01_passageiros.html" class="pagination-link" aria-label="Validações, Passageiros e Recibos B">
+        <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Validações, Passageiros e Recibos B</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+<script src="site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

@@ -1,0 +1,394 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Passe Navegante",
+    "section": "",
+    "text": "Introdução e Visão Geral\nEste manual documenta o procedimento metodológico e operacional, gerido pela TML — Transportes Metropolitanos de Lisboa para a distribuição de receitas tarifárias e apuramento de compensações financeiras aos operadores de transporte público coletivo de passageiros da Área Metropolitana de Lisboa (AML), que disponibilizam os Passes Navegante.\nO modelo implementado reproduz as regras estipuladas no Regulamento n.º 1362-C/2023, publicado em Diário da República a 27 de dezembro de 2023, a 6ª alteração ao Regulamento Tarifário da AML n. 278-A/2019.",
+    "crumbs": [
+      "Introdução e Visão Geral"
+    ]
+  },
+  {
+    "objectID": "index.html#fluxograma-metodológico",
+    "href": "index.html#fluxograma-metodológico",
+    "title": "Passe Navegante",
+    "section": "Fluxograma Metodológico",
+    "text": "Fluxograma Metodológico\nO diagrama seguinte ilustra a arquitetura completa do sistema: desde as fontes de dados provinientes do DITS (Recibos B, Oracle, canais partilhados), passando pelos scripts de processamento modular em R, até à geração do relatório consolidado em Excel e documentos PDF/Word.\n\n\n\n\n\n---\nconfig:\n  layout: elk\n---\nflowchart TD\n    %% -------------------------------------------------------------------------\n    %% 1. FONTES DE DADOS E ENTRADAS\n    %% -------------------------------------------------------------------------\n    subgraph IN[\"1. Fontes de Dados e Entradas\"]\n        direction TB\n        IN_RECIBOS(\"**Recibos B dos Operadores**&lt;br/&gt;- Validações de passageiros (PT)&lt;br/&gt;- Vendas de bilheteira (Canais A)&lt;br/&gt;- Títulos sem carregamento prévio (VaT)\")\n        IN_ORACLE(\"**Extrações Oracle PDBDWPROD**&lt;br/&gt;- Distâncias médias dinâmicas&lt;br/&gt;- Fiscais móveis CM / Portal VIVA\")\n        IN_K(\"**Canais Partilhados TML (K)**&lt;br/&gt;- Ficheiro de separação PV e ATM&lt;br/&gt;(Portal VIVA e SIBS)\")\n        IN_LISTS(\"**Tabelas Regulamentares (lists/)**&lt;br/&gt;- Distâncias médias de referência (ago21 / out21)&lt;br/&gt;- Pesos operacionais PKM por operador&lt;br/&gt;- TAT anual, Sazonalidade COSP e VMC\")\n    end\n\n    %% -------------------------------------------------------------------------\n    %% 2. PROCESSAMENTO E CÁLCULO\n    %% -------------------------------------------------------------------------\n    subgraph CALC_STEP[\"2. Pipeline Modular de Cálculo (R)\"]\n        direction TB\n        P01[\"**01_recibos_b.R**&lt;br/&gt;- Limpeza e filtros regulamentares&lt;br/&gt;- Separação TT / SL (Recibos B)&lt;br/&gt;- Fiscais móveis CM&lt;br/&gt;→ Gera PT_ij e VaT_i\"]\n        P02[\"**02_distancias.R**&lt;br/&gt;- Distâncias médias dinâmicas&lt;br/&gt;- Distâncias médias de referência&lt;br/&gt;→ Gera Distância d_ij\"]\n        P03[\"**03_quotas.R**&lt;br/&gt;- PKM_ij = PT_ij × d_ij&lt;br/&gt;- Quota_ij com pesos operacionais&lt;br/&gt;→ Gera Quotas Dinâmicas\"]\n        P04[\"**04_vendas_AK.R**&lt;br/&gt;- Receita operadores A_j + canais K&lt;br/&gt;- Volume global de passes Q_total\"]\n        P05[\"**05_reparticao_B.R**&lt;br/&gt;- Receita bilheteira devida B_ij&lt;br/&gt;- Congelamento Tarifário TAT\"]\n        P06[\"**06_cosp_D.R**&lt;br/&gt;- Procura anualizada estimada&lt;br/&gt;- Compensação COSP Tarifária D_ij\"]\n        P07[\"**07_transferencias_F.R**&lt;br/&gt;- Saldo global e transferências líquidas F_j&lt;br/&gt;- Segregação Imediato (K) vs Incentiva (+TP)\"]\n        P08[\"**08_tables.R**&lt;br/&gt;- Reconciliação dos Maiores Restos (Total K)&lt;br/&gt;- Exportação do Livro Excel\"]\n\n        P01 --&gt; P03\n        P02 --&gt; P03\n        P03 --&gt; P05\n        P03 --&gt; P06\n        P01 --&gt; P04\n        P04 --&gt; P05\n        P04 --&gt; P06\n        P04 --&gt; P07\n        P05 --&gt; P07\n        P06 --&gt; P07\n        P07 --&gt; P08\n    end\n\n    %% -------------------------------------------------------------------------\n    %% 3. PRODUTOS FINAIS\n    %% -------------------------------------------------------------------------\n    subgraph OUT_STEP[\"3. Produtos Finais e Documentos\"]\n        direction TB\n        OUT_EXCEL[\"**Workbook Excel Consolidado**&lt;br/&gt;Anexo_Calculos_{SUFIXO}.xlsx&lt;br/&gt;(6 folhas de cálculo)\"]\n        OUT_REPORTS[\"**Documentos**&lt;br/&gt;- Informacao_{SUFIXO}&lt;br/&gt;- Anexo_Metodologia_{SUFIXO}&lt;br/&gt;- Oficio1_{SUFIXO}&lt;br/&gt;- Oficio2_{SUFIXO}\"]\n        %% &lt;div style='min-width:220px;'&gt; control the width of the node\n    end\n\n    %% Ligações principais\n    IN_RECIBOS --&gt; P01\n    IN_RECIBOS --&gt; P04\n    IN_ORACLE --&gt; P01\n    IN_ORACLE --&gt; P02\n    IN_K --&gt; P04\n    IN_LISTS --&gt; P02\n    IN_LISTS --&gt; P03\n    IN_LISTS --&gt; P05\n    IN_LISTS --&gt; P06\n\n    P08 --&gt; OUT_EXCEL\n    P08 --&gt; OUT_REPORTS\n\n\n\n    %% Styling\n    classDef inputStyle fill:#e1f5ff,stroke:#0288d1,stroke-width:2px,color:#111827\n    classDef processStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#111827\n    classDef outputStyle fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#111827\n    classDef calcStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#111827\n    \n    class IN_RECIBOS,IN_ORACLE,IN_K,IN_LISTS inputStyle\n    class P01,P02,P03,P04,P05,P06,P07 processStyle\n    class P08 calcStyle\n    class OUT_EXCEL,OUT_REPORTS outputStyle\n\n    %% Subgraph styling (transparent background, light gray border, dark text)\n    style IN fill:none,stroke:#d0d7de,stroke-width:1.5px,color:#111827\n    style CALC_STEP fill:none,stroke:#d0d7de,stroke-width:1.5px,color:#111827\n    style OUT_STEP fill:none,stroke:#d0d7de,stroke-width:1.5px,color:#111827",
+    "crumbs": [
+      "Introdução e Visão Geral"
+    ]
+  },
+  {
+    "objectID": "index.html#síntese-metodológica",
+    "href": "index.html#síntese-metodológica",
+    "title": "Passe Navegante",
+    "section": "Síntese Metodológica",
+    "text": "Síntese Metodológica\n\n\n\nEtapa\nScript(s)\nDesignação Regulamentar\nEntradas Principais\nSaídas Principais\n\n\n\n\nPassageiros e Recibos B\n01_recibos_b.R\nPassageiros Transportados (\\(PT\\)) e Reconciliação\nRecibos B APEX, Oracle Fiscais Móveis CM\n1a_PT_{SUFIXO}.csv, 1b_PT_CM_{SUFIXO}.csv, 1d_validacoes_{SUFIXO}.csv (VaT)\n\n\nDistâncias, Pesos e Quotas\n02_distancias.R, 03_quotas.R\nDistâncias Médias (\\(\\bar{d}\\)) e Quotas Dinâmicas (\\(\\text{Quota}\\))\nOracle APEX, distâncias de referência, pesos PKM\n1e_distancias_{SUFIXO}.csv, 1_quotas_{SUFIXO}.csv\n\n\nVendas A e K\n04_vendas_AK.R\nApuramento de Vendas e Volume Global\nRecibos B, Separação PV/ATM\n2_vendas_A_{SUFIXO}.csv, 2_vendas_K_{SUFIXO}.csv, 4a_receita_titulo_distribuir_{SUFIXO}.csv\n\n\nRepartição B e TAT\n05_reparticao_B.R\nReceita Devida (\\(B\\)) e Congelamento Navegante\nQuotas, Receita a distribuir (\\(R_i\\)), Taxa TAT\n4b_reparticao_B_{SUFIXO}.csv, 4_receitaB_congelamento_{SUFIXO}.csv\n\n\nCompensação COSP\n06_cosp_D.R\nPagamento por Conta da COSP Tarifária (\\(D\\))\nVolume total passes (\\(Q\\)), Sazonalidade, VMC\n5a_cosp_{SUFIXO}.csv, 5_cosp_operador_{SUFIXO}.csv\n\n\nTransferências Finais\n07_transferencias_F.R, 08_tables.R\nApuramento de Transferências (\\(F\\)) e Excel\nReceitas \\(A\\), \\(B\\), \\(D\\), TAT, canais partilhados \\(K\\)\n6_transferencias_{SUFIXO}.csv, Anexo_Calculos_{SUFIXO}.xlsx\n\n\nDocumentos Oficiais\n10_documentos.R\nInformação Técnica e Ofícios de Liquidação\nTabelas consolidadas, parâmetros de emissão\nInformacao_{SUFIXO}.pdf, Anexo_Metodologia_{SUFIXO}.pdf, Oficios.pdf\n\n\n\n\n\n\n\n\n\n\nDicaPipeline Automatizado em R\n\n\n\n\nScript Mestre: code/99_run_all.R\nParâmetros Mensais: Para calcular um novo mês, ajustar ANO e MES em code/config.R e correr:\nRscript code/99_run_all.R\nDestino dos Resultados: Os dados de saída são gerados em data/{MES_ANO}/output/ com o sufixo do mês (ex.: mai26, jun26).",
+    "crumbs": [
+      "Introdução e Visão Geral"
+    ]
+  },
+  {
+    "objectID": "index.html#configuração-global-config.r",
+    "href": "index.html#configuração-global-config.r",
+    "title": "Passe Navegante",
+    "section": "Configuração Global (config.R)",
+    "text": "Configuração Global (config.R)\nOs parâmetros operacionais, diretórios e constantes do sistema estão centralizados em code/config.R:\n\n\n\n\n\n\n\n\nVariável\nExemplo\nDescrição\n\n\n\n\nANO\n2026\nAno de distribuição\n\n\nMES\n5\nMês de distribuição (1 a 12)\n\n\nSUFIXO\n\"mai26\"\nSufixo nos nomes de ficheiros (paste0(mes_abrev, ano_curto))\n\n\nDATA_DIR\ndata/05_mai_2026/input/\nDiretório de inputs do mês\n\n\nOUT_DIR\ndata/05_mai_2026/output/\nDiretório de outputs de dados\n\n\nDOCS_DIR\ndata/05_mai_2026/output/docs/\nDiretório de relatórios técnicos gerados\n\n\nLISTS_DIR\nlists/\nTabelas estáticas de referência\n\n\nVMC_2023\n112562432.41\nValor Máximo de Compensação regulado base 2023 (€)\n\n\nN_PASSES_COMPENSAR\n8472279\nLimite regulamentar anual de passes compensáveis\n\n\nRETENCAO_TML\n0.025\nTaxa regulamentar de retenção institucional da TML (2,5%)",
+    "crumbs": [
+      "Introdução e Visão Geral"
+    ]
+  },
+  {
+    "objectID": "01_passageiros.html",
+    "href": "01_passageiros.html",
+    "title": "1  Validações, Passageiros e Recibos B",
+    "section": "",
+    "text": "1.1 Estrutura dos Recibos B dos Operadores\nO apuramento da repartição de receitas tem como ponto de partida a recolha dos registos de bilhética enviados diariamente por todos os operadores aderentes ao sistema Navegante e sintetizados mensalmente pelo DITS nos chamados Recibos B.\nO DITS disponibiliza um conjunto de três ficheiros resultado do tratamento que realiza sobre os dados de transações de venda e de validações do sistema de bilhética:",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Validações, Passageiros e Recibos B</span>"
+    ]
+  },
+  {
+    "objectID": "01_passageiros.html#estrutura-dos-recibos-b-dos-operadores",
+    "href": "01_passageiros.html#estrutura-dos-recibos-b-dos-operadores",
+    "title": "1  Validações, Passageiros e Recibos B",
+    "section": "",
+    "text": "Passageiros Transportados por título: reg_[OPERADOR]_reciboB_PTconsideredByProduct_*.csv\n\nDISTRIBUTION_YEAR e DISTRIBUTION_MONTH: Ano e mês de apuramento;\nTICKET_OPERATOR_CODE: Código do operador do título (o código 31 identifica o tarifário Navegante);\nTICKET_CODE: Código do título de transporte;\nOPERADOR_TOTAL: Volume total de passageiros transportados por esse operador com aquele título (\\(PT_{i,j}\\));\nSISTEMA_TOTAL: Soma global de passageiros transportados em todo o sistema com aquele título (informativo).\n\nTítulos Vendidos e Receitas: reg_[OPERADOR]_reciboB_transactionsOperatorSystem_*.csv\n\nSOURCE: Contém dois tipos de registos:\n\n\"Transaction\": Transações regulares de venda e carregamento de passe;\n\"Validations as Transactions\": Títulos bonificados ou gratuitos que não requerem carregamento mensal, uma vez que o passe previamente carregado tem validade superior, mas que registaram pelo menos uma validação no mês.\n\nTICKET_CODE: Código do título de transporte;\nOPERADOR_QUANTITY: Quantidade de passes vendidos nos canais próprios do operador (bilheteiras, máquinas autmáticas e aplicações);\nOPERADOR_PRICE: Montante bruto de receita arrecadada (em euros);\nSIIT_QTY e SIIT_PRICE: Devoluções, acertos operacionais e correções realizadas pelo operador diretamente no SIIT (devem ser somados às variáveis anteriores para obter a quantiddade e o valor líquido exato de venda do operador);\nSISTEMA_QUANTITY e SISTEMA_TOTAL_PRICE: Valores globais do sistema.\n\nValidações Incoerentes / Descartadas: reg_[OPERADOR]_reciboB_validationsUnconsidered_*.csv\n\nRegista validações corrompidas ou tecnicamente incoerentes nas máquinas de bordo e cais (descartadas dos cálculos regulamentares).\n\n\n\n\n\n\n\n\nNotaAgregação da Carris Metropolitana (CM)\n\n\n\nA Carris Metropolitana é operada por quatro concessões zonais (A1, A2, A3 e A4). O operador CM nos cálculos corresponde à agregação destas 4 concessões, associada às validações nos terminais dos fiscais. A correspondência de códigos pode ser consultada em lists/operadores.csv.\n\n\n\n\nScript: 01_recibos_b.R\nO script code/01_recibos_b.R realiza a leitura em lote de todos os ficheiros de Recibo B da pasta data/{MES_ANO}/input/Recibos B/, aplicando os seguintes filtros regulamentares:\n\nSOURCE == \"Transaction\" (os títulos VaT são tratados separadamente para a determinação do número total de passes carregados, necessário à COSP);\nTICKET_OPERATOR_CODE == 31 (apenas títulos do Regulamento Navegante);\nTICKET_CODE &gt; 0 (elimina registos sintéticos ou linhas de totais);\nExclusão da Scotturb (SC), que aceita a utilização de passes Navegante, mas não recebe receita nem compensação pela disponibilização destes título.\n\nOutputs gerados:\n\n1a_PT_{SUFIXO}.csv: Tabela detalhada de passageiros transportados por título e operador;\n1b_PT_CM_{SUFIXO}.csv: Agregação consolidada das 4 sub-áreas da Carris Metropolitana;\n1c_receitas_titulo_{SUFIXO}.csv: Vendas de canais próprios de cada operador (\\(A_j\\));\n1d_validacoes_{SUFIXO}.csv: N.º de títulos sem carregamento mensal com pelo menos uma validação no mês (VaT).",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Validações, Passageiros e Recibos B</span>"
+    ]
+  },
+  {
+    "objectID": "01_passageiros.html#reconciliações-e-casos-especiais",
+    "href": "01_passageiros.html#reconciliações-e-casos-especiais",
+    "title": "1  Validações, Passageiros e Recibos B",
+    "section": "1.2 Reconciliações e Casos Especiais",
+    "text": "1.2 Reconciliações e Casos Especiais\n\n1.2.1 Separação Transtejo (TT) / Soflusa (SL)\nA Transtejo (TT) e a Soflusa (SL) partilham equipamentos de bilhética, desde janeiro de 2024 após a fusão destes dois operadores. Por essa razão, o ficheiro de Recibo B da Transtejo reporta o valor conjunto (TT + SL). Em contrapartida, o Recibo B da Soflusa discrimina estritamente os passageiros transportados pela frota da Soflusa (ENTITY_ID = 8).\n\n\n\n\n\n\nNotaSeparação Direta no R\n\n\n\nO cálculo no R realiza a separação por dedução direta ao passageiro unitário: \\[PT_{\\text{TT}} = PT_{\\text{Recibo B (TT)}} - PT_{\\text{Recibo B (SL)}}\\]\nDesta forma, assegura-se rigorosamente que \\(PT_{\\text{TT}} + PT_{\\text{SL}} = PT_{\\text{Recibo B (TT)}}\\) ao passageiro unitário em todos os títulos, sem truncaturas nem distorções de arredondamento.\n\n\n\n\n\n\n\n\nAvisoDescontinuação da Regra de filtro por RUN_CODE na SL e da Query 2b\n\n\n\n\nO que acontecia antes: Na fórmula Excel prévia, a Soflusa era filtrada apenas por RUN_CODE = 7 (ferry Barreiro – Terreiro do Paço).\nNova abordagem: Os Recibos B do APEX já filtram a Soflusa com base em ENTITY_ID = 8. A separação direta pelos Recibos B elimina a execução mensal de scripts SQL para esta operação.\n\n\n\n\n\n1.2.2 Validações dos Fiscais Móveis CM (Portal VIVA)\nOs Recibos B das 4 áreas operacionais da CM (A1 a A4) não contêm as validações efetuadas nos terminais móveis dos fiscais. Estas validações ficam registadas no Portal VIVA (ENTITY_ID = 23). Se não forem somadas, a CM apresenta uma diferença negativa (ficando com validações em falta face ao total oficial do sistema).\nRegras essenciais da reconciliação: 1. As validações móveis são distribuídas pelas 4 sub-áreas da CM através do cálculo de RUN_CODE:\n\\[\\text{Área CM} = \\lfloor \\text{RUN} / 1000 \\rfloor + 40\\]\n\nLinhas 1xxx \\(\\to\\) Área 1\nLinhas 2xxx \\(\\to\\) Área 2\nLinhas 3xxx \\(\\to\\) Área 3\nLinhas 4xxx \\(\\to\\) Área 4\n\n\nFiltro de títulos existentes:\n\nApenas são considerados os títulos que já existem no Recibo B da CM. Títulos não-Navegante (ex.: ticket 33592 ou bilhética própria de bordo) são automaticamente ignorados no cruzamento.\nQuery 2c (code/sql/query_CM_fiscaismoveis.sql):\nSELECT\n    DISTRIBUTION_YEAR,\n    DISTRIBUTION_MONTH,\n    TICKET_OPERATOR_CODE,\n    TICKET_CODE,\n    23 AS ENTITY_ID,\n    FLOOR(RUN_CODE / 1000) + 40 AS AREA_CM,\n    VALID_TYPE_ID,\n    VALBYPROF,\n    SUM(QNT_VALIDATION) AS PT_VALIDACOES\nFROM DW_PROC.F_VALIDATIONS\nWHERE DISTRIBUTION_YEAR  = &lt;ANO&gt;\n  AND DISTRIBUTION_MONTH = &lt;MES&gt;\n  AND ENTITY_ID = 23\n  AND TICKET_OPERATOR_CODE = 31\n  AND VALID_TYPE_ID = 0\n  AND VALBYPROF = 0\n  AND RUN_CODE BETWEEN 1000 AND 4999\nGROUP BY\n    DISTRIBUTION_YEAR,\n    DISTRIBUTION_MONTH,\n    TICKET_OPERATOR_CODE,\n    TICKET_CODE,\n    FLOOR(RUN_CODE / 1000) + 40,\n    VALID_TYPE_ID,\n    VALBYPROF\nORDER BY TICKET_CODE, AREA_CM;",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>Validações, Passageiros e Recibos B</span>"
+    ]
+  },
+  {
+    "objectID": "02_distancias_quotas.html",
+    "href": "02_distancias_quotas.html",
+    "title": "2  Distâncias, Pesos e Quotas de Repartição",
+    "section": "",
+    "text": "2.1 Hierarquia Regulamentar de Distâncias Médias\nPara converter o número de passageiros transportados na unidade de trabalho do sistema de transportes — o Passageiro-Quilómetro (PKM) — é necessário associar a cada par operador-título a respetiva distância média percorrida (\\(\\bar{d}_{i,j}\\), em km) e o peso operacional ponderador (\\(\\text{Peso}_j\\)), apurando em seguida as quotas dinâmicas de repartição.\nO Regulamento n.º 1362-C/2023 define uma hierarquia rigorosa de cinco níveis para a seleção da distância média:",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Distâncias, Pesos e Quotas de Repartição</span>"
+    ]
+  },
+  {
+    "objectID": "02_distancias_quotas.html#hierarquia-regulamentar-de-distâncias-médias",
+    "href": "02_distancias_quotas.html#hierarquia-regulamentar-de-distâncias-médias",
+    "title": "2  Distâncias, Pesos e Quotas de Repartição",
+    "section": "",
+    "text": "Nível 1: Distância média calculada para a mesma tipologia de título, no mesmo operador, em mês semelhante:\n\nGrupo de verão: meses de junho, julho e agosto;\nGrupo restante: meses de janeiro a maio e de setembro a dezembro.\n\nNível 2: Distância média calculada para a mesma tipologia de título, no mesmo operador, em meses não semelhantes;\nNível 3: Distância média calculada de outro título com o mesmo título base e modalidade, no mesmo operador e mês;\nNível 4: Distância média calculada do título base, no mesmo operador e no mesmo mês;\nNível 5: Distância média de referência de agosto e outubro de 2021 fixada nas tabelas regulamentares.\n\n\n2.1.1 Distâncias Médias de Referência\nPara os operadores sem telemetria contínua ou cálculo dinâmico de distâncias, aplicam-se as tabelas de referência históricas:\n\nMeses de Verão (junho, julho, agosto): lists/distanciasref_ago21_incompleto.csv;\nRestantes Meses do Ano: lists/distanciasref_out21_incompleto.csv.\n\nA seleção é efetuada automaticamente pelo script code/config.R com base no valor da variável MES.\n\n\n2.1.2 Distâncias Médias Dinâmicas APEX (Fabric)\nPara os operadores integrados no sistema centralizado APEX com rastreamento GPS e matrizes de paragens, o cálculo da distância média é apurado mensalmente:\n\nCarris Metropolitana (ENTITY_ID = 75)\nCascais Próxima (ENTITY_ID = 22)\n\nOs dados são extraídos da base Oracle PDBDWPROD através da vista:\nSELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL \nWHERE distribution_month = &lt;MES&gt; AND distribution_year = &lt;ANO&gt;;\nDesta vista, o sistema utiliza as colunas TICKET_CODE_REF, ENTITY_ID e CALC_FINAL_VALUE.\n\n\n\n\n\n\nDicaSeleção Automática de Ficheiros\n\n\n\nO script pesquisa na pasta data/{MES_ANO}/input/ ficheiros contendo AVERAGE_DISTANCE no nome (ex.: V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv), dando prioridade ao ficheiro com o timestamp mais recente ou com a etiqueta _update.\n\n\n\n\n\nScript: 02_distancias.R\nO script code/02_distancias.R consolida a matriz de distâncias para todos os operadores e títulos ativos no mês.\nOutput gerado:\n\n1e_distancias_{SUFIXO}.csv: Contém as colunas operador, ticket_code, distancia_km e fonte (\"APEX\", \"ref_estatica\", ou \"nao_encontrada\").",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Distâncias, Pesos e Quotas de Repartição</span>"
+    ]
+  },
+  {
+    "objectID": "02_distancias_quotas.html#pesos-operacionais-pkm",
+    "href": "02_distancias_quotas.html#pesos-operacionais-pkm",
+    "title": "2  Distâncias, Pesos e Quotas de Repartição",
+    "section": "2.2 Pesos Operacionais PKM",
+    "text": "2.2 Pesos Operacionais PKM\nPara além da distância física percorrida, o regulamento atribui a cada operador um fator de ponderação operacional (\\(\\text{Peso}_j\\)).\nOs pesos encontram-se fixados em lists/pesos_pkm.csv:\n\nSão valores fixos ao longo do ano;\nA sua soma entre operadores não perfaz \\(1\\);\nOperadores com redes mais densas e viagens mais curtas (como a Carris) possuem fatores mais elevados para reequilibrar a remuneração por quilómetro face a operadores ferroviários suburbanos (como a CP ou a Fertagus), cujas distâncias médias por viagem são naturalmente muito superiores.",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Distâncias, Pesos e Quotas de Repartição</span>"
+    ]
+  },
+  {
+    "objectID": "02_distancias_quotas.html#quotas-de-repartição-dinâmica",
+    "href": "02_distancias_quotas.html#quotas-de-repartição-dinâmica",
+    "title": "2  Distâncias, Pesos e Quotas de Repartição",
+    "section": "2.3 Quotas de Repartição Dinâmica",
+    "text": "2.3 Quotas de Repartição Dinâmica\nAs quotas de repartição determinam a proporção de receita tarifária e de compensação financeira a que cada operador tem direito por cada título de transporte Navegante utilizado na Área Metropolitana de Lisboa.\n\n2.3.1 Metodologia de Cálculo\nO cálculo das quotas é efetuado a nível de cada título (\\(i\\)) e de cada operador (\\(j\\)), combinando as três grandezas fundamentais:\n\nPassageiros Transportados (\\(\\text{PT}_{i, j}\\)): Validações registadas no mês;\nDistância Média (\\(\\bar{d}_{i, j}\\)): Distância média por viagem (em km);\nPeso do Operador (\\(\\text{Peso}_j\\)): Fator de ponderação do modo de transporte.\n\n\n\n2.3.2 Fórmulas Regulamentares\nPara cada título \\(i\\) e operador \\(j\\), o cálculo processa-se sequencialmente:\n\\[\n\\begin{aligned}\n\\text{PKM}_{i, j} &= \\text{PT}_{i, j} \\times \\bar{d}_{i, j} \\\\[8pt]\n\\text{Quota Raw}_{i, j} &= \\text{Peso}_j \\times \\text{PKM}_{i, j} \\\\[8pt]\n\\text{Quota}_{i, j} &= \\frac{\\text{Quota Raw}_{i, j}}{\\sum_{k} \\text{Quota Raw}_{i, k}}\n\\end{aligned}\n\\]\nA quota final \\(\\text{Quota}_{i, j}\\) é expressa em percentagem e obedece rigorosamente à propriedade:\n\\[\\sum_{j} \\text{Quota}_{i, j} = 1 \\quad (100\\%) \\quad \\forall i\\]\n\n\n\n\nScript: 03_quotas.R\nO script code/03_quotas.R junta os passageiros apurados no passo 1 com as distâncias resolvidas no passo 2 e os pesos regulamentares.\nOutput gerado:\n\n1_quotas_{SUFIXO}.csv: Contém as colunas operador, ticket_code, pt_operador, distancia_km, peso, pkm, quota_raw, quota e quota_fonte (\"pkm\" ou \"global_fallback\").",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Distâncias, Pesos e Quotas de Repartição</span>"
+    ]
+  },
+  {
+    "objectID": "03_vendas.html",
+    "href": "03_vendas.html",
+    "title": "3  Vendas A, K e Títulos sem Carregamento (VaT)",
+    "section": "",
+    "text": "3.1 Tipologias de Venda e Fontes de Dados\nO volume mensal de títulos e a receita tarifária global do sistema Navegante estruturam-se em três vertentes distintas:",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Vendas A, K e Títulos sem Carregamento (VaT)</span>"
+    ]
+  },
+  {
+    "objectID": "03_vendas.html#tipologias-de-venda-e-fontes-de-dados",
+    "href": "03_vendas.html#tipologias-de-venda-e-fontes-de-dados",
+    "title": "3  Vendas A, K e Títulos sem Carregamento (VaT)",
+    "section": "",
+    "text": "3.1.1 Vendas A (Canais Próprios dos Operadores)\nCorrespondem às receitas tarifárias diretamente cobradas aos utentes nas bilheteiras, máquinas automáticas de venda e Apps de cada operador:\n\nExtraídas da tabela de transações dos Recibos B (SOURCE == \"Transaction\");\nQuantidade líquida: \\(\\text{qty}_A = \\text{OPERADOR\\_QUANTITY} + \\text{SIIT\\_QTY}\\);\nReceita líquida: \\(\\text{receita}_A = \\text{OPERADOR\\_PRICE} + \\text{SIIT\\_PRICE}\\).\n\nEsta receita permanece temporariamente na posse física de cada operador até à liquidação de saldos da TML.\n\n\n3.1.2 Vendas K (Canais Partilhados da TML)\nA TML disponibiliza dois canais de carregamento independentes e transversais a toda a Área Metropolitana:\n\nPortal VIVA (PV): Carregamentos em Comissionistas, Portal Empresa, Kiosks, App Navegante;\nRede Multibanco / SIBS: Carregamentos nos terminais ATM.\n\nOs montantes destes canais são reportados no ficheiro mensal do Departamento ITS: data/{MES_ANO}/input/Recibos B/ReciboB_{ANOMES}_Separação_PV_ATM.xlsx.\nA receita dos canais K dá entrada diretamente nas contas bancárias da TML e é posteriormente repartida pelos operadores.\n\n\n3.1.3 Títulos sem Carregamento Mensal (VaT — Validations as Transactions)\nDeterminadas categorias de títulos bonificados ou com gratuitidade integral para o utilizador final (tais como o Navegante Sub 18+TP, Sub 23+TP, Navegante 12 Criança e passes sociais especiais) não geram receita de venda direta (\\(A = 0\\text{ €}\\)).\n\n\n\n\n\n\nImportanteContabilização para a COSP\n\n\n\nApesar de terem receita de venda direta nula, o número de passes ativos destas tipologias tem obrigatoriamente de ser somado à quantidade total de passes vendidos no mês:\n\\[Q_{\\text{total}} = \\sum_i \\left( \\text{qty}_{A, i} + \\text{qty}_{K, i} + \\text{qty}_{\\text{VaT}, i} \\right)\\]\nSe estes passes fossem desconsiderados, a estimativa da procura anualizada do sistema ficaria artificialmente reduzida, induzindo erros de cálculo na compensação de serviço público COSP devida a todos os operadores.\n\n\n\n\n\nScript: 04_vendas_AK.R\nO script code/04_vendas_AK.R agrega as vendas dos canais próprios dos operadores A, cruza com os canais partilhados K e apura as quantidades de títulos VaT.\nOutputs gerados:\n\n2_vendas_A_{SUFIXO}.csv: Receita \\(A_j\\) na posse de cada operador e volume de passes vendidos;\n2_vendas_K_{SUFIXO}.csv: Vendas segregadas pelos canais Portal VIVA e SIBS;\n4a_receita_titulo_distribuir_{SUFIXO}.csv: Receita global do sistema por título (\\(R_i = A_i + K_i\\)) e volume total de passes (\\(Q_i\\)).",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Vendas A, K e Títulos sem Carregamento (VaT)</span>"
+    ]
+  },
+  {
+    "objectID": "04_reparticao_congelamento.html",
+    "href": "04_reparticao_congelamento.html",
+    "title": "4  Repartição de Receitas (B) e Congelamento TAT",
+    "section": "",
+    "text": "4.1 Repartição da Receita Bilheteira (B)\nNesta fase apura-se a receita tarifária a que cada operador tem legitimamente direito em função do serviço prestado (Receita \\(B\\)) e a respetiva compensação financeira pelo congelamento tarifário do passe Navegante.\nA receita global do sistema apurada para cada título (\\(R_i = A_i + K_i\\)) é distribuída pelos operadores de acordo com as suas quotas dinâmicas de repartição:\n\\[B_{i, j} = \\text{Quota}_{i, j} \\times R_i\\]\nA receita bilheteira devida ao operador \\(j\\) (\\(B_j\\)) resulta do somatório de todos os títulos:\n\\[B_j = \\sum_i B_{i, j}\\]",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Repartição de Receitas (B) e Congelamento TAT</span>"
+    ]
+  },
+  {
+    "objectID": "04_reparticao_congelamento.html#repartição-da-receita-bilheteira-b",
+    "href": "04_reparticao_congelamento.html#repartição-da-receita-bilheteira-b",
+    "title": "4  Repartição de Receitas (B) e Congelamento TAT",
+    "section": "",
+    "text": "NotaPrincípio de Conservação da Receita\n\n\n\nO somatório da receita devida a todos os operadores coincide obrigatoriamente com o somatório de todas as vendas registadas nos canais próprios e partilhados:\n\\[\\sum_j B_j = \\sum_j A_j + \\sum K = \\sum_i R_i\\]\nO saldo provisório de bilheteira de cada operador (\\(C_j\\)) mede a diferença entre a receita na sua posse física e a que lhe é devida:\n\\[C_j = A_j - B_j\\]",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Repartição de Receitas (B) e Congelamento TAT</span>"
+    ]
+  },
+  {
+    "objectID": "04_reparticao_congelamento.html#compensação-pelo-congelamento-tarifário-tat",
+    "href": "04_reparticao_congelamento.html#compensação-pelo-congelamento-tarifário-tat",
+    "title": "4  Repartição de Receitas (B) e Congelamento TAT",
+    "section": "4.2 Compensação pelo Congelamento Tarifário (TAT)",
+    "text": "4.2 Compensação pelo Congelamento Tarifário (TAT)\nDesde o lançamento do passe Navegante em 2019, o preço final pago pelo utilizador mantém-se congelado, não refletindo a inflação nem os aumentos dos custos de exploração.\nPara compensar esta perda de receita nos operadores, instituiu-se um mecanismo de compensação por congelamento tarifário indexado à Taxa de Atualização Tarifária (TAT), calculada anualmente pela AMT (Autoridade da Mobilidade e dos Transportes) em final de outubro.\n\n4.2.1 Taxas Históricas e Acumulação\nA compensação aplica-se em cadeia acumulada desde o ano base de 2023:\n\n2024: \\(6{,}43\\%\\) (0.0643)\n2025: \\(2{,}02\\%\\) (0.0202)\n2026: \\(2{,}28\\%\\) (0.0228)\n\nOs valores encontram-se em lists/tat.csv.\n\n\n4.2.2 Fórmula Regulamentar\nPara cada título \\(i\\) e operador \\(j\\), a compensação monetária calcula-se por:\n\\[\n\\text{ReceitaCompensar}_{i,j} = B_{i,j} \\times \\left[ \\prod_{\\text{ano}=2024}^{\\text{ANO}} (1 + \\text{TAT}_{\\text{ano}}) - 1 \\right]\n\\]\nO valor total de congelamento devido ao operador \\(j\\) (\\(\\text{CongNav}[B]_j\\)) corresponde à soma de todos os seus títulos:\n\\[\\text{CongNav}[B]_j = \\sum_i \\text{ReceitaCompensar}_{i,j}\\]\n\n\n\nScript: 05_reparticao_B.R\nO script code/05_reparticao_B.R aplica as quotas à receita distribuível e acumula as taxas da TAT.\nOutputs gerados:\n\n4b_reparticao_B_{SUFIXO}.csv: Repartição detalhada por título e operador (dist_receita e receita_compensar);\n4_receitaB_congelamento_{SUFIXO}.csv: Totais consolidados por operador (receita_B e congelamento_B).",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Repartição de Receitas (B) e Congelamento TAT</span>"
+    ]
+  },
+  {
+    "objectID": "05_cosp.html",
+    "href": "05_cosp.html",
+    "title": "5  Compensação COSP Tarifária (D)",
+    "section": "",
+    "text": "5.1 Parâmetros e Constantes Regulamentares\nA Compensação por Obrigação de Serviço Público (COSP) consubstancia o mecanismo financeiro através do qual a Autoridade de Transportes (TML) compensa os operadores pela obrigação de serviço pública imposta, neste caso a disponiblização dos passes Navegantes, de tarifa reduzida.\nA COSP é limitada superiormente por um Valor Máximo de Compensação (VMC) anual fixado no Regulamento Tarifário, atualizado anualmente pela taxa da TAT:",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Compensação COSP Tarifária (D)</span>"
+    ]
+  },
+  {
+    "objectID": "05_cosp.html#parâmetros-e-constantes-regulamentares",
+    "href": "05_cosp.html#parâmetros-e-constantes-regulamentares",
+    "title": "5  Compensação COSP Tarifária (D)",
+    "section": "",
+    "text": "VMC Regulado Base (2023): \\(112\\,562\\,432{,}41\\text{ €}\\)\nTeto Máximo Anual de Passes a Compensar (\\(N_{\\text{máx}}\\)): \\(8\\,472\\,279\\) passes (N_PASSES_COMPENSAR)\nSazonalidade Mensal: Coeficiente regulamentar da procura anual esperada para cada mês (constante em lists/sazonalidade.csv, ex.: Maio = \\(0{,}087\\) ou \\(8{,}7\\%\\))\nRetenção Institucional TML: \\(2{,}5\\%\\) (RETENCAO_TML = 0.025) a acertar quando for possível calcular o valor de compensação final anual.\nVMC Atualizado: \\[\\text{VMC}_{\\text{ano}} = \\text{VMC}_{2023} \\times \\prod (1 + \\text{TAT}_{\\text{ano}})\\] (Para 2026: \\(125\\,006\\,780{,}46\\text{ €}\\))\nValor Médio Regulamentar de Compensação por Passe: \\[\\text{Valor Médio Passe} = \\frac{\\text{VMC}_{\\text{ano}}}{N_{\\text{máx}}}\\] (Para 2026: \\(14{,}754800\\text{€}\\))",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Compensação COSP Tarifária (D)</span>"
+    ]
+  },
+  {
+    "objectID": "05_cosp.html#algoritmo-de-cálculo-passo-a-passo",
+    "href": "05_cosp.html#algoritmo-de-cálculo-passo-a-passo",
+    "title": "5  Compensação COSP Tarifária (D)",
+    "section": "5.2 Algoritmo de Cálculo Passo a Passo",
+    "text": "5.2 Algoritmo de Cálculo Passo a Passo\nO cálculo processa-se em seis etapas sucessivas:\n\n5.2.1 Quantidade Total de Passes do Mês\nSoma o volume de vendas próprias (\\(A\\)), canais partilhados (\\(K\\)) e títulos gratuitos sem carregamento mensal (\\(\\text{VaT}\\)): \\[\n\\text{Qty Total Mês} = \\sum_i (\\text{qty}_{A,i} + \\text{qty}_{K,i} + \\text{qty}_{\\text{VaT},i})\n\\]\n\n\n5.2.2 Estimativa da Procura Anualizada\nExpande o volume mensal pela curva de sazonalidade regulamentar: \\[\n\\text{Estimativa Anual} = \\frac{\\text{Qty Total Mês}}{\\text{Sazonalidade Mês}}\n\\]\n\n\n5.2.3 Percentagem de Passes a Compensar\nSe a estimativa anual exceder o teto regulamentar (\\(8\\,472\\,279\\)), aplica-se um fator de corte proporcional: \\[\n\\text{Pct Compensar} = \\min\\left(1, \\; \\frac{N_{\\text{máx}}}{\\text{Estimativa Anual}}\\right)\n\\]\n\n\n5.2.4 N.º de Passes a Compensar por Título \\(i\\)\nArredonda-se à unidade o número de passes compensáveis por título: \\[\n\\text{Passes Compensar}_i = \\text{round}(\\text{Pct Compensar} \\times \\text{Qty Total}_i)\n\\]\n\n\n5.2.5 Montante COSP por Título \\(i\\)\nDeduz a retenção de \\(2{,}5\\%\\) da TML ao valor médio compensatório: \\[\n\\text{COSP}_i = \\text{Passes Compensar}_i \\times \\text{Valor Médio Passe} \\times (1 - \\text{Retenção TML})\n\\]\n\n\n5.2.6 Repartição por Operador \\(j\\) (Parcela D)\nAplica a quota dinâmica de cada operador sobre a compensação do título: \\[\n\\text{COSP}_{i,j} = \\text{Quota}_{i,j} \\times \\text{COSP}_i \\quad \\Longrightarrow \\quad D_j = \\sum_i \\text{COSP}_{i,j}\n\\]",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Compensação COSP Tarifária (D)</span>"
+    ]
+  },
+  {
+    "objectID": "05_cosp.html#esclarecimentos-metodológicos",
+    "href": "05_cosp.html#esclarecimentos-metodológicos",
+    "title": "5  Compensação COSP Tarifária (D)",
+    "section": "5.3 Esclarecimentos Metodológicos",
+    "text": "5.3 Esclarecimentos Metodológicos\n\n\n\n\n\n\nImportantePasses a Compensar vs. Volume Real\n\n\n\nA quantidade total de passes a compensar no mês difere do volume real de passes validados sempre que a procura anualizada estimada ultrapassa o teto de 8,47 milhões. A inclusão estrita dos títulos gratuitos sem carregamento (VaT) é indispensável para assegurar que a taxa de compensação reflita o volume global de procura de mobilidade da AML.\n\n\n\n\nScript: 06_cosp_D.R\nO script code/06_cosp_D.R implementa todo o fluxo da COSP com precisão decimal contínua.\nOutputs gerados:\n\n5a_cosp_{SUFIXO}.csv: Detalhe da compensação por título e operador;\n5_cosp_operador_{SUFIXO}.csv: Compensação total \\(D_j\\) por operador.",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Compensação COSP Tarifária (D)</span>"
+    ]
+  },
+  {
+    "objectID": "06_transferencias_tabelas.html",
+    "href": "06_transferencias_tabelas.html",
+    "title": "6  Transferências Finais e Relatório Excel",
+    "section": "",
+    "text": "6.1 Fórmulas de Apuramento Financeiro\nO apuramento de transferências sintetiza as relações financeiras multilaterais entre a TML e os operadores de transporte público, apurando o saldo líquido a transferir e gerando o livro oficial em Excel.\nPara cada operador \\(j\\), o cálculo combina as parcelas apuradas nas fases anteriores:",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Transferências Finais e Relatório Excel</span>"
+    ]
+  },
+  {
+    "objectID": "06_transferencias_tabelas.html#fórmulas-de-apuramento-financeiro",
+    "href": "06_transferencias_tabelas.html#fórmulas-de-apuramento-financeiro",
+    "title": "6  Transferências Finais e Relatório Excel",
+    "section": "",
+    "text": "Saldo Provisório de Bilheteira (\\(C_j\\)): \\[C_j = A_j - B_j\\] (Receita física cobrada menos receita devida pelo serviço)\nSaldo Global do Operador (\\(SG_j\\)): \\[SG_j = C_j - D_j = A_j - B_j - D_j\\]\nTransferência Líquida da TML (\\(F_j\\)): \\[F_j = -SG_j = B_j + D_j - A_j\\]\nMontante Total a Transferir (\\(\\text{Total}_j\\)): \\[\\text{Total}_j = F_j + \\text{CongNav}[B]_j\\]\n\n\n\n\n\n\n\nNotaSaldos Excedentes e Casos Especiais\n\n\n\n\nOperadores Credores (Transferência Negativa): Quando um operador arrecada nas suas bilheteiras mais receita do que aquela a que tem direito (ex.: MTS), procura-se que esse saldo seja reconciliado no seio do mesmo grupo económico (transferindo o excedente diretamente para a Fertagus).\nMunicípio de Cascais: Os montantes mensais devidos à Cascais Próxima não são liquidados mensalmente, ficando retidos para o acerto global anual em virtude do regime municipal de gratuitidade.\n\n\n\n\n\n\n\n\n\nNotaTranstejo (TT) e Soflusa (SL)\n\n\n\nA Transtejo e a Soflusa são calculadas e discriminadas em separado com as suas respetivas quotas, em todos cálculos. A consolidação num único montante conjunto (TT + SL) ocorre unicamente na fase seguinte de transferências líquidas (Tabela 6).",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Transferências Finais e Relatório Excel</span>"
+    ]
+  },
+  {
+    "objectID": "06_transferencias_tabelas.html#segregação-das-vias-de-liquidação",
+    "href": "06_transferencias_tabelas.html#segregação-das-vias-de-liquidação",
+    "title": "6  Transferências Finais e Relatório Excel",
+    "section": "6.2 Segregação das Vias de Liquidação",
+    "text": "6.2 Segregação das Vias de Liquidação\nA TML não aguarda pela transferência integral das verbas do Orçamento do Estado para iniciar os pagamentos aos operadores. A liquidação divide-se em dois fluxos financeiros:\n\nPagamento Imediato (Posse TML):\n\nFinanciado pelas receitas arrecadadas nos canais partilhados \\(K\\) (Portal VIVA e SIBS);\nProcessado nos dias imediatamente seguintes ao apuramento provisório do mês;\nComunicado através do Ofício 1.\n\nPagamento Diferido (Incentiva +TP / Fundo Ambiental):\n\nFinanciado pelas dotações do Fundo Ambiental - Incentiva +TP - para o pagamento das compensação COSP (\\(D\\)) e Congelamento Navegante;\nLiquidado assim que as transferências governamentais são creditadas na TML;\nComunicado através do Ofício 2.",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Transferências Finais e Relatório Excel</span>"
+    ]
+  },
+  {
+    "objectID": "06_transferencias_tabelas.html#convenções-de-arredondamento-método-dos-maiores-restos",
+    "href": "06_transferencias_tabelas.html#convenções-de-arredondamento-método-dos-maiores-restos",
+    "title": "6  Transferências Finais e Relatório Excel",
+    "section": "6.3 Convenções de Arredondamento: Método dos Maiores Restos",
+    "text": "6.3 Convenções de Arredondamento: Método dos Maiores Restos\nPara evitar que erros de arredondamento de cêntimos se acumulem e criem divergências contabilísticas face aos extratos bancários, o pipeline adota regras estritas:\n\nPrecisão Contínua Intermédia: Os cálculos intermédios em R mantêm precisão em vírgula flutuante (sem round(..., 2) prematuro).\nMétodo dos Maiores Restos (Largest Remainder Method):\n\nAo ratear o montante global dos canais partilhados (\\(K\\)) pelos operadores, a soma dos arredondamentos a 2 casas decimais pode diferir do valor total do extrato em \\(\\pm 1\\) ou \\(2\\) cêntimos.\nO algoritmo em code/08_tables.R deteta esse resíduo e ajusta automaticamente \\(0{,}01\\text{ €}\\) nos operadores com a maior fração decimal não arredondada.\nDesta forma, a soma da coluna coincide rigorosamente a 100% ao cêntimo com as Vendas K e o total do sistema fecha com perfeição matemática.\n\n\n\n\nScript: 07_transferencias_F.R\nGera a tabela final de síntese em formato CSV:\n\nOutput: 6_transferencias_{SUFIXO}.csv (colunas operador, receita_A, receita_B, cosp_D, congelamento_B, F_transferencia, total_transferir, pagamento_imediato, pagamento_incentiva).\n\n\n\nScript: 08_tables.R\nConstroi o workbook oficial em Excel formatado:\n\nOutput: docs/Anexo_Calculos_{SUFIXO}.xlsx\n\nO livro contém 6 folhas de cálculo completas:\n\nFolha 0 - Global: Tabela síntese das transferências e segregação das vias de pagamento;\nFolha 1 - Quotas: Matriz detalhada de passageiros, distâncias e quotas por título e operador;\nFolha 2 - Vendas AK: Discriminação das vendas em canais próprios do operador e canais partilhados;\nFolha 4 - Receita B e CongNav: Distribuição da receita de venda e da compensação pelo congelamento do preço;\nFolha 5 - Pag Conta COSP D: Resumo e tabela da compensação de serviço público pela disponibilização dos passes Navegante;\nFolha 6 - Transferencias F: Detalhe das componentes de saldo e transferências líquidas.",
+    "crumbs": [
+      "**Cálculos**",
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Transferências Finais e Relatório Excel</span>"
+    ]
+  },
+  {
+    "objectID": "07_documentos.html",
+    "href": "07_documentos.html",
+    "title": "7  Relatórios Oficiais e Informações Técnicas",
+    "section": "",
+    "text": "7.1 Tipologia de Documentos Oficiais\nA fase final do procedimento consiste na produção automatizada dos documentos formais de validação interna e comunicação externa aos operadores, assegurada pelo Quarto e compilada através do motor Typst para PDF e Pandoc para Word (DOCX).\nSão gerados mensalmente quatro documentos principais:",
+    "crumbs": [
+      "**Documentos**",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Relatórios Oficiais e Informações Técnicas</span>"
+    ]
+  },
+  {
+    "objectID": "07_documentos.html#tipologia-de-documentos-oficiais",
+    "href": "07_documentos.html#tipologia-de-documentos-oficiais",
+    "title": "7  Relatórios Oficiais e Informações Técnicas",
+    "section": "",
+    "text": "Informação Técnica Interna (code/informacao1.qmd):\n\nDocumento interno de apoio à decisão do Conselho de Administração da TML;\nApresenta a síntese dos resultados mensais, evolução homóloga da procura e receitas, e as propostas de liquidação;\nUtiliza cabeçalho simples com o logótipo oficial da TML (code/templates/logo_tml.svg).\n\nAnexo Metodologia (code/metodologia.qmd):\n\nDocumento externo anexo à Informação, destinado aos operadores e entidades de tutela;\nDescreve detalhadamente as fórmulas regulamentares e hipóteses de cálculo do mês;\nUtiliza papel timbrado institucional oficial em todas as páginas.\n\nOfício 1 — Pagamentos Imediatos (code/oficio1.qmd):\n\nComunicação formal a cada operador com a discriminação dos montantes a liquidar de imediato (financiados pelos canais partilhados \\(K\\)).\n\nOfício 2 — Pagamentos Incentiva +TP (code/oficio2.qmd):\n\nComunicação formal relativa às verbas do Fundo Ambiental (Incentiva +TP), a liquidar assim que a verba governamental for transferida.",
+    "crumbs": [
+      "**Documentos**",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Relatórios Oficiais e Informações Técnicas</span>"
+    ]
+  },
+  {
+    "objectID": "07_documentos.html#arquitetura-de-publicação-e-estilos",
+    "href": "07_documentos.html#arquitetura-de-publicação-e-estilos",
+    "title": "7  Relatórios Oficiais e Informações Técnicas",
+    "section": "7.2 Arquitetura de Publicação e Estilos",
+    "text": "7.2 Arquitetura de Publicação e Estilos\nA qualidade visual e tipográfica dos documentos assenta em quatro pilares técnicos:\n\n7.2.1 Papel Timbrado Vetorial Oficial\nNos documentos externos (doc-tipo: externo), o filtro Pandoc code/templates/linebreaks.lua deteta o cabeçalho e aplica as regras do ficheiro code/templates/custom_styles.typ:\n\n1.ª Página: Aplica como fundo o modelo vetorial code/templates/folha_1.pdf (logótipo institucional TML, contactos e marcas de furação);\nPáginas Seguintes: Aplica o modelo code/templates/folha_restantes.pdf.\n\n\n\n7.2.2 Formatação de Tabelas com tinytable\nAs tabelas regulamentares são formatadas através das funções utilitárias em code/utils_tables.R:\n\nCabeçalhos com fundo escuro institucional (#2c3e50) e texto branco;\nLinhas zebradas subtis (#f8f9fa) para leitura confortável de tabelas densas;\nTotais destacados a negrito com linha dupla de fecho;\nQuebras de linha manuais em cabeçalhos longos e rotação de títulos em tabelas de grande largura (modo paisagem).\n\n\n\n7.2.3 Integração com Microsoft Word (DOCX)\nQuando a opção RENDER_DOCX = TRUE está ativada:\n\nO Quarto compila o documento utilizando o modelo de estilos code/templates/TML_Informacao_pandoc.docx;\nNo final da compilação, o script PowerShell code/templates/postprocess_docx.ps1 injeta automaticamente no XML do ficheiro .docx as margens compactas e propriedades avançadas de tabela.",
+    "crumbs": [
+      "**Documentos**",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Relatórios Oficiais e Informações Técnicas</span>"
+    ]
+  },
+  {
+    "objectID": "07_documentos.html#parâmetros-centralizados-de-emissão-doc_params.r",
+    "href": "07_documentos.html#parâmetros-centralizados-de-emissão-doc_params.r",
+    "title": "7  Relatórios Oficiais e Informações Técnicas",
+    "section": "7.3 Parâmetros Centralizados de Emissão (doc_params.R)",
+    "text": "7.3 Parâmetros Centralizados de Emissão (doc_params.R)\nPara evitar editar código estrutural todos os meses, os dados de emissão estão concentrados em code/doc_params.R:\n# Datas de receção dos dados de bilhética:\ndata_dados_dits &lt;- \"XX de setembro de 2026\"\ndata_dados_its  &lt;- \"XX de setembro de 2026\"\n\n# Financiamento do Fundo Ambiental (Incentiva +TP):\n# TRUE  = verba ainda NÃO transferida → faturação parcelar\n# FALSE = verba já disponível → faturação imediata total\nincentiva_tp_pendente &lt;- TRUE\n\n\nScript: 10_documentos.R",
+    "crumbs": [
+      "**Documentos**",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Relatórios Oficiais e Informações Técnicas</span>"
+    ]
+  },
+  {
+    "objectID": "07_documentos.html#como-renderizar-documentos",
+    "href": "07_documentos.html#como-renderizar-documentos",
+    "title": "7  Relatórios Oficiais e Informações Técnicas",
+    "section": "7.4 Como Renderizar Documentos",
+    "text": "7.4 Como Renderizar Documentos\n\n7.4.1 Execução no Pipeline Completo\nRscript code/99_run_all.R\n\n\n7.4.2 Compilação Isolada de Documentos\n# Renderiza todos os documentos com flag TRUE em config.R:\nRscript code/10_documentos.R\n\n# Renderizar isoladamente um documento específico para Word:\nquarto render code/informacao1.qmd --to docx\nquarto render code/oficio1.qmd --to docx\nquarto render code/oficio2.qmd --to docx",
+    "crumbs": [
+      "**Documentos**",
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Relatórios Oficiais e Informações Técnicas</span>"
+    ]
+  },
+  {
+    "objectID": "anexo_tabelas.html",
+    "href": "anexo_tabelas.html",
+    "title": "Tabelas Estáticas de Referência (lists/)",
+    "section": "",
+    "text": "Catálogo de Ficheiros em lists/\nO diretório lists/ contém as tabelas de suporte regulamentares e estruturais utilizadas pelos scripts de cálculo. Estas tabelas raramente sofrem alterações entre meses.",
+    "crumbs": [
+      "**Anexos**",
+      "Tabelas Estáticas de Referência (`lists/`)"
+    ]
+  },
+  {
+    "objectID": "anexo_tabelas.html#catálogo-de-ficheiros-em-lists",
+    "href": "anexo_tabelas.html#catálogo-de-ficheiros-em-lists",
+    "title": "Tabelas Estáticas de Referência (lists/)",
+    "section": "",
+    "text": "Ficheiro\nDescrição e Estrutura\nUtilizado em\n\n\n\n\noperadores.csv\nMapeamento completo dos operadores de transporte da AML: colunas ENTITY_ID, ENTITY_ABBREVIATION e OPERATOR_NAME_NAVEGANTE.\n01_recibos_b.R, 07_transferencias_F.R, 08_tables.R\n\n\ntitulos.csv\nCatálogo oficial dos 145 títulos de transporte Navegante: ticket_code, titulo_nome, modalidade, pvp, titulo_nome_base e preco_base.\n03_quotas.R, 04_vendas_AK.R, 05_reparticao_B.R\n\n\ntitulos2.csv\nVersão expandida do catálogo de títulos com descrições alargadas.\nConsulta e auditoria\n\n\ntitulos_alternativas.csv\nMapeamento de títulos equivalentes para regras de fallback de distâncias médias.\n02_distancias.R\n\n\ndistanciasref_out21_incompleto.csv\nDistâncias médias de referência históricas de Outubro de 2021 (aplicáveis nos meses de janeiro a maio e de setembro a dezembro).\n02_distancias.R\n\n\ndistanciasref_ago21_incompleto.csv\nDistâncias médias de referência históricas de Agosto de 2021 (aplicáveis aos meses de verão: junho, julho e agosto).\n02_distancias.R\n\n\npesos_pkm.csv\nFatores de ponderação operacional por operador (formato sem cabeçalho: operador_nome;peso). Calibrados para reequilibrar modos pesados vs. modos urbanos densos.\n03_quotas.R\n\n\nsazonalidade.csv\nCoeficientes de sazonalidade mensal regulamentares para os 12 meses do ano (mes;sazonalidade), utilizados para estimar a procura anualizada.\n06_cosp_D.R\n\n\ntat.csv\nSérie histórica das Taxas de Atualização Tarifária homologadas pela AMT por ano (ano;tat), para o cálculo do congelamento tarifário e atualização do VMC.\n05_reparticao_B.R, 06_cosp_D.R\n\n\nload_versions.csv\nRegisto cronológico das versões do processamento de distâncias Trino/APEX da Carris Metropolitana fornecidas pelo Dept. ITS (mes;ano;load_version).\n10_documentos.R, informacao1.qmd\n\n\nreceitas_anteriores.csv\nRepositório histórico consolidado de receitas e validações dos meses transatos, para produção automática dos quadros comparativos e séries homólogas.\n10_documentos.R, informacao1.qmd",
+    "crumbs": [
+      "**Anexos**",
+      "Tabelas Estáticas de Referência (`lists/`)"
+    ]
+  },
+  {
+    "objectID": "anexo_tabelas.html#formato-e-cuidados-de-manutenção",
+    "href": "anexo_tabelas.html#formato-e-cuidados-de-manutenção",
+    "title": "Tabelas Estáticas de Referência (lists/)",
+    "section": "Formato e Cuidados de Manutenção",
+    "text": "Formato e Cuidados de Manutenção\n\nCodificação: Todos os ficheiros devem ser mantidos em codificação UTF-8 sem BOM.\nSeparador: O separador padrão utilizado nas listas é o ponto e vírgula (;), com exceção dos ficheiros com formato numérico internacional onde pode ser utilizada vírgula (,).\nValores Decimais: Nos ficheiros de parâmetros (tat.csv, pesos_pkm.csv, sazonalidade.csv), os valores decimais são expressos com ponto (.).",
+    "crumbs": [
+      "**Anexos**",
+      "Tabelas Estáticas de Referência (`lists/`)"
+    ]
+  },
+  {
+    "objectID": "anexo_execucao.html",
+    "href": "anexo_execucao.html",
+    "title": "Guia de Preparação Mensal e Execução",
+    "section": "",
+    "text": "🗓️ Como Preparar um Novo Mês\nEste anexo sintetiza o guia prático passo a passo para a preparação e execução mensal da rotina de apuramento das compensações e distribuição de receitas Navegante.\nAntes de executar o pipeline pela primeira vez para um novo mês, deves seguir rigorosamente estes passos por ordem:",
+    "crumbs": [
+      "**Anexos**",
+      "Guia de Preparação Mensal e Execução"
+    ]
+  },
+  {
+    "objectID": "anexo_execucao.html#como-preparar-um-novo-mês",
+    "href": "anexo_execucao.html#como-preparar-um-novo-mês",
+    "title": "Guia de Preparação Mensal e Execução",
+    "section": "",
+    "text": "1. Criar a pasta de dados do mês (em data/)\nCria a pasta do mês dentro de data/ (exemplo para Agosto de 2026: data/08_ago_2026/input/). Dentro de input/, cria a subpasta Recibos B/.\nA pasta output/ e as suas subpastas são criadas automaticamente pelos scripts.\n\nNota: A pasta data/ encontra-se no .gitignore, pelo que os ficheiros brutos de bilhética nunca são enviados para o repositório remoto.\n\n\n\n2. Recolher e colocar os ficheiros de dados\n\n2a. Recibos B dos operadores\nDescompactar as pastas dos Recibos B de cada operador para data/{MES_ANO}/input/Recibos B/:\ndata/08_ago_2026/input/Recibos B/\n├── reg_CP_reciboB_082026_&lt;DATA&gt;/\n├── reg_ML_reciboB_082026_&lt;DATA&gt;/\n├── reg_Carris_reciboB_082026_&lt;DATA&gt;/\n├── ...   (operadores: CP, ML, Carris, FT, MS, TB, CAP, BQ, A1–A4, TT, SL)\n└── ReciboB_082026_Separa_receita_PV_e_ATM.xlsx\nO ficheiro ReciboB_*_Separa_receita_PV_e_ATM.xlsx é fornecido pelo Dept. ITS / SIBS e é obrigatório para separar as receitas do Portal VIVA (PV) das do Multibanco (ATM).\n\n\n2b. Exportações Oracle (PDBDWPROD)\nExecutar as seguintes consultas e guardar os CSVs (delimitados por ponto e vírgula ;) na pasta data/{MES_ANO}/input/:\n\n\n\nFicheiro a gravar em input/\nConsulta / Script\nObjetivo\n\n\n\n\nV_REG_AVERAGE_DISTANCE_FINAL_ALL_&lt;timestamp&gt;.csv\nSELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = &lt;MES&gt; AND distribution_year = &lt;ANO&gt;;\nDistâncias médias dinâmicas APEX para Carris Metropolitana (75) e Cascais Próxima (22).\n\n\nentity23_&lt;timestamp&gt;.csv\ncode/sql/query_CM_fiscaismoveis.sql\nValidações em terminais móveis dos fiscais da Carris Metropolitana (ENTITY_ID = 23).\n\n\n\n\n\n\n\n\n\nDicaPrioridade Automática _update\n\n\n\nO script seleciona automaticamente o ficheiro com o timestamp numérico mais recente. Para substituir um ficheiro sem apagar o anterior, adiciona _update ao nome (ex: entity23_202608151400_update.csv) — os ficheiros com _update têm prioridade máxima automática.\n\n\n\n\n\n3. Registar a load_version em lists/load_versions.csv\nA load_version identifica a versão do processamento de distâncias da Carris Metropolitana (Trino/APEX), disponibilizada pelo Dept. ITS.\nAbrir lists/load_versions.csv e adicionar a linha do novo mês:\nmes;ano;load_version\n...\n6;2026;31\n8;2026;XX    ← adicionar esta linha com o número fornecido\n\n\n4. Atualizar code/config.R\nEditar code/config.R e definir o mês, ano e as opções documentais:\nANO &lt;- 2026\nMES &lt;- 8       # ← alterar para o mês pretendido\n\n# Ativar/desativar os documentos a gerar:\nRENDER_INFORMACAO1 &lt;- TRUE\nRENDER_METODOLOGIA &lt;- TRUE\nRENDER_OFICIO1     &lt;- TRUE\nRENDER_OFICIO2     &lt;- TRUE\nRENDER_DOCX        &lt;- TRUE    # TRUE gera também versões Word (.docx) nativas via Quarto\n\n\n5. Atualizar os parâmetros de emissão em code/doc_params.R\nTodos os parâmetros administrativos de emissão estão centralizados em code/doc_params.R:\n# Datas de receção dos dados de bilhética:\ndata_dados_dits &lt;- \"XX de setembro de 2026\"\ndata_dados_its  &lt;- \"XX de setembro de 2026\"\n\n# Financiamento do Fundo Ambiental (Incentiva +TP):\n# TRUE  = verba ainda NÃO transferida → faturação parcelar\n# FALSE = verba já disponível → faturação imediata total\nincentiva_tp_pendente &lt;- TRUE\n\n# Números de referência oficial:\nnumero_informacao &lt;- \"TML-XXXX-XXXX-INF-XXXX-DEP\"\nnumero_oficio     &lt;- \"TML-XXXX-XXXX-OF-XXXX-DEP\"\nnumero_oficio2    &lt;- \"TML-YYYY-YYYY-OF-YYYY-DEP\"\n\n\n6. Restaurar o ambiente R (renv)\nO projeto utiliza renv para garantir a replicabilidade dos pacotes e versões exatas:\n# Na consola R:\nrenv::restore()",
+    "crumbs": [
+      "**Anexos**",
+      "Guia de Preparação Mensal e Execução"
+    ]
+  },
+  {
+    "objectID": "anexo_execucao.html#como-executar",
+    "href": "anexo_execucao.html#como-executar",
+    "title": "Guia de Preparação Mensal e Execução",
+    "section": "🚀 Como Executar",
+    "text": "🚀 Como Executar\n\n1. Execução do Pipeline Completo\nConcluídos os passos de preparação, corre o pipeline a partir da raiz do projeto:\nRscript code/99_run_all.R\nO pipeline calcula todas as fases (passos 01 a 08) em ~3 segundos e compila os relatórios ativos em Quarto/Typst (passo 10) em ~10 segundos.\nTambém podes definir as variáveis por linha de comandos sem alterar o ficheiro config.R:\n$env:MES=8; $env:ANO=2026; Rscript code/99_run_all.R",
+    "crumbs": [
+      "**Anexos**",
+      "Guia de Preparação Mensal e Execução"
+    ]
+  },
+  {
+    "objectID": "anexo_execucao.html#geração-e-recompilação-de-documentos",
+    "href": "anexo_execucao.html#geração-e-recompilação-de-documentos",
+    "title": "Guia de Preparação Mensal e Execução",
+    "section": "📄 Geração e Recompilação de Documentos",
+    "text": "📄 Geração e Recompilação de Documentos\n\nOpção A: No Pipeline Geral\nAo executar Rscript code/99_run_all.R, o script mestre executa automaticamente code/10_documentos.R para todos os documentos ativos.\n\n\nOpção B: Renderização Isolada\nSe os cálculos já foram efetuados e apenas pretendes recompilar os documentos (após rever textos ou números de ofício):\n# Todos os documentos ativos:\nRscript code/10_documentos.R\n\n# Ou renderizar isoladamente para Word (DOCX):\nquarto render code/informacao1.qmd --to docx\nquarto render code/oficio1.qmd --to docx\nquarto render code/oficio2.qmd --to docx\n\n\n\n\n\n\nNotaAlterações aos Estilos do Word\n\n\n\nSe modificares estilos ou margens em code/templates/build_reference_doc.R, deves regerar o modelo antes de renderizar:\nRscript code/templates/build_reference_doc.R\n(Certifica-te de fechar o Microsoft Word antes para não ocorrer erro de ficheiro bloqueado).\n\n\nOs documentos finais são guardados na pasta data/{MES_ANO}/output/docs/:\n\nInformacao_{SUFIXO}.pdf e Informacao_{SUFIXO}.docx\nAnexo_Metodologia_{SUFIXO}.pdf\nOficio1_{SUFIXO}.pdf e Oficio1_{SUFIXO}.docx\nOficio2_{SUFIXO}.pdf e Oficio2_{SUFIXO}.docx\nAnexo_Calculos_{SUFIXO}.xlsx (Livro oficial de cálculo em Excel)",
+    "crumbs": [
+      "**Anexos**",
+      "Guia de Preparação Mensal e Execução"
+    ]
+  }
+]
