@@ -14,7 +14,10 @@ O diagrama seguinte ilustra a arquitetura completa do sistema: desde as fontes d
 ```{mermaid}
 ---
 config:
-  layout: elk
+  flowchart:
+    curve: basis
+    nodeSpacing: 40
+    rankSpacing: 50
 ---
 flowchart TD
     %% -------------------------------------------------------------------------
@@ -49,7 +52,6 @@ flowchart TD
         P01 --> P04
         P04 --> P05
         P04 --> P06
-        P04 --> P07
         P05 --> P07
         P06 --> P07
         P07 --> P08
@@ -67,14 +69,10 @@ flowchart TD
 
     %% Ligações principais
     IN_RECIBOS --> P01
-    IN_RECIBOS --> P04
     IN_ORACLE --> P01
     IN_ORACLE --> P02
     IN_K --> P04
-    IN_LISTS --> P02
-    IN_LISTS --> P03
-    IN_LISTS --> P05
-    IN_LISTS --> P06
+    IN_LISTS -. "usadas em 02, 03, 05 e 06" .-> CALC_STEP
 
     P08 --> OUT_EXCEL
     P08 --> OUT_REPORTS
