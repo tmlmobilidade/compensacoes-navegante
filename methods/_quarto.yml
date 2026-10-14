@@ -46,6 +46,8 @@ format:
   html:
     theme:
       light: cosmo
+    filters:
+      - filters/resolve-repo-links.lua
     toc: true
     toc-depth: 3
     toc-expand: true
