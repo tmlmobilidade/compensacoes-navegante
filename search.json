@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "Passe Navegante",
     "section": "",
-    "text": "Introdução e Visão Geral\nEste manual documenta o procedimento metodológico e operacional, gerido pela TML — Transportes Metropolitanos de Lisboa para a distribuição de receitas tarifárias e apuramento de compensações financeiras aos operadores de transporte público coletivo de passageiros da Área Metropolitana de Lisboa (AML), que disponibilizam os Passes Navegante.\nO modelo implementado reproduz as regras estipuladas no Regulamento n.º 1362-C/2023, publicado em Diário da República a 27 de dezembro de 2023, a 6ª alteração ao Regulamento Tarifário da AML n. 278-A/2019.",
+    "text": "Introdução e Visão Geral\nEste manual documenta o procedimento metodológico e operacional, gerido pela TML — Transportes Metropolitanos de Lisboa para a distribuição de receitas tarifárias e apuramento de compensações financeiras aos operadores de transporte público coletivo de passageiros da Área Metropolitana de Lisboa (AML), que disponibilizam os Passes Navegante.\nO modelo implementado reproduz as regras estipuladas no Regulamento da AML 1362-C/2023 (2023), a sexta alteração ao Regulamento da AML 278-A/2019 (2019).",
     "crumbs": [
       "Introdução e Visão Geral"
     ]
@@ -24,17 +24,17 @@
     "href": "index.html#síntese-metodológica",
     "title": "Passe Navegante",
     "section": "Síntese Metodológica",
-    "text": "Síntese Metodológica\n\n\n\nEtapa\nScript(s)\nDesignação Regulamentar\nEntradas Principais\nSaídas Principais\n\n\n\n\nPassageiros e Recibos B\n01_recibos_b.R\nPassageiros Transportados (\\(PT\\)) e Reconciliação\nRecibos B APEX, Oracle Fiscais Móveis CM\n1a_PT_{SUFIXO}.csv, 1b_PT_CM_{SUFIXO}.csv, 1d_validacoes_{SUFIXO}.csv (VaT)\n\n\nDistâncias, Pesos e Quotas\n02_distancias.R, 03_quotas.R\nDistâncias Médias (\\(\\bar{d}\\)) e Quotas Dinâmicas (\\(\\text{Quota}\\))\nOracle APEX, distâncias de referência, pesos PKM\n1e_distancias_{SUFIXO}.csv, 1_quotas_{SUFIXO}.csv\n\n\nVendas A e K\n04_vendas_AK.R\nApuramento de Vendas e Volume Global\nRecibos B, Separação PV/ATM\n2_vendas_A_{SUFIXO}.csv, 2_vendas_K_{SUFIXO}.csv, 4a_receita_titulo_distribuir_{SUFIXO}.csv\n\n\nRepartição B e TAT\n05_reparticao_B.R\nReceita Devida (\\(B\\)) e Congelamento Navegante\nQuotas, Receita a distribuir (\\(R_i\\)), Taxa TAT\n4b_reparticao_B_{SUFIXO}.csv, 4_receitaB_congelamento_{SUFIXO}.csv\n\n\nCompensação COSP\n06_cosp_D.R\nPagamento por Conta da COSP Tarifária (\\(D\\))\nVolume total passes (\\(Q\\)), Sazonalidade, VMC\n5a_cosp_{SUFIXO}.csv, 5_cosp_operador_{SUFIXO}.csv\n\n\nTransferências Finais\n07_transferencias_F.R, 08_tables.R\nApuramento de Transferências (\\(F\\)) e Excel\nReceitas \\(A\\), \\(B\\), \\(D\\), TAT, canais partilhados \\(K\\)\n6_transferencias_{SUFIXO}.csv, Anexo_Calculos_{SUFIXO}.xlsx\n\n\nDocumentos Oficiais\n10_documentos.R\nInformação Técnica e Ofícios de Liquidação\nTabelas consolidadas, parâmetros de emissão\nInformacao_{SUFIXO}.pdf, Anexo_Metodologia_{SUFIXO}.pdf, Oficios.pdf\n\n\n\n\n\n\n\n\n\n\nDicaPipeline Automatizado em R\n\n\n\n\nScript Mestre: code/99_run_all.R\nParâmetros Mensais: Para calcular um novo mês, ajustar ANO e MES em code/config.R e correr:\nRscript code/99_run_all.R\nDestino dos Resultados: Os dados de saída são gerados em data/{MES_ANO}/output/ com o sufixo do mês (ex.: mai26, jun26).",
+    "text": "Síntese Metodológica\n\n\n\nEtapa\nScript(s)\nDesignação Regulamentar\nEntradas Principais\nSaídas Principais\n\n\n\n\nPassageiros e Recibos B\n01_recibos_b.R\nPassageiros Transportados (\\(PT\\)) e Reconciliação\nRecibos B APEX, Oracle Fiscais Móveis CM\n1a_PT_{SUFIXO}.csv, 1b_PT_CM_{SUFIXO}.csv, 1d_validacoes_{SUFIXO}.csv (VaT)\n\n\nDistâncias, Pesos e Quotas\n02_distancias.R, 03_quotas.R\nDistâncias Médias (\\(\\bar{d}\\)) e Quotas Dinâmicas (\\(\\text{Quota}\\))\nOracle APEX, distâncias de referência, pesos PKM\n1e_distancias_{SUFIXO}.csv, 1_quotas_{SUFIXO}.csv\n\n\nVendas A e K\n04_vendas_AK.R\nApuramento de Vendas e Volume Global\nRecibos B, Separação PV/ATM\n2_vendas_A_{SUFIXO}.csv, 2_vendas_K_{SUFIXO}.csv, 4a_receita_titulo_distribuir_{SUFIXO}.csv\n\n\nRepartição B e TAT\n05_reparticao_B.R\nReceita Devida (\\(B\\)) e Congelamento Navegante\nQuotas, Receita a distribuir (\\(R_i\\)), Taxa TAT\n4b_reparticao_B_{SUFIXO}.csv, 4_receitaB_congelamento_{SUFIXO}.csv\n\n\nCompensação COSP\n06_cosp_D.R\nPagamento por Conta da COSP Tarifária (\\(D\\))\nVolume total passes (\\(Q\\)), Sazonalidade, VMC\n5a_cosp_{SUFIXO}.csv, 5_cosp_operador_{SUFIXO}.csv\n\n\nTransferências Finais\n07_transferencias_F.R, 08_tables.R\nApuramento de Transferências (\\(F\\)) e Excel\nReceitas \\(A\\), \\(B\\), \\(D\\), TAT, canais partilhados \\(K\\)\n6_transferencias_{SUFIXO}.csv, Anexo_Calculos_{SUFIXO}.xlsx\n\n\nDocumentos Oficiais\n10_documentos.R\nInformação Técnica e Ofícios de Liquidação\nTabelas consolidadas, parâmetros de emissão\nInformacao_{SUFIXO}.pdf, Anexo_Metodologia_{SUFIXO}.pdf, Oficios.pdf",
     "crumbs": [
       "Introdução e Visão Geral"
     ]
   },
   {
-    "objectID": "index.html#configuração-global-config.r",
-    "href": "index.html#configuração-global-config.r",
+    "objectID": "index.html#guia-de-execução",
+    "href": "index.html#guia-de-execução",
     "title": "Passe Navegante",
-    "section": "Configuração Global (config.R)",
-    "text": "Configuração Global (config.R)\nOs parâmetros operacionais, diretórios e constantes do sistema estão centralizados em code/config.R:\n\n\n\n\n\n\n\n\nVariável\nExemplo\nDescrição\n\n\n\n\nANO\n2026\nAno de distribuição\n\n\nMES\n5\nMês de distribuição (1 a 12)\n\n\nSUFIXO\n\"mai26\"\nSufixo nos nomes de ficheiros (paste0(mes_abrev, ano_curto))\n\n\nDATA_DIR\ndata/05_mai_2026/input/\nDiretório de inputs do mês\n\n\nOUT_DIR\ndata/05_mai_2026/output/\nDiretório de outputs de dados\n\n\nDOCS_DIR\ndata/05_mai_2026/output/docs/\nDiretório de relatórios técnicos gerados\n\n\nLISTS_DIR\nlists/\nTabelas estáticas de referência\n\n\nVMC_2023\n112562432.41\nValor Máximo de Compensação regulado base 2023 (€)\n\n\nN_PASSES_COMPENSAR\n8472279\nLimite regulamentar anual de passes compensáveis\n\n\nRETENCAO_TML\n0.025\nTaxa regulamentar de retenção institucional da TML (2,5%)",
+    "section": "Guia de Execução",
+    "text": "Guia de Execução\nVer Guia de Preparação Mensal para detalhes sobre a execução do pipeline.\n\n\n\n\nRepública Portuguesa. 2019. Regulamento n.º 278-A/2019, de 27 de março — Regulamento Metropolitano das Regras Gerais para a Implementação do Sistema Tarifário na Área Metropolitana de Lisboa. Diário da República. https://diariodarepublica.pt/dr/detalhe/regulamento/278-a-2019-121665699.\n\n\nRepública Portuguesa. 2023. Regulamento n.º 1362-C/2023, de 27 de dezembro — Regulamento Metropolitano das Regras Gerais para a Implementação do Sistema Tarifário na Área Metropolitana de Lisboa: Sexta alteração ao Regulamento da AML n.º 278-A/2019, de 19 de março. Diário da República. https://diariodarepublica.pt/dr/detalhe/regulamento/1362-c-2023-835674356.",
     "crumbs": [
       "Introdução e Visão Geral"
     ]
@@ -315,6 +315,61 @@
     ]
   },
   {
+    "objectID": "anexo_execucao.html",
+    "href": "anexo_execucao.html",
+    "title": "Guia de Preparação Mensal e Execução",
+    "section": "",
+    "text": "🗓️ Como Preparar um Novo Mês\nEste anexo sintetiza o guia prático passo a passo para a preparação e execução mensal da rotina de apuramento das compensações e distribuição de receitas Navegante.\nAntes de executar o pipeline pela primeira vez para um novo mês, deve-se seguir rigorosamente estes passos por ordem:",
+    "crumbs": [
+      "**Anexos**",
+      "Guia de Preparação Mensal e Execução"
+    ]
+  },
+  {
+    "objectID": "anexo_execucao.html#como-preparar-um-novo-mês",
+    "href": "anexo_execucao.html#como-preparar-um-novo-mês",
+    "title": "Guia de Preparação Mensal e Execução",
+    "section": "",
+    "text": "1. Criar a pasta de dados do mês (em data/)\nCriae a pasta do mês dentro de data/ (exemplo para Agosto de 2026: data/08_ago_2026/input/). Dentro de input/, cria a subpasta Recibos B/.\nA pasta output/ e as suas subpastas são criadas automaticamente pelos scripts.\n\nNota: A pasta data/ encontra-se no .gitignore, pelo que os ficheiros brutos de bilhética e resultados nunca são enviados para o repositório remoto.\n\n\n\n2. Recolher e colocar os ficheiros de dados\n\n2a. Recibos B dos operadores\nDescompactar as pastas dos Recibos B de cada operador para data/{MES_ANO}/input/Recibos B/:\ndata/08_ago_2026/input/Recibos B/\n├── reg_CP_reciboB_082026_&lt;DATA&gt;/\n├── reg_ML_reciboB_082026_&lt;DATA&gt;/\n├── reg_Carris_reciboB_082026_&lt;DATA&gt;/\n├── ...   (operadores: CP, ML, Carris, FT, MS, TB, CAP, BQ, A1–A4, TT, SL)\n└── ReciboB_082026_Separa_receita_PV_e_ATM.xlsx\nO ficheiro ReciboB_*_Separa_receita_PV_e_ATM.xlsx é fornecido pelo Dept. ITS / SIBS e é obrigatório para separar as receitas do Portal VIVA (PV) das do Multibanco (ATM).\n\n\n2b. Exportações Oracle (PDBDWPROD)\nExecutar as seguintes consultas e guardar os CSVs (delimitados por ponto e vírgula ;) na pasta data/{MES_ANO}/input/:\n\n\n\nFicheiro a gravar em input/\nConsulta / Script\nObjetivo\n\n\n\n\n*_AVERAGE_DISTANCE_*_&lt;timestamp&gt;.csv\nSELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = &lt;MES&gt; AND distribution_year = &lt;ANO&gt;;\nDistâncias médias dinâmicas APEX para Carris Metropolitana (75) e Cascais Próxima (22).\n\n\nentity23_&lt;timestamp&gt;.csv\ncode/sql/query_CM_fiscaismoveis.sql\nValidações em terminais móveis dos fiscais da Carris Metropolitana (ENTITY_ID = 23).\n\n\n\n\n\n\n\n\n\nDicaPrioridade Automática _update\n\n\n\nO script seleciona automaticamente o ficheiro com o timestamp numérico mais recente. Para substituir um ficheiro sem apagar o anterior, adiciona _update ao nome (ex: entity23_202608151400_update.csv) — os ficheiros com _update têm prioridade máxima automática.\n\n\n\n\n\n3. Registar a load_version ou run_id em lists/load_versions.csv\nA load_version ou o run_id identificam a versão do processamento de distâncias da Carris Metropolitana (Trino/APEX), disponibilizada pelo Dept. ITS.\nAbrir lists/load_versions.csv e adicionar a linha do novo mês:\nmes;ano;load_version\n...\n6;2026;31\n8;2026;XX    ← adicionar esta linha com o número fornecido\n\n\n4. Atualizar code/config.R\nEditar code/config.R e definir o mês, ano e as opções documentais:\nANO &lt;- 2026\nMES &lt;- 8       # ← alterar para o mês pretendido\n\n# Ativar/desativar os documentos a gerar:\nRENDER_INFORMACAO1 &lt;- TRUE\nRENDER_METODOLOGIA &lt;- TRUE\nRENDER_OFICIO1     &lt;- TRUE\nRENDER_OFICIO2     &lt;- FALSE\nRENDER_DOCX        &lt;- TRUE    # TRUE gera também versões Word (.docx) nativas via Quarto\nVer mais opções de configuração em Configuração Global (config.R).\n\n\n5. Atualizar os parâmetros de emissão em code/doc_params.R\nTodos os parâmetros administrativos de emissão estão centralizados em code/doc_params.R:\n# Datas de receção dos dados de bilhética:\ndata_dados_dits &lt;- \"XX de setembro de 2026\"\ndata_dados_its  &lt;- \"XX de setembro de 2026\"\n\n# Financiamento do Fundo Ambiental (Incentiva +TP):\n# TRUE  = verba ainda NÃO transferida → faturação parcelar\n# FALSE = verba já disponível → faturação imediata total\nincentiva_tp_pendente &lt;- TRUE\n\n# Números de referência oficial:\nnumero_informacao &lt;- \"TML-XXXX-XXXX-INF-XXXX-DEP\"\nnumero_oficio     &lt;- \"TML-XXXX-XXXX-OF-XXXX-DEP\"\nnumero_oficio2    &lt;- \"TML-YYYY-YYYY-OF-YYYY-DEP\"\n\n\n6. Restaurar o ambiente R (renv)\nO projeto utiliza renv para garantir a replicabilidade dos pacotes e versões exatas:\n# Na consola R:\nrenv::restore()",
+    "crumbs": [
+      "**Anexos**",
+      "Guia de Preparação Mensal e Execução"
+    ]
+  },
+  {
+    "objectID": "anexo_execucao.html#como-executar",
+    "href": "anexo_execucao.html#como-executar",
+    "title": "Guia de Preparação Mensal e Execução",
+    "section": "🚀 Como Executar",
+    "text": "🚀 Como Executar\n\n1. Execução do Pipeline Completo\nConcluídos os passos de preparação, correr o pipeline a partir da raiz do projeto:\nRscript code/99_run_all.R\nO pipeline calcula todas as fases (passos 01 a 08) e compila os relatórios ativos em Quarto (passo 10). Todo o processo demora cerca de 2 minutos.\nTambém se pode definir as variáveis por linha de comandos, diretamente, sem alterar o ficheiro config.R:\n$env:MES=8; $env:ANO=2026; Rscript code/99_run_all.R",
+    "crumbs": [
+      "**Anexos**",
+      "Guia de Preparação Mensal e Execução"
+    ]
+  },
+  {
+    "objectID": "anexo_execucao.html#geração-e-recompilação-de-documentos",
+    "href": "anexo_execucao.html#geração-e-recompilação-de-documentos",
+    "title": "Guia de Preparação Mensal e Execução",
+    "section": "📄 Geração e Recompilação de Documentos",
+    "text": "📄 Geração e Recompilação de Documentos\n\nOpção A: No Pipeline Geral\nAo executar Rscript code/99_run_all.R, o script mestre executa automaticamente code/10_documentos.R para todos os documentos ativos.\n\n\nOpção B: Renderização Isolada\nSe os cálculos já foram efetuados e apenas se pretende recompilar os documentos (após rever textos ou números de ofício):\n# Todos os documentos ativos:\nRscript code/10_documentos.R\n\n# Ou renderizar isoladamente para Word (DOCX):\nquarto render code/informacao1.qmd --to docx\nquarto render code/oficio1.qmd --to docx\nquarto render code/oficio2.qmd --to docx\n\n\n\n\n\n\nNotaAlterações aos Estilos do Word\n\n\n\nSe os estilos ou margens em code/templates/build_reference_doc.R forem modificados, é necessário regenerar o modelo antes de renderizar:\nRscript code/templates/build_reference_doc.R\n(Fechar o Microsoft Word antes para não ocorrer erro de ficheiro bloqueado).\n\n\nOs documentos finais são guardados na pasta data/{MES_ANO}/output/docs/:\n\nInformacao_{SUFIXO}.pdf e Informacao_{SUFIXO}.docx\nAnexo_Metodologia_{SUFIXO}.pdf\nOficio1_{SUFIXO}.pdf e Oficio1_{SUFIXO}.docx\nOficio2_{SUFIXO}.pdf e Oficio2_{SUFIXO}.docx\nAnexo_Calculos_{SUFIXO}.xlsx (Livro oficial de cálculo em Excel)",
+    "crumbs": [
+      "**Anexos**",
+      "Guia de Preparação Mensal e Execução"
+    ]
+  },
+  {
+    "objectID": "anexo_execucao.html#resumo",
+    "href": "anexo_execucao.html#resumo",
+    "title": "Guia de Preparação Mensal e Execução",
+    "section": "Resumo",
+    "text": "Resumo\n\n\n\n\n\n\nDicaPipeline Automatizado em R\n\n\n\n\nScript Mestre: code/99_run_all.R\nParâmetros Mensais: Para calcular um novo mês, ajustar ANO e MES em code/config.R e correr:\nRscript code/99_run_all.R\nDestino dos Resultados: Os dados de saída são gerados em data/{MES_ANO}/output/ com o sufixo do mês (ex.: mai26, jun26).\n\n\n\n\nConfiguração Global (config.R)\nOs parâmetros operacionais, diretórios e constantes do sistema estão centralizados em code/config.R:\n\n\n\n\n\n\n\n\nVariável\nExemplo\nDescrição\n\n\n\n\nANO\n2026\nAno de distribuição\n\n\nMES\n5\nMês de distribuição (1 a 12)\n\n\nSUFIXO\n\"mai26\"\nSufixo nos nomes de ficheiros (paste0(mes_abrev, ano_curto))\n\n\nDATA_DIR\ndata/05_mai_2026/input/\nDiretório de inputs do mês\n\n\nOUT_DIR\ndata/05_mai_2026/output/\nDiretório de outputs de dados\n\n\nDOCS_DIR\ndata/05_mai_2026/output/docs/\nDiretório de relatórios técnicos gerados\n\n\nLISTS_DIR\nlists/\nTabelas estáticas de referência\n\n\nVMC_2023\n112562432.41\nValor Máximo de Compensação regulado base 2023 (€)\n\n\nN_PASSES_COMPENSAR\n8472279\nLimite regulamentar anual de passes compensáveis\n\n\nRETENCAO_TML\n0.025\nTaxa regulamentar de retenção institucional da TML (2,5%)",
+    "crumbs": [
+      "**Anexos**",
+      "Guia de Preparação Mensal e Execução"
+    ]
+  },
+  {
     "objectID": "anexo_tabelas.html",
     "href": "anexo_tabelas.html",
     "title": "Tabelas Estáticas de Referência (lists/)",
@@ -348,47 +403,14 @@
     ]
   },
   {
-    "objectID": "anexo_execucao.html",
-    "href": "anexo_execucao.html",
-    "title": "Guia de Preparação Mensal e Execução",
+    "objectID": "references.html",
+    "href": "references.html",
+    "title": "Regulamentos",
     "section": "",
-    "text": "🗓️ Como Preparar um Novo Mês\nEste anexo sintetiza o guia prático passo a passo para a preparação e execução mensal da rotina de apuramento das compensações e distribuição de receitas Navegante.\nAntes de executar o pipeline pela primeira vez para um novo mês, deves seguir rigorosamente estes passos por ordem:",
+    "text": "República Portuguesa. 2019. Regulamento n.º 278-a/2019, de 27 de\nMarço — Regulamento Metropolitano Das Regras Gerais Para a Implementação\nDo Sistema Tarifário Na Área Metropolitana de Lisboa. Diário da\nRepública. https://diariodarepublica.pt/dr/detalhe/regulamento/278-a-2019-121665699.\n\n\nRepública Portuguesa. 2023. Regulamento n.º 1362-c/2023, de 27 de\nDezembro — Regulamento Metropolitano Das Regras Gerais Para a\nImplementação Do Sistema Tarifário Na Área Metropolitana de Lisboa:\nSexta Alteração Ao Regulamento Da AML n.º 278-a/2019, de 19 de\nMarço. Diário da República. https://diariodarepublica.pt/dr/detalhe/regulamento/1362-c-2023-835674356.",
     "crumbs": [
       "**Anexos**",
-      "Guia de Preparação Mensal e Execução"
-    ]
-  },
-  {
-    "objectID": "anexo_execucao.html#como-preparar-um-novo-mês",
-    "href": "anexo_execucao.html#como-preparar-um-novo-mês",
-    "title": "Guia de Preparação Mensal e Execução",
-    "section": "",
-    "text": "1. Criar a pasta de dados do mês (em data/)\nCria a pasta do mês dentro de data/ (exemplo para Agosto de 2026: data/08_ago_2026/input/). Dentro de input/, cria a subpasta Recibos B/.\nA pasta output/ e as suas subpastas são criadas automaticamente pelos scripts.\n\nNota: A pasta data/ encontra-se no .gitignore, pelo que os ficheiros brutos de bilhética nunca são enviados para o repositório remoto.\n\n\n\n2. Recolher e colocar os ficheiros de dados\n\n2a. Recibos B dos operadores\nDescompactar as pastas dos Recibos B de cada operador para data/{MES_ANO}/input/Recibos B/:\ndata/08_ago_2026/input/Recibos B/\n├── reg_CP_reciboB_082026_&lt;DATA&gt;/\n├── reg_ML_reciboB_082026_&lt;DATA&gt;/\n├── reg_Carris_reciboB_082026_&lt;DATA&gt;/\n├── ...   (operadores: CP, ML, Carris, FT, MS, TB, CAP, BQ, A1–A4, TT, SL)\n└── ReciboB_082026_Separa_receita_PV_e_ATM.xlsx\nO ficheiro ReciboB_*_Separa_receita_PV_e_ATM.xlsx é fornecido pelo Dept. ITS / SIBS e é obrigatório para separar as receitas do Portal VIVA (PV) das do Multibanco (ATM).\n\n\n2b. Exportações Oracle (PDBDWPROD)\nExecutar as seguintes consultas e guardar os CSVs (delimitados por ponto e vírgula ;) na pasta data/{MES_ANO}/input/:\n\n\n\nFicheiro a gravar em input/\nConsulta / Script\nObjetivo\n\n\n\n\nV_REG_AVERAGE_DISTANCE_FINAL_ALL_&lt;timestamp&gt;.csv\nSELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = &lt;MES&gt; AND distribution_year = &lt;ANO&gt;;\nDistâncias médias dinâmicas APEX para Carris Metropolitana (75) e Cascais Próxima (22).\n\n\nentity23_&lt;timestamp&gt;.csv\ncode/sql/query_CM_fiscaismoveis.sql\nValidações em terminais móveis dos fiscais da Carris Metropolitana (ENTITY_ID = 23).\n\n\n\n\n\n\n\n\n\nDicaPrioridade Automática _update\n\n\n\nO script seleciona automaticamente o ficheiro com o timestamp numérico mais recente. Para substituir um ficheiro sem apagar o anterior, adiciona _update ao nome (ex: entity23_202608151400_update.csv) — os ficheiros com _update têm prioridade máxima automática.\n\n\n\n\n\n3. Registar a load_version em lists/load_versions.csv\nA load_version identifica a versão do processamento de distâncias da Carris Metropolitana (Trino/APEX), disponibilizada pelo Dept. ITS.\nAbrir lists/load_versions.csv e adicionar a linha do novo mês:\nmes;ano;load_version\n...\n6;2026;31\n8;2026;XX    ← adicionar esta linha com o número fornecido\n\n\n4. Atualizar code/config.R\nEditar code/config.R e definir o mês, ano e as opções documentais:\nANO &lt;- 2026\nMES &lt;- 8       # ← alterar para o mês pretendido\n\n# Ativar/desativar os documentos a gerar:\nRENDER_INFORMACAO1 &lt;- TRUE\nRENDER_METODOLOGIA &lt;- TRUE\nRENDER_OFICIO1     &lt;- TRUE\nRENDER_OFICIO2     &lt;- TRUE\nRENDER_DOCX        &lt;- TRUE    # TRUE gera também versões Word (.docx) nativas via Quarto\n\n\n5. Atualizar os parâmetros de emissão em code/doc_params.R\nTodos os parâmetros administrativos de emissão estão centralizados em code/doc_params.R:\n# Datas de receção dos dados de bilhética:\ndata_dados_dits &lt;- \"XX de setembro de 2026\"\ndata_dados_its  &lt;- \"XX de setembro de 2026\"\n\n# Financiamento do Fundo Ambiental (Incentiva +TP):\n# TRUE  = verba ainda NÃO transferida → faturação parcelar\n# FALSE = verba já disponível → faturação imediata total\nincentiva_tp_pendente &lt;- TRUE\n\n# Números de referência oficial:\nnumero_informacao &lt;- \"TML-XXXX-XXXX-INF-XXXX-DEP\"\nnumero_oficio     &lt;- \"TML-XXXX-XXXX-OF-XXXX-DEP\"\nnumero_oficio2    &lt;- \"TML-YYYY-YYYY-OF-YYYY-DEP\"\n\n\n6. Restaurar o ambiente R (renv)\nO projeto utiliza renv para garantir a replicabilidade dos pacotes e versões exatas:\n# Na consola R:\nrenv::restore()",
-    "crumbs": [
-      "**Anexos**",
-      "Guia de Preparação Mensal e Execução"
-    ]
-  },
-  {
-    "objectID": "anexo_execucao.html#como-executar",
-    "href": "anexo_execucao.html#como-executar",
-    "title": "Guia de Preparação Mensal e Execução",
-    "section": "🚀 Como Executar",
-    "text": "🚀 Como Executar\n\n1. Execução do Pipeline Completo\nConcluídos os passos de preparação, corre o pipeline a partir da raiz do projeto:\nRscript code/99_run_all.R\nO pipeline calcula todas as fases (passos 01 a 08) em ~3 segundos e compila os relatórios ativos em Quarto/Typst (passo 10) em ~10 segundos.\nTambém podes definir as variáveis por linha de comandos sem alterar o ficheiro config.R:\n$env:MES=8; $env:ANO=2026; Rscript code/99_run_all.R",
-    "crumbs": [
-      "**Anexos**",
-      "Guia de Preparação Mensal e Execução"
-    ]
-  },
-  {
-    "objectID": "anexo_execucao.html#geração-e-recompilação-de-documentos",
-    "href": "anexo_execucao.html#geração-e-recompilação-de-documentos",
-    "title": "Guia de Preparação Mensal e Execução",
-    "section": "📄 Geração e Recompilação de Documentos",
-    "text": "📄 Geração e Recompilação de Documentos\n\nOpção A: No Pipeline Geral\nAo executar Rscript code/99_run_all.R, o script mestre executa automaticamente code/10_documentos.R para todos os documentos ativos.\n\n\nOpção B: Renderização Isolada\nSe os cálculos já foram efetuados e apenas pretendes recompilar os documentos (após rever textos ou números de ofício):\n# Todos os documentos ativos:\nRscript code/10_documentos.R\n\n# Ou renderizar isoladamente para Word (DOCX):\nquarto render code/informacao1.qmd --to docx\nquarto render code/oficio1.qmd --to docx\nquarto render code/oficio2.qmd --to docx\n\n\n\n\n\n\nNotaAlterações aos Estilos do Word\n\n\n\nSe modificares estilos ou margens em code/templates/build_reference_doc.R, deves regerar o modelo antes de renderizar:\nRscript code/templates/build_reference_doc.R\n(Certifica-te de fechar o Microsoft Word antes para não ocorrer erro de ficheiro bloqueado).\n\n\nOs documentos finais são guardados na pasta data/{MES_ANO}/output/docs/:\n\nInformacao_{SUFIXO}.pdf e Informacao_{SUFIXO}.docx\nAnexo_Metodologia_{SUFIXO}.pdf\nOficio1_{SUFIXO}.pdf e Oficio1_{SUFIXO}.docx\nOficio2_{SUFIXO}.pdf e Oficio2_{SUFIXO}.docx\nAnexo_Calculos_{SUFIXO}.xlsx (Livro oficial de cálculo em Excel)",
-    "crumbs": [
-      "**Anexos**",
-      "Guia de Preparação Mensal e Execução"
+      "Regulamentos"
     ]
   }
 ]

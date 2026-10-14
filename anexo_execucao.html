@@ -71,7 +71,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./anexo_tabelas.html" rel="prev">
+<link href="./anexo_tabelas.html" rel="next">
+<link href="./07_documentos.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -123,7 +124,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./anexo_tabelas.html"><strong>Anexos</strong></a></li><li class="breadcrumb-item"><a href="./anexo_execucao.html">Guia de Preparação Mensal e Execução</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./anexo_execucao.html"><strong>Anexos</strong></a></li><li class="breadcrumb-item"><a href="./anexo_execucao.html">Guia de Preparação Mensal e Execução</a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Procurar" onclick="window.quartoOpenSearch();">
@@ -139,6 +140,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Passe Navegante</a> 
+        <div class="sidebar-tools-main">
+    <a href="https://github.com/tmlmobilidade/compensacoes-navegante" title="Código fonte" class="quarto-navigation-tool px-1" aria-label="Código fonte"><i class="bi bi-github"></i></a>
+</div>
     </div>
       </div>
         <div class="mt-2 flex-shrink-0 align-items-center">
@@ -229,14 +233,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./anexo_execucao.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Guia de Preparação Mensal e Execução</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./anexo_tabelas.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Tabelas Estáticas de Referência (<code>lists/</code>)</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./anexo_execucao.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text">Guia de Preparação Mensal e Execução</span></a>
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Regulamentos</span></a>
   </div>
 </li>
       </ul>
@@ -247,7 +257,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
     <h2 id="toc-title">Nesta página</h2>
    
   <ul>
@@ -255,7 +265,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#criar-a-pasta-de-dados-do-mês-em-data" id="toc-criar-a-pasta-de-dados-do-mês-em-data" class="nav-link" data-scroll-target="#criar-a-pasta-de-dados-do-mês-em-data">1. Criar a pasta de dados do mês (em <code>data/</code>)</a></li>
   <li><a href="#recolher-e-colocar-os-ficheiros-de-dados" id="toc-recolher-e-colocar-os-ficheiros-de-dados" class="nav-link" data-scroll-target="#recolher-e-colocar-os-ficheiros-de-dados">2. Recolher e colocar os ficheiros de dados</a></li>
-  <li><a href="#registar-a-load_version-em-listsload_versions.csv" id="toc-registar-a-load_version-em-listsload_versions.csv" class="nav-link" data-scroll-target="#registar-a-load_version-em-listsload_versions.csv">3. Registar a <code>load_version</code> em <code>lists/load_versions.csv</code></a></li>
+  <li><a href="#registar-a-load_version-ou-run_id-em-listsload_versions.csv" id="toc-registar-a-load_version-ou-run_id-em-listsload_versions.csv" class="nav-link" data-scroll-target="#registar-a-load_version-ou-run_id-em-listsload_versions.csv">3. Registar a <code>load_version</code> ou <code>run_id</code> em <code>lists/load_versions.csv</code></a></li>
   <li><a href="#atualizar-codeconfig.r" id="toc-atualizar-codeconfig.r" class="nav-link" data-scroll-target="#atualizar-codeconfig.r">4. Atualizar <code>code/config.R</code></a></li>
   <li><a href="#atualizar-os-parâmetros-de-emissão-em-codedoc_params.r" id="toc-atualizar-os-parâmetros-de-emissão-em-codedoc_params.r" class="nav-link" data-scroll-target="#atualizar-os-parâmetros-de-emissão-em-codedoc_params.r">5. Atualizar os parâmetros de emissão em <code>code/doc_params.R</code></a></li>
   <li><a href="#restaurar-o-ambiente-r-renv" id="toc-restaurar-o-ambiente-r-renv" class="nav-link" data-scroll-target="#restaurar-o-ambiente-r-renv">6. Restaurar o ambiente R (<code>renv</code>)</a></li>
@@ -269,13 +279,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#opção-a-no-pipeline-geral" id="toc-opção-a-no-pipeline-geral" class="nav-link" data-scroll-target="#opção-a-no-pipeline-geral">Opção A: No Pipeline Geral</a></li>
   <li><a href="#opção-b-renderização-isolada" id="toc-opção-b-renderização-isolada" class="nav-link" data-scroll-target="#opção-b-renderização-isolada">Opção B: Renderização Isolada</a></li>
   </ul></li>
+  <li><a href="#resumo" id="toc-resumo" class="nav-link" data-scroll-target="#resumo">Resumo</a>
+  <ul class="collapse">
+  <li><a href="#sec-config" id="toc-sec-config" class="nav-link" data-scroll-target="#sec-config">Configuração Global (<code>config.R</code>)</a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
-<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./anexo_tabelas.html"><strong>Anexos</strong></a></li><li class="breadcrumb-item"><a href="./anexo_execucao.html">Guia de Preparação Mensal e Execução</a></li></ol></nav>
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./anexo_execucao.html"><strong>Anexos</strong></a></li><li class="breadcrumb-item"><a href="./anexo_execucao.html">Guia de Preparação Mensal e Execução</a></li></ol></nav>
 <div class="quarto-title">
 <h1 class="title">Guia de Preparação Mensal e Execução</h1>
 </div>
@@ -298,13 +312,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <hr>
 <section id="como-preparar-um-novo-mês" class="level2">
 <h2 class="anchored" data-anchor-id="como-preparar-um-novo-mês">🗓️ Como Preparar um Novo Mês</h2>
-<p>Antes de executar o pipeline pela primeira vez para um novo mês, deves seguir rigorosamente estes passos por ordem:</p>
+<p>Antes de executar o pipeline pela primeira vez para um novo mês, deve-se seguir rigorosamente estes passos por ordem:</p>
 <section id="criar-a-pasta-de-dados-do-mês-em-data" class="level3">
 <h3 class="anchored" data-anchor-id="criar-a-pasta-de-dados-do-mês-em-data">1. Criar a pasta de dados do mês (em <code>data/</code>)</h3>
-<p>Cria a pasta do mês dentro de <code>data/</code> (exemplo para Agosto de 2026: <code>data/08_ago_2026/input/</code>). Dentro de <code>input/</code>, cria a subpasta <code>Recibos B/</code>.</p>
+<p>Criae a pasta do mês dentro de <code>data/</code> (exemplo para Agosto de 2026: <code>data/08_ago_2026/input/</code>). Dentro de <code>input/</code>, cria a subpasta <code>Recibos B/</code>.</p>
 <p>A pasta <code>output/</code> e as suas subpastas são criadas automaticamente pelos scripts.</p>
 <blockquote class="blockquote">
-<p><em>Nota: A pasta <code>data/</code> encontra-se no <code>.gitignore</code>, pelo que os ficheiros brutos de bilhética nunca são enviados para o repositório remoto.</em></p>
+<p><em>Nota: A pasta <code>data/</code> encontra-se no <code>.gitignore</code>, pelo que os ficheiros brutos de bilhética e resultados nunca são enviados para o repositório remoto.</em></p>
 </blockquote>
 </section>
 <section id="recolher-e-colocar-os-ficheiros-de-dados" class="level3">
@@ -333,7 +347,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><code>V_REG_AVERAGE_DISTANCE_FINAL_ALL_&lt;timestamp&gt;.csv</code></td>
+<td style="text-align: left;"><code>*_AVERAGE_DISTANCE_*_&lt;timestamp&gt;.csv</code></td>
 <td style="text-align: left;"><code>SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = &lt;MES&gt; AND distribution_year = &lt;ANO&gt;;</code></td>
 <td style="text-align: left;">Distâncias médias dinâmicas APEX para Carris Metropolitana (<code>75</code>) e Cascais Próxima (<code>22</code>).</td>
 </tr>
@@ -359,9 +373,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </section>
 </section>
-<section id="registar-a-load_version-em-listsload_versions.csv" class="level3">
-<h3 class="anchored" data-anchor-id="registar-a-load_version-em-listsload_versions.csv">3. Registar a <code>load_version</code> em <code>lists/load_versions.csv</code></h3>
-<p>A <code>load_version</code> identifica a versão do processamento de distâncias da Carris Metropolitana (Trino/APEX), disponibilizada pelo Dept. ITS.</p>
+<section id="registar-a-load_version-ou-run_id-em-listsload_versions.csv" class="level3">
+<h3 class="anchored" data-anchor-id="registar-a-load_version-ou-run_id-em-listsload_versions.csv">3. Registar a <code>load_version</code> ou <code>run_id</code> em <code>lists/load_versions.csv</code></h3>
+<p>A <code>load_version</code> ou o <code>run_id</code> identificam a versão do processamento de distâncias da Carris Metropolitana (Trino/APEX), disponibilizada pelo Dept. ITS.</p>
 <p>Abrir <a href="../lists/load_versions.csv"><code>lists/load_versions.csv</code></a> e adicionar a linha do novo mês:</p>
 <pre class="csv"><code>mes;ano;load_version
 ...
@@ -378,8 +392,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>RENDER_INFORMACAO1 <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>RENDER_METODOLOGIA <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>RENDER_OFICIO1     <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>RENDER_OFICIO2     <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>RENDER_OFICIO2     <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>RENDER_DOCX        <span class="ot">&lt;-</span> <span class="cn">TRUE</span>    <span class="co"># TRUE gera também versões Word (.docx) nativas via Quarto</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Ver mais opções de configuração em <a href="#sec-config" class="quarto-xref"><span>Configuração Global (config.R)</span></a>.</p>
 </section>
 <section id="atualizar-os-parâmetros-de-emissão-em-codedoc_params.r" class="level3">
 <h3 class="anchored" data-anchor-id="atualizar-os-parâmetros-de-emissão-em-codedoc_params.r">5. Atualizar os parâmetros de emissão em <code>code/doc_params.R</code></h3>
@@ -410,10 +425,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="como-executar">🚀 Como Executar</h2>
 <section id="execução-do-pipeline-completo" class="level3">
 <h3 class="anchored" data-anchor-id="execução-do-pipeline-completo">1. Execução do Pipeline Completo</h3>
-<p>Concluídos os passos de preparação, corre o pipeline a partir da raiz do projeto:</p>
+<p>Concluídos os passos de preparação, correr o pipeline a partir da raiz do projeto:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> code/99_run_all.R</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
-<p>O pipeline calcula todas as fases (passos 01 a 08) em ~3 segundos e compila os relatórios ativos em Quarto/Typst (passo 10) em ~10 segundos.</p>
-<p>Também podes definir as variáveis por linha de comandos sem alterar o ficheiro <code>config.R</code>:</p>
+<p>O pipeline calcula todas as fases (passos 01 a 08) e compila os relatórios ativos em Quarto (passo 10). Todo o processo demora cerca de 2 minutos.</p>
+<p>Também se pode definir as variáveis por linha de comandos, diretamente, sem alterar o ficheiro <code>config.R</code>:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="va">$env</span><span class="op">:</span><span class="va">MES</span><span class="op">=</span><span class="dv">8</span><span class="op">;</span> <span class="va">$env</span><span class="op">:</span><span class="va">ANO</span><span class="op">=</span><span class="dv">2026</span><span class="op">;</span> Rscript code<span class="op">/</span>99_run_all<span class="op">.</span><span class="fu">R</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <hr>
 </section>
@@ -426,7 +441,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="opção-b-renderização-isolada" class="level3">
 <h3 class="anchored" data-anchor-id="opção-b-renderização-isolada">Opção B: Renderização Isolada</h3>
-<p>Se os cálculos já foram efetuados e apenas pretendes recompilar os documentos (após rever textos ou números de ofício):</p>
+<p>Se os cálculos já foram efetuados e apenas se pretende recompilar os documentos (após rever textos ou números de ofício):</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Todos os documentos ativos:</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> code/10_documentos.R</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -444,9 +459,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Se modificares estilos ou margens em <code>code/templates/build_reference_doc.R</code>, deves regerar o modelo antes de renderizar:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>Rscript code<span class="op">/</span>templates<span class="op">/</span>build_reference_doc<span class="op">.</span><span class="fu">R</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
-<p><em>(Certifica-te de fechar o Microsoft Word antes para não ocorrer erro de ficheiro bloqueado).</em></p>
+<p>Se os estilos ou margens em <code>code/templates/build_reference_doc.R</code> forem modificados, é necessário regenerar o modelo antes de renderizar:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> code/templates/build_reference_doc.R</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><em>(Fechar o Microsoft Word antes para não ocorrer erro de ficheiro bloqueado).</em></p>
 </div>
 </div>
 <p>Os documentos finais são guardados na pasta <code>data/{MES_ANO}/output/docs/</code>:</p>
@@ -457,6 +472,97 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><code>Oficio2_{SUFIXO}.pdf</code> e <code>Oficio2_{SUFIXO}.docx</code></li>
 <li><code>Anexo_Calculos_{SUFIXO}.xlsx</code> (Livro oficial de cálculo em Excel)</li>
 </ul>
+</section>
+</section>
+<section id="resumo" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="resumo">Resumo</h2>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Dica</span>Pipeline Automatizado em R
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><p><strong>Script Mestre</strong>: <a href="../code/99_run_all.R"><code>code/99_run_all.R</code></a></p></li>
+<li><p><strong>Parâmetros Mensais</strong>: Para calcular um novo mês, ajustar <code>ANO</code> e <code>MES</code> em <a href="../code/config.R"><code>code/config.R</code></a> e correr:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> code/99_run_all.R</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div></li>
+<li><p><strong>Destino dos Resultados</strong>: Os dados de saída são gerados em <code>data/{MES_ANO}/output/</code> com o sufixo do mês (ex.: <code>mai26</code>, <code>jun26</code>).</p></li>
+</ul>
+</div>
+</div>
+<section id="sec-config" class="level3">
+<h3 class="anchored" data-anchor-id="sec-config">Configuração Global (<code>config.R</code>)</h3>
+<p>Os parâmetros operacionais, diretórios e constantes do sistema estão centralizados em <a href="../code/config.R"><code>code/config.R</code></a>:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Variável</th>
+<th style="text-align: left;">Exemplo</th>
+<th style="text-align: left;">Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>ANO</code></td>
+<td style="text-align: left;"><code>2026</code></td>
+<td style="text-align: left;">Ano de distribuição</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>MES</code></td>
+<td style="text-align: left;"><code>5</code></td>
+<td style="text-align: left;">Mês de distribuição (1 a 12)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>SUFIXO</code></td>
+<td style="text-align: left;"><code>"mai26"</code></td>
+<td style="text-align: left;">Sufixo nos nomes de ficheiros (<code>paste0(mes_abrev, ano_curto)</code>)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>DATA_DIR</code></td>
+<td style="text-align: left;"><code>data/05_mai_2026/input/</code></td>
+<td style="text-align: left;">Diretório de inputs do mês</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>OUT_DIR</code></td>
+<td style="text-align: left;"><code>data/05_mai_2026/output/</code></td>
+<td style="text-align: left;">Diretório de outputs de dados</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>DOCS_DIR</code></td>
+<td style="text-align: left;"><code>data/05_mai_2026/output/docs/</code></td>
+<td style="text-align: left;">Diretório de relatórios técnicos gerados</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>LISTS_DIR</code></td>
+<td style="text-align: left;"><code>lists/</code></td>
+<td style="text-align: left;">Tabelas estáticas de referência</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>VMC_2023</code></td>
+<td style="text-align: left;"><code>112562432.41</code></td>
+<td style="text-align: left;">Valor Máximo de Compensação regulado base 2023 (€)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>N_PASSES_COMPENSAR</code></td>
+<td style="text-align: left;"><code>8472279</code></td>
+<td style="text-align: left;">Limite regulamentar anual de passes compensáveis</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>RETENCAO_TML</code></td>
+<td style="text-align: left;"><code>0.025</code></td>
+<td style="text-align: left;">Taxa regulamentar de retenção institucional da TML (2,5%)</td>
+</tr>
+</tbody>
+</table>
 
 
 </section>
@@ -536,7 +642,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
+        var filterRegex = new RegExp("https:\/\/tmlmobilidade\.github\.io\/compensacoes-navegante");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -865,14 +971,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="./anexo_tabelas.html" class="pagination-link" aria-label="Tabelas Estáticas de Referência (`lists/`)">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Tabelas Estáticas de Referência (<code>lists/</code>)</span>
+      <a href="./07_documentos.html" class="pagination-link" aria-label="Relatórios Oficiais e Informações Técnicas">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Relatórios Oficiais e Informações Técnicas</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
+      <a href="./anexo_tabelas.html" class="pagination-link" aria-label="Tabelas Estáticas de Referência (`lists/`)">
+        <span class="nav-page-text">Tabelas Estáticas de Referência (<code>lists/</code>)</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
   </div>
 </nav>
 </div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>TML - Transportes Metropolitanos de Lisboa</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p>v0.3 (beta)</p>
+</div>
+  </div>
+</footer>
 
 
 

@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="TML — Transportes Metropolitanos de Lisboa">
+<meta name="author" content="TML - Transportes Metropolitanos de Lisboa">
 <meta name="author" content="Departamento de Estudos e Planeamento">
 
 <title>Passe Navegante</title>
@@ -28,42 +28,26 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
 }
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
 }
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
 }
-</style>
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="site_libs/quarto-nav/quarto-nav.js"></script>
@@ -173,6 +157,9 @@ window.Quarto = {
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Passe Navegante</a> 
+        <div class="sidebar-tools-main">
+    <a href="https://github.com/tmlmobilidade/compensacoes-navegante" title="Código fonte" class="quarto-navigation-tool px-1" aria-label="Código fonte"><i class="bi bi-github"></i></a>
+</div>
     </div>
       </div>
         <div class="mt-2 flex-shrink-0 align-items-center">
@@ -263,14 +250,20 @@ window.Quarto = {
       <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">  
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./anexo_execucao.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Guia de Preparação Mensal e Execução</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./anexo_tabelas.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Tabelas Estáticas de Referência (<code>lists/</code>)</span></a>
   </div>
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./anexo_execucao.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Guia de Preparação Mensal e Execução</span></a>
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Regulamentos</span></a>
   </div>
 </li>
       </ul>
@@ -281,7 +274,7 @@ window.Quarto = {
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
+        <nav id="TOC" role="doc-toc" class="toc-active" data-toc-expanded="99">
     <h2 id="toc-title">Nesta página</h2>
    
   <ul>
@@ -289,7 +282,7 @@ window.Quarto = {
   <ul class="collapse">
   <li><a href="#fluxograma-metodológico" id="toc-fluxograma-metodológico" class="nav-link" data-scroll-target="#fluxograma-metodológico">Fluxograma Metodológico</a></li>
   <li><a href="#síntese-metodológica" id="toc-síntese-metodológica" class="nav-link" data-scroll-target="#síntese-metodológica">Síntese Metodológica</a></li>
-  <li><a href="#configuração-global-config.r" id="toc-configuração-global-config.r" class="nav-link" data-scroll-target="#configuração-global-config.r">Configuração Global (<code>config.R</code>)</a></li>
+  <li><a href="#guia-de-execução" id="toc-guia-de-execução" class="nav-link" data-scroll-target="#guia-de-execução">Guia de Execução</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -310,7 +303,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Autores</div>
     <div class="quarto-title-meta-contents">
-             <p>TML — Transportes Metropolitanos de Lisboa </p>
+             <p>TML - Transportes Metropolitanos de Lisboa </p>
              <p>Departamento de Estudos e Planeamento </p>
           </div>
   </div>
@@ -333,7 +326,7 @@ window.Quarto = {
 <section id="introdução-e-visão-geral" class="level1 unnumbered">
 <h1 class="unnumbered">Introdução e Visão Geral</h1>
 <p>Este manual documenta o procedimento metodológico e operacional, gerido pela <strong>TML — Transportes Metropolitanos de Lisboa</strong> para a <strong>distribuição de receitas tarifárias e apuramento de compensações financeiras</strong> aos operadores de transporte público coletivo de passageiros da Área Metropolitana de Lisboa (AML), que disponibilizam os Passes Navegante.</p>
-<p>O modelo implementado reproduz as regras estipuladas no <a href="https://diariodarepublica.pt/dr/detalhe/regulamento/1362-c-2023-835674356">Regulamento n.º 1362-C/2023</a>, publicado em Diário da República a 27 de dezembro de 2023, a 6ª alteração ao Regulamento Tarifário da AML n.&nbsp;278-A/2019.</p>
+<p>O modelo implementado reproduz as regras estipuladas no Regulamento da AML 1362-C/2023 <span class="citation" data-cites="Regulamento1362C2023">(<a href="references.html#ref-Regulamento1362C2023" role="doc-biblioref">2023</a>)</span>, a sexta alteração ao Regulamento da AML 278-A/2019 <span class="citation" data-cites="Regulamento278A2019">(<a href="references.html#ref-Regulamento278A2019" role="doc-biblioref">2019</a>)</span>.</p>
 <hr>
 <section id="fluxograma-metodológico" class="level2">
 <h2 class="anchored" data-anchor-id="fluxograma-metodológico">Fluxograma Metodológico</h2>
@@ -433,7 +426,6 @@ flowchart TD
 </div>
 </div>
 </div>
-<hr>
 </section>
 <section id="síntese-metodológica" class="level2">
 <h2 class="anchored" data-anchor-id="síntese-metodológica">Síntese Metodológica</h2>
@@ -499,97 +491,20 @@ flowchart TD
 </tr>
 </tbody>
 </table>
-<hr>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Dica</span>Pipeline Automatizado em R
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<ul>
-<li><p><strong>Script Mestre</strong>: <a href="../code/99_run_all.R"><code>code/99_run_all.R</code></a></p></li>
-<li><p><strong>Parâmetros Mensais</strong>: Para calcular um novo mês, ajustar <code>ANO</code> e <code>MES</code> em <a href="../code/config.R"><code>code/config.R</code></a> e correr:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> code/99_run_all.R</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div></li>
-<li><p><strong>Destino dos Resultados</strong>: Os dados de saída são gerados em <code>data/{MES_ANO}/output/</code> com o sufixo do mês (ex.: <code>mai26</code>, <code>jun26</code>).</p></li>
-</ul>
-</div>
-</div>
 </section>
-<section id="configuração-global-config.r" class="level2">
-<h2 class="anchored" data-anchor-id="configuração-global-config.r">Configuração Global (<code>config.R</code>)</h2>
-<p>Os parâmetros operacionais, diretórios e constantes do sistema estão centralizados em <a href="../code/config.R"><code>code/config.R</code></a>:</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">Variável</th>
-<th style="text-align: left;">Exemplo</th>
-<th style="text-align: left;">Descrição</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;"><code>ANO</code></td>
-<td style="text-align: left;"><code>2026</code></td>
-<td style="text-align: left;">Ano de distribuição</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>MES</code></td>
-<td style="text-align: left;"><code>5</code></td>
-<td style="text-align: left;">Mês de distribuição (1 a 12)</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>SUFIXO</code></td>
-<td style="text-align: left;"><code>"mai26"</code></td>
-<td style="text-align: left;">Sufixo nos nomes de ficheiros (<code>paste0(mes_abrev, ano_curto)</code>)</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>DATA_DIR</code></td>
-<td style="text-align: left;"><code>data/05_mai_2026/input/</code></td>
-<td style="text-align: left;">Diretório de inputs do mês</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>OUT_DIR</code></td>
-<td style="text-align: left;"><code>data/05_mai_2026/output/</code></td>
-<td style="text-align: left;">Diretório de outputs de dados</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>DOCS_DIR</code></td>
-<td style="text-align: left;"><code>data/05_mai_2026/output/docs/</code></td>
-<td style="text-align: left;">Diretório de relatórios técnicos gerados</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>LISTS_DIR</code></td>
-<td style="text-align: left;"><code>lists/</code></td>
-<td style="text-align: left;">Tabelas estáticas de referência</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>VMC_2023</code></td>
-<td style="text-align: left;"><code>112562432.41</code></td>
-<td style="text-align: left;">Valor Máximo de Compensação regulado base 2023 (€)</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>N_PASSES_COMPENSAR</code></td>
-<td style="text-align: left;"><code>8472279</code></td>
-<td style="text-align: left;">Limite regulamentar anual de passes compensáveis</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>RETENCAO_TML</code></td>
-<td style="text-align: left;"><code>0.025</code></td>
-<td style="text-align: left;">Taxa regulamentar de retenção institucional da TML (2,5%)</td>
-</tr>
-</tbody>
-</table>
+<section id="guia-de-execução" class="level2">
+<h2 class="anchored" data-anchor-id="guia-de-execução">Guia de Execução</h2>
+<p>Ver <a href="./anexo_execucao.html"><strong>Guia de Preparação Mensal</strong></a> para detalhes sobre a execução do pipeline.</p>
 
 
+<div id="refs" class="references csl-bib-body hanging-indent" role="list" style="display: none">
+<div id="ref-Regulamento278A2019" class="csl-entry" role="listitem">
+República Portuguesa. 2019. <em>Regulamento n.º 278-A/2019, de 27 de março — Regulamento Metropolitano das Regras Gerais para a Implementação do Sistema Tarifário na Área Metropolitana de Lisboa</em>. Diário da República. <a href="https://diariodarepublica.pt/dr/detalhe/regulamento/278-a-2019-121665699">https://diariodarepublica.pt/dr/detalhe/regulamento/278-a-2019-121665699</a>.
+</div>
+<div id="ref-Regulamento1362C2023" class="csl-entry" role="listitem">
+República Portuguesa. 2023. <em>Regulamento n.º 1362-C/2023, de 27 de dezembro — Regulamento Metropolitano das Regras Gerais para a Implementação do Sistema Tarifário na Área Metropolitana de Lisboa: Sexta alteração ao Regulamento da AML n.º 278-A/2019, de 19 de março</em>. Diário da República. <a href="https://diariodarepublica.pt/dr/detalhe/regulamento/1362-c-2023-835674356">https://diariodarepublica.pt/dr/detalhe/regulamento/1362-c-2023-835674356</a>.
+</div>
+</div>
 </section>
 </section>
 
@@ -667,7 +582,7 @@ flowchart TD
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
+        var filterRegex = new RegExp("https:\/\/tmlmobilidade\.github\.io\/compensacoes-navegante");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -1004,6 +919,19 @@ flowchart TD
   </div>
 </nav>
 </div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>TML - Transportes Metropolitanos de Lisboa</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p>v0.3 (beta)</p>
+</div>
+  </div>
+</footer>
 
 
 
