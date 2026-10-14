@@ -50,9 +50,9 @@ Executar as seguintes consultas e guardar os CSVs (delimitados por ponto e vírg
 O script seleciona automaticamente o ficheiro com o timestamp numérico mais recente. Para substituir um ficheiro sem apagar o anterior, adiciona `_update` ao nome (ex: `entity23_202608151400_update.csv`) — os ficheiros com `_update` têm prioridade máxima automática.
 :::
 
-### 3. Registar a `load_version` em `lists/load_versions.csv`
+### 3. Registar a `load_version` ou `run_id` em `lists/load_versions.csv`
 
-A `load_version` identifica a versão do processamento de distâncias da Carris Metropolitana (Trino/APEX), disponibilizada pelo Dept. ITS.
+A `load_version` ou o `run_id` identificam a versão do processamento de distâncias da Carris Metropolitana (Trino/APEX), disponibilizada pelo Dept. ITS.
 
 Abrir [`lists/load_versions.csv`](../lists/load_versions.csv) e adicionar a linha do novo mês:
 
