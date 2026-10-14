@@ -8,7 +8,7 @@ book:
   title: "Passe Navegante"
   subtitle: "Receitas e Compensações - Procedimento e Metodologia de Apuramento Provisório Mensal"
   author: 
-    - name: "TML — Transportes Metropolitanos de Lisboa"
+    - name: "TML - Transportes Metropolitanos de Lisboa"
     - name: "Departamento de Estudos e Planeamento"
   date: last-modified
   chapters:
@@ -26,8 +26,11 @@ book:
         - 07_documentos.qmd
     - part: "**Anexos**"
       chapters:
-        - anexo_tabelas.qmd
         - anexo_execucao.qmd
+        - anexo_tabelas.qmd
+
+  repo-url: https://github.com/tmlmobilidade/compensacoes-navegante
+  site-url: https://tmlmobilidade.github.io/compensacoes-navegante
 
 format:
   html:
@@ -35,6 +38,7 @@ format:
       light: cosmo
     toc: true
     toc-depth: 3
+    toc-expand: true
     toc-title: "Nesta página"
     number-sections: true
     smooth-scroll: true
@@ -42,5 +46,3 @@ format:
     code-fold: show
     code-overflow: wrap
     html-math-method: mathjax
-
-repo-url: https://github.com/tmlmobilidade/compensacoes-navegante
