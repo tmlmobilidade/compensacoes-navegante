@@ -338,7 +338,10 @@ window.Quarto = {
 <div>
 <pre class="mermaid mermaid-js">---
 config:
-  layout: elk
+  flowchart:
+    curve: basis
+    nodeSpacing: 40
+    rankSpacing: 50
 ---
 flowchart TD
     %% -------------------------------------------------------------------------
@@ -373,7 +376,6 @@ flowchart TD
         P01 --&gt; P04
         P04 --&gt; P05
         P04 --&gt; P06
-        P04 --&gt; P07
         P05 --&gt; P07
         P06 --&gt; P07
         P07 --&gt; P08
@@ -391,14 +393,10 @@ flowchart TD
 
     %% Ligações principais
     IN_RECIBOS --&gt; P01
-    IN_RECIBOS --&gt; P04
     IN_ORACLE --&gt; P01
     IN_ORACLE --&gt; P02
     IN_K --&gt; P04
-    IN_LISTS --&gt; P02
-    IN_LISTS --&gt; P03
-    IN_LISTS --&gt; P05
-    IN_LISTS --&gt; P06
+    IN_LISTS -. "usadas em 02, 03, 05 e 06" .-&gt; CALC_STEP
 
     P08 --&gt; OUT_EXCEL
     P08 --&gt; OUT_REPORTS
