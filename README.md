@@ -18,11 +18,11 @@ Replica com precisão matemática a metodologia regulamentar (Regulamento n.º 1
 
 ## 🗓️ Como Preparar um Novo Mês (ex: Agosto de 2026)
 
-Antes de correr o pipeline pela primeira vez para um novo mês, há um conjunto de passos obrigatórios. Segue-os **por esta ordem**.
+Antes de correr o pipeline pela primeira vez para um novo mês, há um conjunto de passos obrigatórios. Seguir **por esta ordem**.
 
 ### 1. Criar a pasta de dados do mês (dentro de `data/`)
 
-Cria a pasta `data/08_ago_2026/input/` (a pasta `data/` está no `.gitignore`, pelo que **não é preciso** alterar o `.gitignore` em cada mês). Dentro de `input/`, cria a sub-pasta `Recibos B/`. A pasta `output/` é criada automaticamente.
+Criar a pasta `data/08_ago_2026/input/` (a pasta `data/` está no `.gitignore`, pelo que **não é preciso** alterar o `.gitignore` em cada mês). Dentro de `input/`, criar a sub-pasta `Recibos B/`. A pasta `output/` é criada automaticamente.
 
 ### 2. Recolher e colocar os ficheiros de dados
 
@@ -39,7 +39,7 @@ data/08_ago_2026/input/Recibos B/
 └── ReciboB_082026_Separa_receita_PV_e_ATM.xlsx   ← ficheiro Excel de separação PV/ATM
 ```
 
-O ficheiro `ReciboB_082026_Separa_receita_PV_e_ATM.xlsx` é fornecido pelo Dept. ITS / SIBS e **é obrigatório** para separar as receitas do Portal VIVA (PV) das do Multibanco (ATM).
+O ficheiro `ReciboB_082026_Separa_receita_PV_e_ATM.xlsx` é fornecido pelo Dept. ITS / SIBS e **é obrigatório** para separar as receitas do Portal VIVA (PV) das do Multibanco (SIBS).
 
 #### 2b. Exportações Oracle (`PDBDWPROD`)
 
@@ -48,7 +48,7 @@ Executar as queries e guardar os CSVs (separador `;`) em `data/08_ago_2026/input
 
 | Ficheiro a gravar em`input/`                       | Consulta / Script                                                                                                   | Objetivo                                                                                        |
 | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `V_REG_AVERAGE_DISTANCE_FINAL_ALL_<timestamp>.csv` | `SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = 8 AND distribution_year = 2026;` | Distâncias médias dinâmicas APEX para Carris Metropolitana (`75`) e Cascais Próxima (`22`). |
+| `*_AVERAGE_DISTANCE_*_<timestamp>.csv` | `SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = 8 AND distribution_year = 2026;` | Distâncias médias dinâmicas APEX para Carris Metropolitana (`75`) e Cascais Próxima (`22`). |
 | `entity23_<timestamp>.csv`                         | [`code/sql/query_CM_fiscaismoveis.sql`](code/sql/query_CM_fiscaismoveis.sql)                                        | Validações em terminais móveis dos fiscais da Carris Metropolitana (`ENTITY_ID = 23`).       |
 
 > [!NOTE]
@@ -58,9 +58,9 @@ Executar as queries e guardar os CSVs (separador `;`) em `data/08_ago_2026/input
 > [!TIP]
 > O script seleciona automaticamente o ficheiro com o **timestamp numérico mais recente**. Para substituir um ficheiro sem apagar o anterior, adiciona `_update` ao nome (ex: `entity23_202608151400_update.csv`) — os ficheiros `_update` têm **prioridade automática**.
 
-### 3. Registar a `load_version` do mês em `lists/load_versions.csv`
+### 3. Registar a `load_version` ou `run_id` do mês em `lists/load_versions.csv`
 
-A `load_version` identifica a versão do processamento de distâncias da Carris Metropolitana (Trino/APEX). É fornecida pelo Dept. ITS e **tem de ser registada antes de renderizar qualquer documento**.
+A `load_version` ou `run_id` identifica a versão do processamento de distâncias da Carris Metropolitana (Trino/APEX). É fornecida pelo Dept. ITS e **tem de ser registada antes de renderizar qualquer documento**.
 
 Abrir [`lists/load_versions.csv`](lists/load_versions.csv) e adicionar uma linha para o novo mês:
 
@@ -129,15 +129,16 @@ numero_oficio2    <- "TML-YYYY-YYYY-OF-YYYY-DEP"
 
 ## 🚀 Como Executar
 
-Depois de concluídos todos os passos de preparação acima, corre o pipeline completo a partir da raiz do projecto:
+Depois de concluídos todos os passos de preparação acima, correr o pipeline completo a partir da raiz do projecto:
 
 ```bash
 Rscript code/99_run_all.R
 ```
 
-O pipeline executa os cálculos (passos 01 a 08) em ~3 segundos e compila os documentos ativos (passo 10) em ~10 segundos.
+O pipeline executa os cálculos (passos 01 a 08) e compila os documentos ativos (passo 10).
+O processo completo demora cerca de 2 minutos.
 
-Para correr para um mês diferente sem editar `config.R`, podes passar variáveis de ambiente:
+Para correr para um mês diferente sem editar `config.R`, pode-se passar variáveis de ambiente:
 
 ```powershell
 $env:MES=8; $env:ANO=2026; Rscript code/99_run_all.R
@@ -147,7 +148,7 @@ $env:MES=8; $env:ANO=2026; Rscript code/99_run_all.R
 
 ## 📄 Como Gerar os Documentos (Informações e Ofícios)
 
-Os relatórios técnicos usam **Quarto** com o backend **Typst** e o pacote **`tinytable`**, produzindo PDFs de elevada qualidade gráfica com paginação profissional.
+Os relatórios técnicos usam **Quarto** com o backend **Typst** para produzir os PDF formatados, e os DOCX para copy-paste no FileDoc.
 
 ### Opção A: No Pipeline Geral (Recomendado)
 
@@ -155,7 +156,7 @@ Ao executar `Rscript code/99_run_all.R`, o script mestre executa automaticamente
 
 ### Opção B: Renderização Isolada (Rápida)
 
-Se os cálculos já foram executados e queres apenas recompilar documentos (ex.: após rever texto ou números de referência):
+Se os cálculos já foram executados e queremos apenas recompilar documentos (ex.: após rever texto ou números de referência):
 
 ```bash
 # Todos os documentos ativos em config.R (PDF e DOCX nativo):
@@ -170,14 +171,14 @@ quarto render code/oficio1.qmd --to docx
 quarto render code/oficio2.qmd --to docx
 ```
 
-> **Nota:** Se alterares configurações de estilos, fontes ou margens de tabela em `code/templates/build_reference_doc.R`, é necessário regerar o modelo antes de renderizar:
+> **Nota:** Se as configurações de estilos, fontes ou margens de tabela em `code/templates/build_reference_doc.R` forem alteradas, é necessário regerar o modelo antes de renderizar:
 >
 > ```powershell
 > Rscript code/templates/build_reference_doc.R
 > quarto render code/informacao1.qmd --to docx
 > ```
 >
-> *(Lembra-te de fechar o Word antes de correr o script para não bloquear o ficheiro de template).*
+> *(O Word antes de correr o script para não bloquear o ficheiro de template).*
 
 Os documentos são gravados em `data/{MES}_{mes_abrev}_{ANO}/output/docs/`:
 
@@ -229,17 +230,17 @@ Os resultados são gerados na pasta `data/{MES}_{mes_abrev}_{ANO}/output/` com o
 
 Após executar o pipeline com sucesso, validar as tabelas de compensação e emitir os documentos finais do mês (PDFs/DOCX e Excel), deve-se **congelar o estado exato do código e das dependências** através de um commit de fecho e uma **tag Git**.
 
-Isto permite que, no futuro (para auditorias, conferência ou recálculos), seja possível voltar a este instante com a certeza matemática de obter exatamente os mesmos resultados.
+Isto permite que, no futuro (para auditorias, conferência ou recálculos), seja possível voltar a este instante com a certeza de obter exatamente os mesmos resultados.
 
 ### 1. Registar o estado dos ficheiros e pacotes
 
-Se tiveres instalado ou atualizado algum pacote durante o mês, atualiza o snapshot do `renv`:
+Se tiver sido instalado ou atualizado algum pacote durante o mês, necessário para a pipeline, atualizar o snapshot do `renv`:
 
 ```r
 renv::snapshot()
 ```
 
-Faz o commit das alterações de configuração, parâmetros do mês e lockfile:
+Fazer o commit das alterações de configuração, parâmetros do mês e lockfile:
 
 ```bash
 git add code/config.R code/doc_params.R lists/load_versions.csv renv.lock
@@ -248,7 +249,7 @@ git commit -m "feat(fecho): fecho de contas e documentos de Agosto 2026"
 
 ### 2. Criar a Tag Git correspondente ao mês
 
-Cria uma tag anotada com o identificador do mês:
+Criar uma tag anotada com o identificador do mês:
 
 ```bash
 # Formato padrão: run-AAAA-MM-<mes>
@@ -348,5 +349,5 @@ Compensacoes/
 
 ## 📖 Documentação Metodológica
 
-Para conhecer todas as fórmulas regulamentares, regras de cálculo, filtros e especificidades da reconciliação, consulte o documento:
+Para conhecer todas as fórmulas regulamentares, regras de cálculo, filtros e especificidades da reconciliação, consultar o documento:
 👉 [**tmlmobilidade.github.io/compensacoes-nav**](https://tmlmobilidade.github.io/compensacoes-nav)
