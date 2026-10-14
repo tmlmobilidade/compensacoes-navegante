@@ -7,12 +7,12 @@ Replica com precisão matemática a metodologia regulamentar (Regulamento n.º 1
 - **Passageiros Transportados (PT)** e agregação dos Recibos B
 - **Distâncias Médias** (APEX dinâmicas para CM e CAP; de referência para os restantes)
 - **Passageiro-Quilómetro (PKM)** e **Quotas de Repartição**
-- **Vendas A** (operadores) e **Vendas K** (Portal VIVA e ATM)
+- **Vendas A** (operadores) e **Vendas K** (Portal VIVA e SIBS)
 - **Repartição de Receitas (B)** e **Congelamento Tarifário (TAT)**
-- **Compensação por Obrigações de Serviço Público — COSP (D)**
+- **Compensação provisória por Obrigações de Serviço Público — COSP (D)**
 - **Apuramento Final de Transferências Financeiras (F)**
-- **Relatório Oficial em Excel (XLSX)**: Quadro cruzado de 14 colunas com transferências entre operadores (MTS/FT), rateio de canais partilhados (Total K) e verbas do Incentiva +TP
-- **Documentos Técnicos Oficiais (PDF via Typst)**: Informação Técnica e Ofícios de pagamento gerados automaticamente com Quarto e Typst (`tinytable`).
+- **Anexo em Excel (XLSX)**
+- **Documentos Técnicos**: Informação Técnica e Ofícios de pagamento gerados automaticamente com Quarto.
 
 ---
 
@@ -348,5 +348,5 @@ Compensacoes/
 
 ## 📖 Documentação Metodológica
 
-Para conhecer todas as fórmulas regulamentares, regras de cálculo, filtros e especificidades da reconciliação, consulta o documento:
-👉 **[`code/procedure.md`](code/procedure.md)**
+Para conhecer todas as fórmulas regulamentares, regras de cálculo, filtros e especificidades da reconciliação, consulte o documento:
+👉 [**tmlmobilidade.github.io/compensacoes-nav**](https://tmlmobilidade.github.io/compensacoes-nav)
