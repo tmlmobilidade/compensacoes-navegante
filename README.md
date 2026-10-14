@@ -350,4 +350,4 @@ Compensacoes/
 ## 📖 Documentação Metodológica
 
 Para conhecer todas as fórmulas regulamentares, regras de cálculo, filtros e especificidades da reconciliação, consultar o documento:
-👉 [**tmlmobilidade.github.io/compensacoes-nav**](https://tmlmobilidade.github.io/compensacoes-nav)
+👉 [**tmlmobilidade.github.io/compensacoes-navegante**](https://tmlmobilidade.github.io/compensacoes-navegante)
