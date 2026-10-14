@@ -1,0 +1,1600 @@
+# =============================================================================
+# 08_tables.R — Exporta relatório consolidado de compensações em Excel (xlsx)
+# Distribuição de Receitas Navegante — TML
+#
+# Gera o workbook 'tabela_transferencias_<sufixo>.xlsx' com as seguintes folhas:
+#   "0 - Global"               — Tabela cruzada consolidada de transferências (TT+SL agregados)
+#   "1 - Quotas"               — Quotas de distribuição por título e operador (formato wide)
+#   "2 - Vendas AK"            — Resumo e detalhe de vendas A (operadores) e K (canais TML)
+#   "4 - Receita B e CongNav B"— Receita bilheteira devida e congelamento por operador
+#   "5 - Pag Conta COSP D"     — Parâmetros regulamentares COSP e pagamentos por operador
+#   "6 - Transferencias F"     — Formato longo de transferências por métrica (TT+SL agregados)
+#
+# Cabeçalhos: tom dourado (gold).
+# Nomes e ordenação de operadores alternativos:
+#   CP, FT, TT, SL, ML, MTS, Carris, TCB, AT Cascais, AT TML - CM, BT Oeste
+#   (TT+SL são agregados apenas nas folhas "0 - Global" e "6 - Transferencias F")
+# =============================================================================
+
+source(here::here("code", "config.R"))
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(tidyr)
+  library(openxlsx)
+})
+
+# ---- 0. Mapeamentos e Ordenação de Operadores --------------------------------
+# Nomes alternativos com TT e SL separados (11 operadores)
+nome_op_sep <- c(
+  CP  = "CP",
+  FT  = "FT",
+  TT  = "TT",
+  SL  = "SL",
+  ML  = "ML",
+  MS  = "MTS",
+  CA  = "Carris",
+  TB  = "TCB",
+  CAP = "AT Cascais",
+  CM  = "AT TML - CM",
+  BQ  = "BT Oeste"
+)
+
+ordem_ops_sep <- c("CP", "FT", "TT", "SL", "ML", "MTS",
+                   "Carris", "TCB", "AT Cascais", "AT TML - CM", "BT Oeste")
+
+# Nomes alternativos com TT + SL agregados (10 operadores)
+nome_op_merged <- c(
+  CP  = "CP",
+  FT  = "FT",
+  TT  = "TT + SL",
+  SL  = "TT + SL",
+  ML  = "ML",
+  MS  = "MTS",
+  CA  = "Carris",
+  TB  = "TCB",
+  CAP = "AT Cascais",
+  CM  = "AT TML - CM",
+  BQ  = "BT Oeste"
+)
+
+ordem_ops_merged <- c("CP", "FT", "TT + SL", "ML", "MTS",
+                      "Carris", "TCB", "AT Cascais", "AT TML - CM", "BT Oeste")
+
+# Carregar operadores.csv para nomes completos
+op_df <- read.csv2(file.path(LISTS_DIR, "operadores.csv"), stringsAsFactors = FALSE, dec = ".")
+nomes_completos <- op_df |>
+  dplyr::select(ENTITY_ABBREVIATION, ENTITY_NAME) |>
+  dplyr::distinct() |>
+  tibble::deframe()
+
+# Títulos de transporte
+titulos_df <- read.csv2(file.path(LISTS_DIR, "titulos.csv"), stringsAsFactors = FALSE, dec = ".")
+titulos_df$ticket_code <- as.integer(titulos_df$ticket_code)
+titulos_df$pvp         <- as.numeric(titulos_df$pvp)
+
+# ---- 1. Carregar Dados de Output ---------------------------------------------
+# 1.1 Transferências
+transf_raw <- read.csv2(F_TRANSFERENCIAS, stringsAsFactors = FALSE, dec = ",")
+if ("congelamento_B" %in% names(transf_raw) && !"congelamento" %in% names(transf_raw)) transf_raw$congelamento <- transf_raw$congelamento_B
+
+num_cols_tr <- c("receita_B", "congelamento", "receita_A", "cosp_D", "F_transferencia", "total_transferir")
+transf_raw[num_cols_tr] <- lapply(transf_raw[num_cols_tr], function(x) as.numeric(gsub(",", ".", x)))
+
+# 1.2 Quotas
+quotas_raw <- read.csv2(F_QUOTAS, stringsAsFactors = FALSE, dec = ",")
+quotas_raw$ticket_code <- as.integer(quotas_raw$ticket_code)
+quotas_raw$quota       <- as.numeric(gsub(",", ".", quotas_raw$quota))
+
+# 1.3 Receita Titulo Distribuir (RTD)
+rtd_raw <- read.csv2(F_RTD, stringsAsFactors = FALSE, dec = ",")
+num_cols_rtd <- c("pvp", "receita_A_total", "qty_A_total", "qty_K", "receita_K", "qty_vat", "qty_total", "receita_distribuir")
+for (col in intersect(num_cols_rtd, names(rtd_raw))) {
+  rtd_raw[[col]] <- as.numeric(gsub(",", ".", rtd_raw[[col]]))
+}
+rtd_raw$ticket_code <- as.integer(rtd_raw$ticket_code)
+
+# 1.4 Vendas A por operador
+vendas_a_raw <- if (file.exists(F_VENDAS_A)) {
+  read.csv2(F_VENDAS_A, stringsAsFactors = FALSE, dec = ",") |>
+    mutate(receita_A = as.numeric(gsub(",", ".", receita_A)),
+           qty_A     = as.numeric(gsub(",", ".", qty_A)))
+} else {
+  transf_raw |> select(operador, receita_A) |> mutate(qty_A = 0)
+}
+
+# 1.4b Receitas e Quantidades de Venda A por título e operador (Tabela 2 detalhe)
+receitas_raw <- if (file.exists(F_RECEITAS)) {
+  df_rec <- read.csv2(F_RECEITAS, stringsAsFactors = FALSE)
+  for (c in c("qty_operador", "receita_operador")) {
+    if (c %in% names(df_rec)) df_rec[[c]] <- as.numeric(gsub(",", ".", df_rec[[c]]))
+  }
+  df_rec$ticket_code <- as.integer(df_rec$ticket_code)
+  df_rec
+} else {
+  NULL
+}
+
+# 1.5 Vendas K por canal (PV / ATM)
+vendas_k_raw <- if (file.exists(F_VENDAS_K)) {
+  df_vk <- read.csv2(F_VENDAS_K, stringsAsFactors = FALSE, dec = ",")
+  for (c in c("pvp", "qty_K_pv", "receita_K_pv", "qty_K_atm", "receita_K_atm", "qty_K", "receita_K")) {
+    if (c %in% names(df_vk)) df_vk[[c]] <- as.numeric(gsub(",", ".", df_vk[[c]]))
+  }
+  df_vk$ticket_code <- as.integer(df_vk$ticket_code)
+  df_vk
+} else {
+  NULL
+}
+
+# 1.6 Receita B e Congelamento
+cong_raw <- read.csv2(F_CONGELAMENTO, stringsAsFactors = FALSE, dec = ",")
+cong_raw$receita_B      <- as.numeric(gsub(",", ".", cong_raw$receita_B))
+cong_raw$congelamento_B <- as.numeric(gsub(",", ".", cong_raw$congelamento_B))
+
+# 1.6b Repartição B por título e operador (Tabela 4 detalhe)
+rep_b_raw <- if (file.exists(F_REPARTICAO_B)) {
+  df_rb <- read.csv2(F_REPARTICAO_B, stringsAsFactors = FALSE, dec = ",")
+  for (c in c("quota", "receita_distribuir", "dist_receita", "receita_compensar")) {
+    if (c %in% names(df_rb)) df_rb[[c]] <- as.numeric(gsub(",", ".", df_rb[[c]]))
+  }
+  df_rb$ticket_code <- as.integer(df_rb$ticket_code)
+  df_rb
+} else {
+  NULL
+}
+
+# 1.7 COSP D por operador
+cosp_raw <- read.csv2(F_D_OPERADOR, stringsAsFactors = FALSE, dec = ",")
+cosp_raw$cosp_D <- as.numeric(gsub(",", ".", cosp_raw$cosp_D))
+
+# 1.8 Passageiros Transportados por título × operador (Tabela 1a)
+pt_raw <- read.csv2(F_PT, stringsAsFactors = FALSE)
+pt_raw$ticket_code <- as.integer(pt_raw$ticket_code)
+pt_raw$pt_operador <- as.numeric(gsub(",", ".", pt_raw$pt_operador))
+
+# 1.9 Distâncias médias por título × operador (Tabela 1b)
+dist_raw <- read.csv2(F_DISTANCIAS, stringsAsFactors = FALSE)
+dist_raw$ticket_code  <- as.integer(dist_raw$ticket_code)
+dist_raw$distancia_km <- as.numeric(gsub(",", ".", dist_raw$distancia_km))
+
+# Total K de canais partilhados
+total_K_val <- sum(rtd_raw$receita_K, na.rm = TRUE)
+
+# ---- 2. Paleta de Cores e Estilos --------------------------------------------
+cor_gold_dark   <- "#FFC000"  # DarkGoldenrod — cabeçalho principal
+cor_gold_sub    <- "#FFE699"  # Metallic Gold — subcabeçalhos
+cor_gold_light  <- "#FFF2CC"  # Fundo para totais e destaques
+cor_op_col      <- "#FAF6EC"  # Fundo suave para colunas de identificação
+cor_alt_row     <- "#FCFBF7"  # Linhas alternadas muito subtis
+cor_white       <- "#FFFFFF"
+cor_darkgray    <- "#2c2c2c"  # Cinzento escuro para texto
+cor_border      <- "#e5b32b"  # Dourado para bordas
+cor_border_soft <- "#D9D9D9"  # Cinzento suave para grelha
+cor_neg         <- "#FFC7CE"  # Fundo para excedentes negativos
+cor_zero        <- "#C6EFCE"  # Fundo para linhas a zero (MTS)
+cor_gray_text   <- "#A6A6A6"  # Cinzento mais claro para zeros e títulos sem atividade
+cor_k_head      <- "#d1cab1"  # Castanho suave para canais K (Portal Viva e SIBS)
+
+
+# Identificar títulos sem qualquer venda, receita ou validação no mês
+# (qty_total == 0 e receita_distribuir == 0 em rtd_raw)
+pt_totais <- if (exists("F_PT") && file.exists(F_PT)) {
+  df_pt <- read.csv2(F_PT, stringsAsFactors = FALSE, dec = ",")
+  df_pt |>
+    dplyr::mutate(ticket_code = as.integer(ticket_code),
+                  pt_operador = as.numeric(gsub(",", ".", pt_operador))) |>
+    dplyr::group_by(ticket_code) |>
+    dplyr::summarise(pt_total = sum(pt_operador, na.rm = TRUE), .groups = "drop")
+} else {
+  NULL
+}
+
+titulos_inativos <- rtd_raw |>
+  dplyr::left_join(if (!is.null(pt_totais)) pt_totais else tibble(ticket_code = integer(), pt_total = numeric()),
+                   by = "ticket_code") |>
+  dplyr::mutate(
+    pt_total = tidyr::replace_na(pt_total, 0),
+    sem_atividade = (qty_total == 0 | is.na(qty_total)) &
+                    (receita_distribuir == 0 | is.na(receita_distribuir)) &
+                    (pt_total == 0)
+  ) |>
+  dplyr::filter(sem_atividade) |>
+  dplyr::pull(ticket_code)
+
+
+wb <- createWorkbook()
+
+# Estilos base
+st_title <- createStyle(
+  fontSize = 13, textDecoration = "bold",
+  halign = "left", valign = "center",
+  fgFill = cor_gold_dark, fontColour = cor_darkgray
+)
+
+st_header_gold <- createStyle(
+  fgFill = cor_gold_dark, fontColour = cor_darkgray,
+  halign = "center", valign = "center",
+  textDecoration = "bold", border = "TopBottomLeftRight",
+  borderColour = cor_border, wrapText = TRUE, fontSize = 9
+)
+
+st_header_k <- createStyle(
+  fgFill = cor_k_head, fontColour = cor_darkgray,
+  halign = "center", valign = "center",
+  textDecoration = "bold", border = "TopBottomLeftRight",
+  borderColour = cor_border, wrapText = TRUE, fontSize = 9
+)
+
+st_header_op <- createStyle(
+  fgFill = cor_gold_dark, fontColour = cor_darkgray,
+  halign = "left", valign = "center",
+  textDecoration = "bold", border = "TopBottomLeftRight",
+  borderColour = cor_border, fontSize = 9
+)
+
+st_sub_header <- createStyle(
+  fgFill = cor_gold_sub, fontColour = cor_darkgray,
+  halign = "center", valign = "center",
+  textDecoration = "bold", border = "TopBottomLeftRight",
+  borderColour = cor_border, fontSize = 9
+)
+
+st_total_lbl <- createStyle(
+  fgFill = cor_gold_light, textDecoration = "bold",
+  halign = "left", border = "TopBottomLeftRight",
+  borderColour = cor_border, fontSize = 9
+)
+
+st_total_num <- createStyle(
+  fgFill = cor_gold_light, textDecoration = "bold",
+  numFmt = "#,##0.00", halign = "right",
+  border = "TopBottomLeftRight", borderColour = cor_border, fontSize = 9
+)
+
+st_total_int <- createStyle(
+  fgFill = cor_gold_light, textDecoration = "bold",
+  numFmt = "#,##0", halign = "right",
+  border = "TopBottomLeftRight", borderColour = cor_border, fontSize = 9
+)
+
+st_total_pct <- createStyle(
+  fgFill = cor_gold_light, textDecoration = "bold",
+  numFmt = "0.000%", halign = "right",
+  border = "TopBottomLeftRight", borderColour = cor_border, fontSize = 9
+)
+
+# Estilos base vectorizados para tabelas extensas (elimina loops lentos célula a célula)
+st_cod <- createStyle(
+  fgFill = cor_white, fontColour = cor_darkgray, halign = "center",
+  border = "LeftRight", borderColour = cor_border_soft, fontSize = 9
+)
+st_desig <- createStyle(
+  fgFill = cor_white, fontColour = cor_darkgray, halign = "left",
+  border = "LeftRight", borderColour = cor_border_soft, fontSize = 9
+)
+st_curr <- createStyle(
+  fgFill = cor_white, fontColour = cor_darkgray, numFmt = "#,##0.00", halign = "right",
+  border = "LeftRight", borderColour = cor_border_soft, fontSize = 9
+)
+st_pct <- createStyle(
+  fgFill = cor_white, fontColour = cor_darkgray, numFmt = "0.0000%", halign = "right",
+  border = "LeftRight", borderColour = cor_border_soft, fontSize = 9
+)
+st_int <- createStyle(
+  fgFill = cor_white, fontColour = cor_darkgray, numFmt = "#,##0", halign = "right",
+  border = "LeftRight", borderColour = cor_border_soft, fontSize = 9
+)
+st_alt   <- createStyle(fgFill = cor_alt_row)
+st_zero  <- createStyle(fontColour = cor_gray_text, fontSize = 9)
+st_inact <- createStyle(fontColour = cor_gray_text, fontSize = 9)
+
+st_param_lbl <- createStyle(
+  fgFill = cor_op_col, textDecoration = "bold",
+  halign = "left", border = "TopBottomLeftRight",
+  borderColour = cor_border_soft, fontSize = 9
+)
+
+st_param_val <- createStyle(
+  halign = "right", border = "TopBottomLeftRight",
+  borderColour = cor_border_soft, fontSize = 9
+)
+
+
+# =============================================================================
+# FOLHA 0: "0 - Global" (Tabela cruzada consolidada com TT+SL fundidos)
+# =============================================================================
+addWorksheet(wb, "0 - Global", tabColour = cor_gold_dark)
+ws_g <- "0 - Global"
+
+# Mapear para TT + SL
+transf_g <- transf_raw |>
+  mutate(nome_tab = nome_op_merged[operador]) |>
+  filter(!is.na(nome_tab)) |>
+  group_by(nome_tab) |>
+  summarise(
+    receita_A        = sum(receita_A,        na.rm = TRUE),
+    receita_B        = sum(receita_B,        na.rm = TRUE),
+    congelamento     = sum(congelamento,     na.rm = TRUE),
+    cosp_D           = sum(cosp_D,           na.rm = TRUE),
+    F_transferencia  = sum(F_transferencia,  na.rm = TRUE),
+    total_transferir = sum(total_transferir, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    C  = receita_A - receita_B,
+    SG = C - cosp_D
+  )
+
+# Ordenar operadores
+transf_g <- transf_g |>
+  mutate(nome_tab = factor(nome_tab, levels = ordem_ops_merged)) |>
+  arrange(nome_tab) |>
+  mutate(nome_tab = as.character(nome_tab))
+
+# Excedente MTS (caso MTS tenha total_transferir < 0)
+mts_row <- transf_g |> filter(nome_tab == "MTS")
+excedente_mts <- if (nrow(mts_row) > 0 && mts_row$total_transferir < 0) abs(mts_row$total_transferir) else 0
+
+# Linha a linha com Transferência entre operadores corrigida:
+#   FT recebe excedente de MTS -> TML transfere menos a FT (-excedente)
+#   MTS salda excedente via FT -> +excedente, total a transferir TML = 0
+transf_g_calc <- transf_g |>
+  mutate(
+    transf_entre_ops = case_when(
+      nome_tab == "FT"  ~  excedente_mts,
+      nome_tab == "MTS" ~ -excedente_mts,
+      TRUE              ~ NA_real_
+    ),
+    total_tml = total_transferir + coalesce(-transf_entre_ops, 0)
+  )
+
+# 1. Arredondar os montantes de transferências a 2 casas decimais (como no Excel)
+transf_g_calc <- transf_g_calc |>
+  mutate(
+    total_transferir = round(total_transferir, 2),
+    total_tml        = round(total_tml,        2)
+  )
+
+# 2. Soma do total TML a partir dos valores já arredondados
+soma_total_tml <- sum(transf_g_calc$total_tml, na.rm = TRUE)
+
+# 3. Percentagens e Parcelas com reconciliação de cêntimos (Largest Remainder Method)
+#    Garante que a soma de parcela_partilhada é SEMPRE igual a total_K_val ao cêntimo exato,
+#    ajustando automaticamente os cêntimos de arredondamento onde o resíduo foi maior.
+transf_g_calc <- transf_g_calc |>
+  mutate(
+    pct = if (soma_total_tml > 0) total_tml / soma_total_tml else 0,
+    val_partilhada_raw = if_else(nome_tab == "MTS", 0, pct * total_K_val),
+    parcela_partilhada = round(val_partilhada_raw, 2)
+  )
+
+# Verificar discrepância de cêntimos em relação ao total de Vendas K
+dif_centimos <- round(sum(transf_g_calc$parcela_partilhada, na.rm = TRUE) - total_K_val, 2)
+n_ajustes    <- as.integer(round(abs(dif_centimos) * 100))
+
+if (n_ajustes > 0) {
+  # Calcular o resíduo de arredondamento para cada operador (excluindo MTS que é 0)
+  idx_validos <- which(transf_g_calc$nome_tab != "MTS")
+  residuos    <- transf_g_calc$parcela_partilhada[idx_validos] - transf_g_calc$val_partilhada_raw[idx_validos]
+  
+  if (dif_centimos > 0) {
+    # Soma deu a mais: subtrair 0.01 aos operadores que tiveram maior ganho no arredondamento
+    idx_ordenados <- idx_validos[order(-residuos)]
+    alvos <- head(idx_ordenados, n_ajustes)
+    transf_g_calc$parcela_partilhada[alvos] <- transf_g_calc$parcela_partilhada[alvos] - 0.01
+    message(sprintf("✓ Ajuste de cêntimos em parcela_partilhada (-0.01€ em: %s)",
+                    paste(transf_g_calc$nome_tab[alvos], collapse = ", ")))
+  } else {
+    # Soma deu a menos: somar 0.01 aos operadores que tiveram maior perda no arredondamento
+    idx_ordenados <- idx_validos[order(residuos)]
+    alvos <- head(idx_ordenados, n_ajustes)
+    transf_g_calc$parcela_partilhada[alvos] <- transf_g_calc$parcela_partilhada[alvos] + 0.01
+    message(sprintf("✓ Ajuste de cêntimos em parcela_partilhada (+0.01€ em: %s)",
+                    paste(transf_g_calc$nome_tab[alvos], collapse = ", ")))
+  }
+}
+
+transf_g_display <- transf_g_calc |>
+  mutate(
+    parcela_incentiva = if_else(nome_tab == "MTS", 0, total_tml - parcela_partilhada)
+  ) |>
+  select(
+    nome_tab, receita_A, receita_B, C, cosp_D, SG, F_transferencia, congelamento,
+    total_transferir, transf_entre_ops, total_tml, pct,
+    parcela_partilhada, parcela_incentiva
+  )
+
+# Linha TOTAL: soma dos valores da tabela
+total_row_g <- tibble(
+  nome_tab           = "TOTAL",
+  receita_A          = sum(transf_g_display$receita_A),
+  receita_B          = sum(transf_g_display$receita_B),
+  C                  = sum(transf_g_display$C),
+  cosp_D             = sum(transf_g_display$cosp_D),
+  SG                 = sum(transf_g_display$SG),
+  F_transferencia    = sum(transf_g_display$F_transferencia),
+  congelamento       = sum(transf_g_display$congelamento),
+  total_transferir   = sum(transf_g_display$total_transferir),
+  transf_entre_ops   = sum(transf_g_display$transf_entre_ops, na.rm = TRUE),
+  total_tml          = sum(transf_g_display$total_tml),
+  pct                = sum(transf_g_display$pct),
+  parcela_partilhada = sum(transf_g_display$parcela_partilhada),
+  parcela_incentiva  = sum(transf_g_display$parcela_incentiva)
+)
+
+tabela_global <- bind_rows(transf_g_display, total_row_g)
+
+# Exportar tabela global como CSV (fonte única de verdade para o relatório)
+write.csv2(tabela_global, F_TABELA_GLOBAL, row.names = FALSE)
+message("Tabela global exportada: ", F_TABELA_GLOBAL)
+
+# Tabela global para Excel com Ano e Mês
+tabela_global_xl <- tabela_global |>
+  mutate(
+    Ano = ifelse(nome_tab == "TOTAL", NA_integer_, as.integer(ANO)),
+    Mês = ifelse(nome_tab == "TOTAL", NA_integer_, as.integer(MES))
+  ) |>
+  relocate(Ano, Mês)
+
+# Nomes de exibição
+names_global <- c(
+  "Ano",
+  "Mês",
+  "Operador",
+  "Receita na posse [A]",
+  "Receita devida [B]",
+  "Saldo de Receitas [C = A - B]",
+  "Pagamentos por conta COSP Tarifária [D]",
+  "Saldo Global de Receitas [SG]",
+  "Transferências [F = -SG]",
+  "Compensação congelamento passes Navegante [CongNav[B]]",
+  "[F + CongNav[B]]",
+  "Transferência entre operadores (€)",
+  "TOTAL a transferir pela TML (€)",
+  "% do montante total a transferir a cada Operador",
+  "Parcela proveniente das verbas dos canais de receita partilhada",
+  "Parcela proveniente das verbas do Incentiva +TP"
+)
+
+# Escrever título e cabeçalhos
+mergeCells(wb, ws_g, rows = 1, cols = 1:16)
+writeData(wb, ws_g, x = paste0("     Tabela 0 - Síntese Global de Transferências — ", mes_nome, " ", ANO),
+          startRow = 1, startCol = 1)
+addStyle(wb, ws_g, st_title, rows = 1, cols = 1:16, gridExpand = TRUE)
+setRowHeights(wb, ws_g, rows = 1, heights = 26)
+
+writeData(wb, ws_g, x = as.data.frame(t(names_global)), startRow = 2, startCol = 1, colNames = FALSE)
+addStyle(wb, ws_g, st_header_gold, rows = 2, cols = 1:2, gridExpand = TRUE)
+addStyle(wb, ws_g, st_header_op,   rows = 2, cols = 3)
+addStyle(wb, ws_g, st_header_gold, rows = 2, cols = 4:16, gridExpand = TRUE)
+setRowHeights(wb, ws_g, rows = 2, heights = 55)
+
+# Escrever dados
+writeData(wb, ws_g, x = tabela_global_xl, startRow = 3, startCol = 1, colNames = FALSE)
+
+n_g <- nrow(tabela_global_xl)
+for (i in seq_len(n_g)) {
+  rw <- i + 2
+  op_nm <- tabela_global_xl$nome_tab[i]
+  is_tot <- (op_nm == "TOTAL")
+  is_evn <- (i %% 2 == 0)
+  val_k  <- tabela_global_xl$total_tml[i]
+  is_mts <- (op_nm == "MTS")
+
+  if (is_tot) {
+    addStyle(wb, ws_g, st_total_lbl, rows = rw, cols = 1:3, gridExpand = TRUE)
+    addStyle(wb, ws_g, st_total_num, rows = rw, cols = c(4:11, 13, 15:16), gridExpand = TRUE)
+    addStyle(wb, ws_g, st_total_num, rows = rw, cols = 12)
+    addStyle(wb, ws_g, st_total_pct, rows = rw, cols = 14)
+  } else if (is_mts) {
+    addStyle(wb, ws_g, createStyle(fgFill = cor_zero, halign = "center",
+                                   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 1:2)
+    addStyle(wb, ws_g, createStyle(fgFill = cor_zero, textDecoration = "bold", halign = "left",
+                                   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 3)
+    addStyle(wb, ws_g, createStyle(fgFill = cor_zero, numFmt = "#,##0.00", halign = "right",
+                                   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = c(4:13, 15:16), gridExpand = TRUE)
+    addStyle(wb, ws_g, createStyle(fgFill = cor_zero, numFmt = "0.000%", halign = "right", # 3 casas decimais
+                                   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 14)
+  } else {
+    fg <- if (is_evn) cor_alt_row else cor_white
+    addStyle(wb, ws_g, createStyle(fgFill = fg, halign = "center",
+                                   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 1:2)
+    addStyle(wb, ws_g, createStyle(fgFill = fg, textDecoration = "bold", halign = "left",
+                                   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 3)
+    addStyle(wb, ws_g, createStyle(fgFill = fg, numFmt = "#,##0.00", halign = "right",
+                                   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = c(4:13, 15:16), gridExpand = TRUE)
+    addStyle(wb, ws_g, createStyle(fgFill = fg, numFmt = "0.000%", halign = "right", # 3 casas decimais
+                                   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 14)
+  }
+}
+
+setColWidths(wb, ws_g, cols = 1:2,   widths = 6)
+setColWidths(wb, ws_g, cols = 3,     widths = 14)
+setColWidths(wb, ws_g, cols = 4:11,  widths = 14)
+setColWidths(wb, ws_g, cols = 12,    widths = 16)
+setColWidths(wb, ws_g, cols = 13,    widths = 16)
+setColWidths(wb, ws_g, cols = 14,    widths = 11)
+setColWidths(wb, ws_g, cols = 15:16, widths = 18)
+freezePane(wb, ws_g, firstActiveRow = 3, firstActiveCol = 4)
+
+
+# =============================================================================
+# FOLHA 1: "1 - Quotas" (Quotas em formato wide por operador)
+# =============================================================================
+addWorksheet(wb, "1 - Quotas")
+ws_q <- "1 - Quotas"
+
+# Mapear operador nos dados de quota para nome alternativo (11 operadores separados)
+quotas_wide <- quotas_raw |>
+  mutate(nome_op = nome_op_sep[operador]) |>
+  filter(!is.na(nome_op)) |>
+  select(ticket_code, nome_op, quota) |>
+  pivot_wider(names_from = nome_op, values_from = quota, values_fill = 0)
+
+# Garantir que todas as 11 colunas existem na ordem certa
+for (op in ordem_ops_sep) {
+  if (!op %in% names(quotas_wide)) quotas_wide[[op]] <- 0
+}
+
+quotas_wide <- titulos_df |>
+  select(ticket_code, titulo_nome) |>
+  left_join(quotas_wide, by = "ticket_code") |>
+  mutate(across(all_of(ordem_ops_sep), ~ replace_na(.x, 0))) |>
+  arrange(ticket_code)
+
+# Coluna Total Quota (soma das quotas)
+quotas_wide$total_quota <- rowSums(quotas_wide[, ordem_ops_sep], na.rm = TRUE)
+
+# Reordenar colunas
+quotas_out <- quotas_wide |>
+  mutate(Ano = as.integer(ANO), Mês = as.integer(MES)) |>
+  select(Ano, Mês, ticket_code, titulo_nome, all_of(ordem_ops_sep), total_quota)
+
+# Título
+n_q_cols <- ncol(quotas_out)
+mergeCells(wb, ws_q, rows = 1, cols = 1:n_q_cols)
+writeData(wb, ws_q, x = paste0("     Tabela 1 - Quotas de Repartição por Título e Operador — ", mes_nome, " ", ANO),
+          startRow = 1, startCol = 1)
+addStyle(wb, ws_q, st_title, rows = 1, cols = 1:n_q_cols, gridExpand = TRUE)
+setRowHeights(wb, ws_q, rows = 1, heights = 26)
+
+# Cabeçalhos
+names_quotas <- c("Ano", "Mês", "Código", "Designação do Título", ordem_ops_sep, "Total Quota")
+writeData(wb, ws_q, x = as.data.frame(t(names_quotas)), startRow = 2, startCol = 1, colNames = FALSE)
+addStyle(wb, ws_q, st_header_gold, rows = 2, cols = 1:n_q_cols, gridExpand = TRUE)
+setRowHeights(wb, ws_q, rows = 2, heights = 32)
+
+# Dados
+writeData(wb, ws_q, x = quotas_out, startRow = 3, startCol = 1, colNames = FALSE)
+
+n_q_rows  <- nrow(quotas_out)
+r_range_q <- 3:(n_q_rows + 2)
+even_rq   <- r_range_q[(seq_len(n_q_rows) %% 2 == 0)]
+
+addStyle(wb, ws_q, st_cod,   rows = r_range_q, cols = 1:2, gridExpand = TRUE)
+addStyle(wb, ws_q, st_cod,   rows = r_range_q, cols = 3,   gridExpand = TRUE)
+addStyle(wb, ws_q, st_desig, rows = r_range_q, cols = 4,   gridExpand = TRUE)
+addStyle(wb, ws_q, st_pct,   rows = r_range_q, cols = 5:n_q_cols, gridExpand = TRUE)
+addStyle(wb, ws_q, st_alt,   rows = even_rq,   cols = 1:n_q_cols, gridExpand = TRUE, stack = TRUE)
+conditionalFormatting(wb, ws_q, cols = 5:(n_q_cols - 1), rows = r_range_q, rule = "==0", style = st_zero)
+
+setColWidths(wb, ws_q, cols = 1:2,        widths = 6)
+setColWidths(wb, ws_q, cols = 3,          widths = 8)
+setColWidths(wb, ws_q, cols = 4,          widths = 34)
+setColWidths(wb, ws_q, cols = 5:n_q_cols, widths = 12)
+
+# --- Função auxiliar: pivot wide por operador, alinhado com titulos_df ---------
+pivot_ops_wide <- function(df, val_col) {
+  w <- df |>
+    mutate(nome_op = nome_op_sep[operador]) |>
+    filter(!is.na(nome_op)) |>
+    select(ticket_code, nome_op, valor = all_of(val_col)) |>
+    pivot_wider(names_from = nome_op, values_from = valor, values_fill = 0)
+  for (op in ordem_ops_sep) if (!op %in% names(w)) w[[op]] <- 0
+  titulos_df |>
+    select(ticket_code) |>
+    left_join(w, by = "ticket_code") |>
+    mutate(across(all_of(ordem_ops_sep), ~ replace_na(.x, 0))) |>
+    arrange(ticket_code) |>
+    select(all_of(ordem_ops_sep))
+}
+
+# Escreve um bloco wide (título, cabeçalho, dados) a partir de start_col
+write_ops_block <- function(df_out, start_col, titulo, headers, num_fmt) {
+  n_c     <- ncol(df_out)
+  cols    <- start_col:(start_col + n_c - 1)
+  n_r     <- nrow(df_out)
+  r_range <- 3:(n_r + 2)
+  even_r  <- r_range[(seq_len(n_r) %% 2 == 0)]
+
+  mergeCells(wb, ws_q, rows = 1, cols = cols)
+  writeData(wb, ws_q, x = titulo, startRow = 1, startCol = start_col)
+  addStyle(wb, ws_q, st_title, rows = 1, cols = cols, gridExpand = TRUE)
+
+  writeData(wb, ws_q, x = as.data.frame(t(headers)), startRow = 2, startCol = start_col, colNames = FALSE)
+  addStyle(wb, ws_q, st_header_gold, rows = 2, cols = cols, gridExpand = TRUE)
+
+  writeData(wb, ws_q, x = df_out, startRow = 3, startCol = start_col, colNames = FALSE)
+
+  st_col <- createStyle(fgFill = cor_white, fontColour = cor_darkgray, numFmt = num_fmt, halign = "right",
+                        border = "LeftRight", borderColour = cor_border_soft, fontSize = 9)
+  addStyle(wb, ws_q, st_col, rows = r_range, cols = cols, gridExpand = TRUE)
+  addStyle(wb, ws_q, st_alt, rows = even_r,  cols = cols, gridExpand = TRUE, stack = TRUE)
+  conditionalFormatting(wb, ws_q, cols = cols, rows = r_range, rule = "==0", style = st_zero)
+
+  setColWidths(wb, ws_q, cols = cols, widths = 12)
+  invisible(max(cols))
+}
+
+# --- Tabela 1a: Passageiros Transportados (com Total) --------------------------
+pt_out <- pivot_ops_wide(pt_raw, "pt_operador")
+pt_out$Total <- rowSums(pt_out[, ordem_ops_sep], na.rm = TRUE)
+
+col_1a <- n_q_cols + 2                       # 1 coluna vazia de separação
+setColWidths(wb, ws_q, cols = col_1a - 1, widths = 10)
+end_1a <- write_ops_block(
+  pt_out, col_1a,
+  paste0("     Tabela 1a - Passageiros Transportados por Título e Operador — ", mes_nome, " ", ANO),
+  c(ordem_ops_sep, "Total"), "#,##0"
+)
+# Coluna Total sempre a preto
+addStyle(wb, ws_q, createStyle(fontColour = cor_darkgray), rows = 3:(nrow(pt_out) + 2),
+         cols = end_1a, gridExpand = TRUE, stack = TRUE)
+
+# --- Tabela 1b: Distância Média (fonte por baixo do operador, sem Total) -------
+# Etiqueta da referência estática derivada do ficheiro usado (config.R): "ago21" (verão) ou "out21"
+ref_lbl   <- sub("^distanciasref_([^_]+)_.*$", "\\1", basename(DIST_REF_FILE))
+fonte_lbl <- c(APEX = "APEX", ref_estatica = ref_lbl, nao_encontrada = "N/D")
+fontes_op <- sapply(ordem_ops_sep, function(op) {
+  f <- unique(dist_raw$fonte[nome_op_sep[dist_raw$operador] == op])
+  f <- f[!is.na(f) & f != "nao_encontrada"]
+  if (length(f) == 0) "N/D" else paste(ifelse(is.na(fonte_lbl[f]), f, fonte_lbl[f]), collapse = " / ")
+})
+
+dist_out <- pivot_ops_wide(dist_raw, "distancia_km")
+
+col_1b <- end_1a + 2
+setColWidths(wb, ws_q, cols = col_1b - 1, widths = 10)
+write_ops_block(
+  dist_out, col_1b,
+  paste0("     Tabela 1b - Distância Média (km) por Título e Operador — ", mes_nome, " ", ANO),
+  paste0(ordem_ops_sep, "\n(", fontes_op, ")"), "#,######0.000000"
+)
+
+setRowHeights(wb, ws_q, rows = 2, heights = 36)
+freezePane(wb, ws_q, firstActiveRow = 3, firstActiveCol = 5)
+
+
+# =============================================================================
+# FOLHA 2: "2 - Vendas AK" (Vendas A e K consolidadas)
+# =============================================================================
+addWorksheet(wb, "2 - Vendas AK")
+ws_ak <- "2 - Vendas AK"
+
+# Preparar dados de resumo por operador (Vendas A)
+vendas_a_resumo <- tibble(operador_cod = names(nome_op_sep), nome_op = unname(nome_op_sep)) |>
+  left_join(vendas_a_raw |> select(operador, receita_A, qty_A), by = c("operador_cod" = "operador")) |>
+  mutate(
+    receita_A = replace_na(receita_A, 0),
+    qty_A     = replace_na(qty_A, 0)
+  ) |>
+  mutate(nome_op = factor(nome_op, levels = ordem_ops_sep)) |>
+  arrange(nome_op) |>
+  mutate(nome_op = as.character(nome_op))
+
+total_rec_a <- sum(vendas_a_resumo$receita_A)
+total_qty_a <- sum(vendas_a_resumo$qty_A)
+
+vendas_a_resumo <- vendas_a_resumo |>
+  mutate(pct_a = if (total_rec_a > 0) receita_A / total_rec_a else 0)
+
+vendas_a_tab <- bind_rows(
+  vendas_a_resumo |> mutate(Ano = as.integer(ANO), Mês = as.integer(MES)) |>
+    select(Ano, Mês, Operador = nome_op, `Quantidade (A)` = qty_A, `Receita A (€)` = receita_A, `% Vendas A` = pct_a),
+  tibble(Ano = NA_integer_, Mês = NA_integer_, Operador = "TOTAL Vendas A", `Quantidade (A)` = total_qty_a, `Receita A (€)` = total_rec_a, `% Vendas A` = 1.0)
+)
+
+# Resumo Vendas K por canal (PV / ATM)
+qty_k_pv_tot  <- if (!is.null(vendas_k_raw)) sum(vendas_k_raw$qty_K_pv, na.rm = TRUE) else 0
+rec_k_pv_tot  <- if (!is.null(vendas_k_raw)) sum(vendas_k_raw$receita_K_pv, na.rm = TRUE) else 0
+qty_k_atm_tot <- if (!is.null(vendas_k_raw)) sum(vendas_k_raw$qty_K_atm, na.rm = TRUE) else 0
+rec_k_atm_tot <- if (!is.null(vendas_k_raw)) sum(vendas_k_raw$receita_K_atm, na.rm = TRUE) else 0
+qty_k_tot     <- qty_k_pv_tot + qty_k_atm_tot
+rec_k_tot     <- rec_k_pv_tot + rec_k_atm_tot
+
+vendas_k_tab <- tibble(
+  Canal = c("Portal VIVA", "SIBS", "TOTAL Vendas K"),
+  Quantidade = c(qty_k_pv_tot, qty_k_atm_tot, qty_k_tot),
+  `Receita (€)` = c(rec_k_pv_tot, rec_k_atm_tot, rec_k_tot),
+  `% Vendas K` = c(
+    if_else(rec_k_tot > 0, rec_k_pv_tot / rec_k_tot, 0),
+    if_else(rec_k_tot > 0, rec_k_atm_tot / rec_k_tot, 0),
+    1.0
+  )
+)
+
+# Tabela detalhada por título (todos os títulos)
+detalhe_ak <- rtd_raw |>
+  mutate(Ano = as.integer(ANO), Mês = as.integer(MES)) |>
+  select(
+    Ano, Mês,
+    ticket_code, titulo_nome, pvp,
+    qty_A_total, receita_A_total,
+    qty_K, receita_K,
+    qty_total, receita_distribuir
+  ) |>
+  arrange(ticket_code)
+
+detalhe_totais <- tibble(
+  Ano                = NA_integer_,
+  Mês                = NA_integer_,
+  ticket_code        = NA_integer_,
+  titulo_nome        = "TOTAL",
+  pvp                = NA_real_,
+  qty_A_total        = sum(detalhe_ak$qty_A_total, na.rm = TRUE),
+  receita_A_total    = sum(detalhe_ak$receita_A_total, na.rm = TRUE),
+  qty_K              = sum(detalhe_ak$qty_K, na.rm = TRUE),
+  receita_K          = sum(detalhe_ak$receita_K, na.rm = TRUE),
+  qty_total          = sum(detalhe_ak$qty_total, na.rm = TRUE),
+  receita_distribuir = sum(detalhe_ak$receita_distribuir, na.rm = TRUE)
+)
+
+detalhe_ak_full <- bind_rows(detalhe_ak, detalhe_totais)
+
+# --- Escrever Folha 2 ---
+mergeCells(wb, ws_ak, rows = 1, cols = 1:11)
+writeData(wb, ws_ak, x = paste0("     Tabela 2 - Vendas Navegante: Operadores (A) e Canais Partilhados TML (K) — ", mes_nome, " ", ANO),
+          startRow = 1, startCol = 1)
+addStyle(wb, ws_ak, st_title, rows = 1, cols = 1:11, gridExpand = TRUE)
+setRowHeights(wb, ws_ak, rows = 1, heights = 26)
+
+# Secção 2.1: Resumos lado a lado
+# Título Bloco A (cols 1-6)
+mergeCells(wb, ws_ak, rows = 3, cols = 1:6)
+writeData(wb, ws_ak, x = "Resumo: Vendas A por Operador (Bilheteira Própria)", startRow = 3, startCol = 1)
+addStyle(wb, ws_ak, st_sub_header, rows = 3, cols = 1:6, gridExpand = TRUE)
+
+writeData(wb, ws_ak, x = as.data.frame(t(names(vendas_a_tab))), startRow = 4, startCol = 1, colNames = FALSE)
+addStyle(wb, ws_ak, st_header_gold, rows = 4, cols = 1:6, gridExpand = TRUE)
+writeData(wb, ws_ak, x = vendas_a_tab, startRow = 5, startCol = 1, colNames = FALSE)
+
+n_va <- nrow(vendas_a_tab)
+for (i in seq_len(n_va)) {
+  rw <- i + 4
+  is_tot <- (i == n_va)
+  fg <- if (is_tot) cor_gold_light else if (i %% 2 == 0) cor_alt_row else cor_white
+  txt_dec <- if (is_tot) "bold" else NULL
+  addStyle(wb, ws_ak, createStyle(fgFill = fg, halign = "center",
+                                  border = "TopBottomLeftRight", borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 1:2)
+  addStyle(wb, ws_ak, createStyle(fgFill = fg, textDecoration = txt_dec, halign = "left",
+                                  border = "TopBottomLeftRight", borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 3)
+  addStyle(wb, ws_ak, createStyle(fgFill = fg, textDecoration = txt_dec, numFmt = "#,##0", halign = "right",
+                                  border = "TopBottomLeftRight", borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 4)
+  addStyle(wb, ws_ak, createStyle(fgFill = fg, textDecoration = txt_dec, numFmt = "#,##0.00", halign = "right",
+                                  border = "TopBottomLeftRight", borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 5)
+  addStyle(wb, ws_ak, createStyle(fgFill = fg, textDecoration = txt_dec, numFmt = "0.00%", halign = "right",
+                                  border = "TopBottomLeftRight", borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 6)
+}
+
+# Título Bloco K (cols 8-11)
+setColWidths(wb, ws_ak, cols = 7, widths = 4)
+mergeCells(wb, ws_ak, rows = 3, cols = 8:11)
+writeData(wb, ws_ak, x = "Resumo: Vendas K por Canal Partilhado (TML)", startRow = 3, startCol = 8)
+addStyle(wb, ws_ak, st_sub_header, rows = 3, cols = 8:11, gridExpand = TRUE)
+
+writeData(wb, ws_ak, x = as.data.frame(t(names(vendas_k_tab))), startRow = 4, startCol = 8, colNames = FALSE)
+addStyle(wb, ws_ak, st_header_gold, rows = 4, cols = 8:11, gridExpand = TRUE)
+writeData(wb, ws_ak, x = vendas_k_tab, startRow = 5, startCol = 8, colNames = FALSE)
+
+n_vk <- nrow(vendas_k_tab)
+for (i in seq_len(n_vk)) {
+  rw <- i + 4
+  is_tot <- (i == n_vk)
+  fg <- if (is_tot) cor_gold_light else if (i %% 2 == 0) cor_alt_row else cor_white
+  txt_dec <- if (is_tot) "bold" else NULL
+  addStyle(wb, ws_ak, createStyle(fgFill = fg, textDecoration = txt_dec, halign = "left",
+                                  border = "TopBottomLeftRight", borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 8)
+  addStyle(wb, ws_ak, createStyle(fgFill = fg, textDecoration = txt_dec, numFmt = "#,##0", halign = "right",
+                                  border = "TopBottomLeftRight", borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 9)
+  addStyle(wb, ws_ak, createStyle(fgFill = fg, textDecoration = txt_dec, numFmt = "#,##0.00", halign = "right",
+                                  border = "TopBottomLeftRight", borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 10)
+  addStyle(wb, ws_ak, createStyle(fgFill = fg, textDecoration = txt_dec, numFmt = "0.00%", halign = "right",
+                                  border = "TopBottomLeftRight", borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 11)
+}
+
+# Caixa Total Consolidado (linhas 9-11, cols 8-11)
+rw_cons <- 9
+mergeCells(wb, ws_ak, rows = rw_cons, cols = 8:11)
+writeData(wb, ws_ak, x = "TOTAL CONSOLIDADO (Vendas A + Vendas K)", startRow = rw_cons, startCol = 8)
+addStyle(wb, ws_ak, st_sub_header, rows = rw_cons, cols = 8:11, gridExpand = TRUE)
+
+writeData(wb, ws_ak, x = as.data.frame(t(c("Métrica", "Quantidade Total", "Receita Total (€)", "% do Total"))),
+          startRow = rw_cons + 1, startCol = 8, colNames = FALSE)
+addStyle(wb, ws_ak, st_header_gold, rows = rw_cons + 1, cols = 8:11, gridExpand = TRUE)
+
+total_qty_all     <- total_qty_a + qty_k_tot
+total_rec_all     <- total_rec_a + rec_k_tot
+qty_vat_tot       <- sum(rtd_raw$qty_vat, na.rm = TRUE)
+qty_total_vendida <- sum(rtd_raw$qty_total, na.rm = TRUE)
+
+df_cons <- tibble(
+  Metrica          = c("Vendas A", "Vendas K", "Vendas A + K", "Passes Jovem", "Todos"),
+  Quantidade_Total = as.numeric(c(total_qty_a, qty_k_tot, total_qty_all, qty_vat_tot, qty_total_vendida)),
+  Receita_Total    = as.numeric(c(total_rec_a, rec_k_tot, total_rec_all, 0, total_rec_all)),
+  Pct_Total        = c(
+    if (total_rec_all > 0) total_rec_a / total_rec_all else 0,
+    if (total_rec_all > 0) rec_k_tot / total_rec_all else 0,
+    1.0,
+    if (qty_total_vendida > 0) qty_vat_tot / qty_total_vendida else 0,
+    1.0
+  )
+)
+writeData(wb, ws_ak, x = df_cons, startRow = rw_cons + 2, startCol = 8, colNames = FALSE)
+
+# Estilos das 5 linhas da tabela consolidada:
+# Linhas 1 (Vendas A), 2 (Vendas K), 4 (Passes Jovem): normais (texto normal, fundo branco)
+# Linha 3 (Vendas A + K): destaque intermédio (texto a negrito, fundo branco)
+# Linha 5 (Todos): destaque total (texto a negrito, fundo cor_gold_light)
+for (i in 1:5) {
+  rw        <- rw_cons + 1 + i
+  is_subtot <- (i == 3)
+  is_tot    <- (i == 5)
+  is_bold   <- is_subtot || is_tot
+  fg        <- if (is_tot) cor_gold_light else cor_white
+  txt_dec   <- if (is_bold) "bold" else NULL
+
+  addStyle(wb, ws_ak, createStyle(fgFill = fg, textDecoration = txt_dec, halign = "left",
+                                  border = "TopBottomLeftRight", borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 8)
+  addStyle(wb, ws_ak, createStyle(fgFill = fg, textDecoration = txt_dec, numFmt = "#,##0", halign = "right",
+                                  border = "TopBottomLeftRight", borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 9)
+  addStyle(wb, ws_ak, createStyle(fgFill = fg, textDecoration = txt_dec, numFmt = "#,##0.00", halign = "right",
+                                  border = "TopBottomLeftRight", borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 10)
+  addStyle(wb, ws_ak, createStyle(fgFill = fg, textDecoration = txt_dec, numFmt = "0.00%", halign = "right",
+                                  border = "TopBottomLeftRight", borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 11)
+}
+
+# Secção 2.2: Tabela Detalhada por Título (linha 18)
+row_det <- 18
+mergeCells(wb, ws_ak, rows = row_det, cols = 1:11)
+writeData(wb, ws_ak, x = "Detalhe por Título: Quantidades e Valores de Vendas A e K", startRow = row_det, startCol = 1)
+addStyle(wb, ws_ak, st_sub_header, rows = row_det, cols = 1:11, gridExpand = TRUE)
+setRowHeights(wb, ws_ak, rows = row_det, heights = 22)
+
+names_det <- c("Ano", "Mês", "Código", "Designação do Título", "PVP (€)",
+               "Qtd Vendas A", "Receita Vendas A (€)",
+               "Qtd Vendas K", "Receita Vendas K (€)",
+               "Qtd Total Vendida", "Receita Total a Distribuir (€)")
+writeData(wb, ws_ak, x = as.data.frame(t(names_det)), startRow = row_det + 1, startCol = 1, colNames = FALSE)
+addStyle(wb, ws_ak, st_header_gold, rows = row_det + 1, cols = 1:11, gridExpand = TRUE)
+setRowHeights(wb, ws_ak, rows = row_det + 1, heights = 32)
+
+writeData(wb, ws_ak, x = detalhe_ak_full, startRow = row_det + 2, startCol = 1, colNames = FALSE)
+
+n_det   <- nrow(detalhe_ak_full)
+n_data  <- n_det - 1
+r_data  <- (row_det + 2):(row_det + 1 + n_data)
+rw_tot  <- row_det + 1 + n_det
+even_rd <- r_data[(seq_len(n_data) %% 2 == 0)]
+
+addStyle(wb, ws_ak, st_cod,   rows = r_data, cols = 1:2, gridExpand = TRUE)
+addStyle(wb, ws_ak, st_cod,   rows = r_data, cols = 3,   gridExpand = TRUE)
+addStyle(wb, ws_ak, st_desig, rows = r_data, cols = 4,   gridExpand = TRUE)
+addStyle(wb, ws_ak, st_curr,  rows = r_data, cols = c(5, 7, 9, 11), gridExpand = TRUE)
+addStyle(wb, ws_ak, st_int,   rows = r_data, cols = c(6, 8, 10), gridExpand = TRUE)
+addStyle(wb, ws_ak, st_alt,   rows = even_rd, cols = 1:11, gridExpand = TRUE, stack = TRUE)
+conditionalFormatting(wb, ws_ak, cols = 6:11, rows = r_data, rule = "==0", style = st_zero)
+
+idx_inact <- which(detalhe_ak_full$ticket_code[1:n_data] %in% titulos_inativos)
+if (length(idx_inact) > 0) {
+  addStyle(wb, ws_ak, st_inact, rows = r_data[idx_inact], cols = 1:11, gridExpand = TRUE, stack = TRUE)
+}
+
+addStyle(wb, ws_ak, st_total_lbl, rows = rw_tot, cols = 1:5, gridExpand = TRUE)
+addStyle(wb, ws_ak, st_total_int, rows = rw_tot, cols = c(6, 8, 10), gridExpand = TRUE)
+addStyle(wb, ws_ak, st_total_num, rows = rw_tot, cols = c(7, 9, 11), gridExpand = TRUE)
+
+setColWidths(wb, ws_ak, cols = 1:2, widths = 6)
+setColWidths(wb, ws_ak, cols = 3, widths = 8)
+setColWidths(wb, ws_ak, cols = 4, widths = 32)
+setColWidths(wb, ws_ak, cols = 5, widths = 10)
+setColWidths(wb, ws_ak, cols = c(6, 8, 10), widths = 14)
+setColWidths(wb, ws_ak, cols = c(7, 9, 11), widths = 18)
+
+# =============================================================================
+# Tabelas detalhadas adicionais: Quantidades e Receitas A e K por Operador
+# =============================================================================
+if (!is.null(receitas_raw)) {
+  receitas_raw$nome_op <- nome_op_sep[receitas_raw$operador]
+
+  # 1. Tabela 2a: Quantidades de Vendas A e K por Operador (cols 13:25)
+  w_qtd_a <- receitas_raw |>
+    filter(!is.na(nome_op)) |>
+    select(ticket_code, nome_op, qty_operador) |>
+    pivot_wider(names_from = nome_op, values_from = qty_operador, values_fill = 0)
+  for (op in ordem_ops_sep) {
+    if (!op %in% names(w_qtd_a)) w_qtd_a[[op]] <- 0
+  }
+
+  vk_cols_qtd <- if (!is.null(vendas_k_raw)) {
+    vendas_k_raw |> select(ticket_code, `Portal Viva` = qty_K_pv, `SIBS` = qty_K_atm)
+  } else {
+    tibble(ticket_code = titulos_df$ticket_code, `Portal Viva` = 0, `SIBS` = 0)
+  }
+
+  tab_qtd <- titulos_df |>
+    select(ticket_code) |>
+    left_join(w_qtd_a, by = "ticket_code") |>
+    left_join(vk_cols_qtd, by = "ticket_code") |>
+    mutate(across(all_of(c(ordem_ops_sep, "Portal Viva", "SIBS")), ~ replace_na(.x, 0))) |>
+    arrange(ticket_code)
+
+  cols_ak_ops <- c(ordem_ops_sep, "Portal Viva", "SIBS")
+  tab_qtd_out <- tab_qtd |> select(all_of(cols_ak_ops))
+  tot_qtd_row <- as.data.frame(as.list(colSums(tab_qtd_out, na.rm = TRUE)), check.names = FALSE)
+  tab_qtd_full <- bind_rows(tab_qtd_out, tot_qtd_row)
+
+  col_q_start <- 13
+  col_q_end   <- 25
+
+  mergeCells(wb, ws_ak, rows = row_det, cols = col_q_start:col_q_end)
+  writeData(wb, ws_ak, x = "Detalhe por Título: Quantidades de Vendas A e K por Operador",
+            startRow = row_det, startCol = col_q_start)
+  addStyle(wb, ws_ak, st_sub_header, rows = row_det, cols = col_q_start:col_q_end, gridExpand = TRUE)
+
+  names_q_ops <- c(ordem_ops_sep, "Portal Viva", "SIBS")
+  writeData(wb, ws_ak, x = as.data.frame(t(names_q_ops)), startRow = row_det + 1, startCol = col_q_start, colNames = FALSE)
+  addStyle(wb, ws_ak, st_header_gold, rows = row_det + 1, cols = 13:23, gridExpand = TRUE)
+  addStyle(wb, ws_ak, st_header_k,    rows = row_det + 1, cols = 24:25, gridExpand = TRUE)
+
+  writeData(wb, ws_ak, x = tab_qtd_full, startRow = row_det + 2, startCol = col_q_start, colNames = FALSE)
+  addStyle(wb, ws_ak, st_int, rows = r_data, cols = col_q_start:col_q_end, gridExpand = TRUE)
+  addStyle(wb, ws_ak, st_alt, rows = even_rd, cols = col_q_start:col_q_end, gridExpand = TRUE, stack = TRUE)
+  conditionalFormatting(wb, ws_ak, cols = col_q_start:col_q_end, rows = r_data, rule = "==0", style = st_zero)
+  if (length(idx_inact) > 0) {
+    addStyle(wb, ws_ak, st_inact, rows = r_data[idx_inact], cols = col_q_start:col_q_end, gridExpand = TRUE, stack = TRUE)
+  }
+  addStyle(wb, ws_ak, st_total_int, rows = rw_tot, cols = col_q_start:col_q_end, gridExpand = TRUE)
+
+  setColWidths(wb, ws_ak, cols = 12, widths = 4)
+  setColWidths(wb, ws_ak, cols = col_q_start:col_q_end, widths = 12)
+  setColWidths(wb, ws_ak, cols = c(21, 22, 24), widths = 14)
+
+  # 2. Tabela 2b: Receitas de Vendas A e K por Operador (cols 27:39)
+  w_rec_a <- receitas_raw |>
+    filter(!is.na(nome_op)) |>
+    select(ticket_code, nome_op, receita_operador) |>
+    pivot_wider(names_from = nome_op, values_from = receita_operador, values_fill = 0)
+  for (op in ordem_ops_sep) {
+    if (!op %in% names(w_rec_a)) w_rec_a[[op]] <- 0
+  }
+
+  vk_cols_rec <- if (!is.null(vendas_k_raw)) {
+    vendas_k_raw |> select(ticket_code, `Portal Viva` = receita_K_pv, `SIBS` = receita_K_atm)
+  } else {
+    tibble(ticket_code = titulos_df$ticket_code, `Portal Viva` = 0, `SIBS` = 0)
+  }
+
+  tab_rec <- titulos_df |>
+    select(ticket_code) |>
+    left_join(w_rec_a, by = "ticket_code") |>
+    left_join(vk_cols_rec, by = "ticket_code") |>
+    mutate(across(all_of(c(ordem_ops_sep, "Portal Viva", "SIBS")), ~ replace_na(.x, 0))) |>
+    arrange(ticket_code)
+
+  tab_rec_out <- tab_rec |> select(all_of(cols_ak_ops))
+  tot_rec_row <- as.data.frame(as.list(colSums(tab_rec_out, na.rm = TRUE)), check.names = FALSE)
+  tab_rec_full <- bind_rows(tab_rec_out, tot_rec_row)
+
+  col_r_start <- 27
+  col_r_end   <- 39
+
+  mergeCells(wb, ws_ak, rows = row_det, cols = col_r_start:col_r_end)
+  writeData(wb, ws_ak, x = "Detalhe por Título: Receitas de Vendas A e K por Operador (€)",
+            startRow = row_det, startCol = col_r_start)
+  addStyle(wb, ws_ak, st_sub_header, rows = row_det, cols = col_r_start:col_r_end, gridExpand = TRUE)
+
+  names_r_ops <- c(ordem_ops_sep, "Portal Viva", "SIBS")
+  writeData(wb, ws_ak, x = as.data.frame(t(names_r_ops)), startRow = row_det + 1, startCol = col_r_start, colNames = FALSE)
+  addStyle(wb, ws_ak, st_header_gold, rows = row_det + 1, cols = 27:37, gridExpand = TRUE)
+  addStyle(wb, ws_ak, st_header_k,    rows = row_det + 1, cols = 38:39, gridExpand = TRUE)
+
+  writeData(wb, ws_ak, x = tab_rec_full, startRow = row_det + 2, startCol = col_r_start, colNames = FALSE)
+  addStyle(wb, ws_ak, st_curr, rows = r_data, cols = col_r_start:col_r_end, gridExpand = TRUE)
+  addStyle(wb, ws_ak, st_alt, rows = even_rd, cols = col_r_start:col_r_end, gridExpand = TRUE, stack = TRUE)
+  conditionalFormatting(wb, ws_ak, cols = col_r_start:col_r_end, rows = r_data, rule = "==0", style = st_zero)
+  if (length(idx_inact) > 0) {
+    addStyle(wb, ws_ak, st_inact, rows = r_data[idx_inact], cols = col_r_start:col_r_end, gridExpand = TRUE, stack = TRUE)
+  }
+  addStyle(wb, ws_ak, st_total_num, rows = rw_tot, cols = col_r_start:col_r_end, gridExpand = TRUE)
+
+  setColWidths(wb, ws_ak, cols = 26, widths = 4)
+  setColWidths(wb, ws_ak, cols = col_r_start:col_r_end, widths = 14)
+  setColWidths(wb, ws_ak, cols = c(35, 36, 38), widths = 15)
+}
+
+freezePane(wb, ws_ak, firstActiveCol = 6)
+
+
+# =============================================================================
+# FOLHA 4: "4 - Receita B e CongNav B" (Receita devida e congelamento por operador)
+# =============================================================================
+addWorksheet(wb, "4 - Receita B e CongNav B")
+ws_b <- "4 - Receita B e CongNav B"
+
+# Dados por operador (11 operadores separados)
+df_b_op <- tibble(operador_cod = names(nome_op_sep), operador = unname(nome_op_sep)) |>
+  left_join(cong_raw |> select(operador, receita_B, congelamento_B), by = c("operador_cod" = "operador")) |>
+  mutate(
+    receita_B      = replace_na(receita_B, 0),
+    congelamento_B = replace_na(congelamento_B, 0),
+    total_b_cong   = receita_B + congelamento_B
+  ) |>
+  mutate(operador = factor(operador, levels = ordem_ops_sep)) |>
+  arrange(operador) |>
+  mutate(operador = as.character(operador))
+
+tot_rec_b  <- sum(df_b_op$receita_B)
+tot_cong_b <- sum(df_b_op$congelamento_B)
+tot_b_all  <- sum(df_b_op$total_b_cong)
+
+df_b_op <- df_b_op |>
+  mutate(
+    pct_b     = if (tot_rec_b > 0) receita_B / tot_rec_b else 0,
+    nome_completo = nomes_completos[operador_cod]
+  )
+
+tab_b_full <- bind_rows(
+  df_b_op |> mutate(Ano = as.integer(ANO), Mês = as.integer(MES)) |>
+    select(
+      Ano, Mês,
+      Operador = operador,
+      `Nome Completo` = nome_completo,
+      `Receita Devida [B] (€)` = receita_B,
+      `% Receita B` = pct_b,
+      `Congelamento [CongNav B] (€)` = congelamento_B,
+      `Total Devido [B + CongNav B] (€)` = total_b_cong
+    ),
+  tibble(
+    Ano = NA_integer_,
+    Mês = NA_integer_,
+    Operador = "TOTAL",
+    `Nome Completo` = "",
+    `Receita Devida [B] (€)` = tot_rec_b,
+    `% Receita B` = 1.0,
+    `Congelamento [CongNav B] (€)` = tot_cong_b,
+    `Total Devido [B + CongNav B] (€)` = tot_b_all
+  )
+)
+
+# Título
+mergeCells(wb, ws_b, rows = 1, cols = 1:8)
+writeData(wb, ws_b, x = paste0("     Tabela 4 - Receita Bilheteira Devida [B] e Congelamento Navegante [CongNav B] — ", mes_nome, " ", ANO),
+          startRow = 1, startCol = 1)
+addStyle(wb, ws_b, st_title, rows = 1, cols = 1:8, gridExpand = TRUE)
+setRowHeights(wb, ws_b, rows = 1, heights = 26)
+
+# Cabeçalhos
+writeData(wb, ws_b, x = as.data.frame(t(names(tab_b_full))), startRow = 2, startCol = 1, colNames = FALSE)
+addStyle(wb, ws_b, st_header_gold, rows = 2, cols = 1:8, gridExpand = TRUE)
+setRowHeights(wb, ws_b, rows = 2, heights = 35)
+
+writeData(wb, ws_b, x = tab_b_full, startRow = 3, startCol = 1, colNames = FALSE)
+
+n_b_rows <- nrow(tab_b_full)
+for (i in seq_len(n_b_rows)) {
+  rw <- i + 2
+  is_tot <- (i == n_b_rows)
+  fg <- if (is_tot) cor_gold_light else if (i %% 2 == 0) cor_alt_row else cor_white
+  txt_dec <- if (is_tot) "bold" else NULL
+
+  if (is_tot) {
+    addStyle(wb, ws_b, st_total_lbl, rows = rw, cols = 1:4, gridExpand = TRUE)
+    addStyle(wb, ws_b, st_total_num, rows = rw, cols = c(5, 7, 8), gridExpand = TRUE)
+    addStyle(wb, ws_b, st_total_pct, rows = rw, cols = 6, gridExpand = TRUE)
+  } else {
+    addStyle(wb, ws_b, createStyle(fgFill = fg, halign = "center",
+                                   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 1:2)
+    addStyle(wb, ws_b, createStyle(fgFill = fg, textDecoration = "bold", halign = "left",
+                                   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 3)
+    addStyle(wb, ws_b, createStyle(fgFill = fg, halign = "left", border = "LeftRight",
+                                   borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 4)
+    addStyle(wb, ws_b, createStyle(fgFill = fg, numFmt = "#,##0.00", halign = "right",
+                                   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = c(5, 7, 8), gridExpand = TRUE)
+    addStyle(wb, ws_b, createStyle(fgFill = fg, numFmt = "0.0000%", halign = "right",
+                                   border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 6)
+  }
+}
+
+setColWidths(wb, ws_b, cols = 1:2, widths = 6)
+setColWidths(wb, ws_b, cols = 3, widths = 11)
+setColWidths(wb, ws_b, cols = 4, widths = 32)
+setColWidths(wb, ws_b, cols = 5, widths = 18)
+setColWidths(wb, ws_b, cols = 6, widths = 14)
+setColWidths(wb, ws_b, cols = 7, widths = 14)
+setColWidths(wb, ws_b, cols = 8, widths = 16)
+
+# =============================================================================
+# Tabela detalhada da Receita Devida [B] por título × operador (wide) — abaixo do resumo
+# =============================================================================
+if (!is.null(rep_b_raw)) {
+  # Pivot wide: dist_receita por título e operador
+  rec_b_wide <- rep_b_raw |>
+    select(ticket_code, titulo_nome, operador, dist_receita) |>
+    mutate(nome_op = nome_op_sep[operador]) |>
+    filter(!is.na(nome_op)) |>
+    select(ticket_code, titulo_nome, nome_op, dist_receita) |>
+    pivot_wider(names_from = nome_op, values_from = dist_receita, values_fill = 0)
+
+  for (op in ordem_ops_sep) {
+    if (!op %in% names(rec_b_wide)) rec_b_wide[[op]] <- 0
+  }
+
+  # Juntar receita_distribuir por título
+  titulo_rec_dist <- rep_b_raw |>
+    select(ticket_code, receita_distribuir) |>
+    distinct()
+
+  rec_b_wide <- titulos_df |>
+    select(ticket_code, titulo_nome) |>
+    left_join(titulo_rec_dist, by = "ticket_code") |>
+    left_join(rec_b_wide |> select(-titulo_nome), by = "ticket_code") |>
+    mutate(across(c(receita_distribuir, all_of(ordem_ops_sep)), ~ replace_na(.x, 0))) |>
+    arrange(ticket_code) |>
+    mutate(Ano = as.integer(ANO), Mês = as.integer(MES))
+
+  # Linha de totais
+  rec_b_totais <- tibble(
+    Ano                = NA_integer_,
+    Mês                = NA_integer_,
+    ticket_code        = NA_integer_,
+    titulo_nome        = "TOTAL",
+    receita_distribuir = sum(rec_b_wide$receita_distribuir, na.rm = TRUE)
+  )
+  for (op in ordem_ops_sep) rec_b_totais[[op]] <- sum(rec_b_wide[[op]], na.rm = TRUE)
+
+  cols_det_b <- c("Ano", "Mês", "ticket_code", "titulo_nome", "receita_distribuir", ordem_ops_sep)
+  rec_b_wide_out <- bind_rows(
+    rec_b_wide |> select(all_of(cols_det_b)),
+    rec_b_totais |> select(all_of(cols_det_b))
+  )
+
+  n_det_b_cols <- length(cols_det_b)   # Ano, Mês, Código, Designação, Receita a Distribuir, 11 ops = 16 cols
+  rw_det_b     <- n_b_rows + 5         # 2 linhas de espaço após tabela de resumo
+
+  # Sub-cabeçalho da tabela detalhada
+  mergeCells(wb, ws_b, rows = rw_det_b, cols = 1:n_det_b_cols)
+  writeData(wb, ws_b, x = "Detalhe da Receita Bilheteira Devida [B] por Título e Operador (€)",
+            startRow = rw_det_b, startCol = 1)
+  addStyle(wb, ws_b, st_sub_header, rows = rw_det_b, cols = 1:n_det_b_cols, gridExpand = TRUE)
+  setRowHeights(wb, ws_b, rows = rw_det_b, heights = 22)
+
+  names_det_b <- c("Ano", "Mês", "Código", "Designação do Título", "Receita a Distribuir (€)", ordem_ops_sep)
+  writeData(wb, ws_b, x = as.data.frame(t(names_det_b)),
+            startRow = rw_det_b + 1, startCol = 1, colNames = FALSE)
+  addStyle(wb, ws_b, st_header_gold, rows = rw_det_b + 1, cols = 1:n_det_b_cols, gridExpand = TRUE)
+  setRowHeights(wb, ws_b, rows = rw_det_b + 1, heights = 32)
+
+  writeData(wb, ws_b, x = rec_b_wide_out, startRow = rw_det_b + 2, startCol = 1, colNames = FALSE)
+
+  n_det_b_rows <- nrow(rec_b_wide_out)
+  n_data_b     <- n_det_b_rows - 1
+  r_data_b     <- (rw_det_b + 2):(rw_det_b + 1 + n_data_b)
+  rw_tot_b     <- rw_det_b + 1 + n_det_b_rows
+  even_rdb     <- r_data_b[(seq_len(n_data_b) %% 2 == 0)]
+
+  addStyle(wb, ws_b, st_cod,   rows = r_data_b, cols = 1:2, gridExpand = TRUE)
+  addStyle(wb, ws_b, st_cod,   rows = r_data_b, cols = 3,   gridExpand = TRUE)
+  addStyle(wb, ws_b, st_desig, rows = r_data_b, cols = 4,   gridExpand = TRUE)
+  addStyle(wb, ws_b, st_curr,  rows = r_data_b, cols = 5:n_det_b_cols, gridExpand = TRUE)
+  addStyle(wb, ws_b, st_alt,   rows = even_rdb, cols = 1:n_det_b_cols, gridExpand = TRUE, stack = TRUE)
+  conditionalFormatting(wb, ws_b, cols = 5:n_det_b_cols, rows = r_data_b, rule = "==0", style = st_zero)
+
+  idx_inact_b <- which(rec_b_wide_out$ticket_code[1:n_data_b] %in% titulos_inativos)
+  if (length(idx_inact_b) > 0) {
+    addStyle(wb, ws_b, st_inact, rows = r_data_b[idx_inact_b], cols = 1:n_det_b_cols, gridExpand = TRUE, stack = TRUE)
+  }
+
+  addStyle(wb, ws_b, st_total_lbl, rows = rw_tot_b, cols = 1:4, gridExpand = TRUE)
+  addStyle(wb, ws_b, st_total_num, rows = rw_tot_b, cols = 5:n_det_b_cols, gridExpand = TRUE)
+
+  setColWidths(wb, ws_b, cols = 1:2, widths = 6)
+  setColWidths(wb, ws_b, cols = 5, widths = 18)
+  setColWidths(wb, ws_b, cols = 6:n_det_b_cols, widths = 14)
+}
+
+
+# =============================================================================
+# FOLHA 5: "5 - Pag Conta COSP D" (Parâmetros regulamentares e COSP por operador)
+# =============================================================================
+addWorksheet(wb, "5 - Pag Conta COSP D")
+ws_cosp <- "5 - Pag Conta COSP D"
+
+# Parâmetros de cálculo COSP
+saz_df <- read.csv2(file.path(LISTS_DIR, "sazonalidade.csv"), stringsAsFactors = FALSE, dec = ".")
+tat_df <- read.csv2(TAT_FILE, stringsAsFactors = FALSE, dec = ".")
+tat_df$tat <- as.numeric(tat_df$tat)
+
+tat_ate_ano   <- tat_df[tat_df$ano <= ANO, ]
+fator_tat_vmc <- prod(1 + tat_ate_ano$tat)
+VMC_ano       <- round(VMC_2023 * fator_tat_vmc, 2)
+valor_medio_passe <- VMC_ano / N_PASSES_COMPENSAR
+
+saz_df$sazonalidade <- as.numeric(saz_df$sazonalidade)
+saz_mes <- as.numeric(saz_df$sazonalidade[saz_df$mes == MES])
+if (length(saz_mes) == 0 || is.na(saz_mes)) {
+  stop("Sazonalidade não encontrada para o mês: ", MES)
+}
+
+qty_total_mes <- sum(rtd_raw$qty_total, na.rm = TRUE)
+estimativa_passes_anuais <- qty_total_mes / saz_mes
+pct_compensar <- min(1, N_PASSES_COMPENSAR / estimativa_passes_anuais)
+
+# Passes a compensar: somar os arredondamentos por título (igual aos exemplos anteriores)
+# passes_compensar_i já foi arredondado à unidade em 06_cosp_D.R por título
+cosp_detail_raw <- read.csv2(F_COSP_D, stringsAsFactors = FALSE, dec = ",")
+for (col in c("qty_total_i", "passes_compensar_i", "COSP_i", "quota", "COSP_ij")) {
+  if (col %in% names(cosp_detail_raw))
+    cosp_detail_raw[[col]] <- as.numeric(gsub(",", ".", cosp_detail_raw[[col]]))
+}
+cosp_detail_raw$ticket_code <- as.integer(cosp_detail_raw$ticket_code)
+
+# Total de passes a compensar = soma dos arredondamentos por título (não arredondar o total)
+passes_comp_mes  <- sum(unique(cosp_detail_raw[, c("ticket_code", "passes_compensar_i")])$passes_compensar_i,
+                        na.rm = TRUE)
+cosp_total_mes   <- sum(cosp_raw$cosp_D, na.rm = TRUE)
+retencao_val_mes <- (cosp_total_mes / (1 - RETENCAO_TML)) * RETENCAO_TML
+
+# Tabela de Parâmetros
+params_df <- tibble(
+  Parâmetro = c(
+    "Ano de Referência",
+    "Mês de Referência",
+    "Valor Máximo de Compensação 2023 (VMC 2023)",
+    "Fator Cumulativo TAT [prod(1+TAT)]",
+    paste0("VMC Atualizado ", ANO),
+    "Número Máximo Anual de Passes a Compensar (N_PASSES)",
+    "Preço Médio Regulamentar por Passe",
+    "Taxa de Retenção TML",
+    "Fator de Sazonalidade do Mês",
+    "Total de Passes Vendidos no Mês (SISTEMA_QUANTITY)",
+    "Estimativa de Passes Anuais (Qty Mês / Sazonalidade)",
+    "Percentagem de Passes a Compensar [min(1, N / Est)]",
+    "Total de Passes a Compensar no Mês",
+    "Montante COSP Líquido Total a Distribuir [D]",
+    "Montante de Retenção TML (2,5%)"
+  ),
+  Valor = c(
+    as.character(ANO),
+    paste0(mes_nome, " (mês ", sprintf("%02d", MES), ")"),
+    scales::number(VMC_2023, accuracy = 0.01, big.mark = " ", decimal.mark = ",", suffix = " €"),
+    scales::number(fator_tat_vmc, accuracy = 0.000001, decimal.mark = ","),
+    scales::number(VMC_ano, accuracy = 0.01, big.mark = " ", decimal.mark = ",", suffix = " €"),
+    scales::number(N_PASSES_COMPENSAR, accuracy = 1, big.mark = " ", decimal.mark = ","),
+    scales::number(valor_medio_passe, accuracy = 0.0001, decimal.mark = ",", suffix = " €"),
+    scales::percent(RETENCAO_TML, accuracy = 0.01, decimal.mark = ","),
+    scales::percent(saz_mes, accuracy = 0.01, decimal.mark = ","),
+    scales::number(round(qty_total_mes), accuracy = 1, big.mark = " ", decimal.mark = ","),
+    scales::number(round(estimativa_passes_anuais), accuracy = 1, big.mark = " ", decimal.mark = ","),
+    scales::percent(pct_compensar, accuracy = 0.0001, decimal.mark = ","),
+    scales::number(passes_comp_mes, big.mark = " "),
+    scales::number(cosp_total_mes, accuracy = 0.01, big.mark = " ", decimal.mark = ",", suffix = " €"),
+    scales::number(retencao_val_mes, accuracy = 0.01, big.mark = " ", decimal.mark = ",", suffix = " €")
+  )
+)
+
+# Tabela de COSP por operador (11 operadores separados)
+df_cosp_op <- tibble(operador_cod = names(nome_op_sep), operador = unname(nome_op_sep)) |>
+  left_join(cosp_raw |> select(operador, cosp_D), by = c("operador_cod" = "operador")) |>
+  mutate(cosp_D = replace_na(cosp_D, 0)) |>
+  mutate(operador = factor(operador, levels = ordem_ops_sep)) |>
+  arrange(operador) |>
+  mutate(operador = as.character(operador))
+
+tot_cosp <- sum(df_cosp_op$cosp_D)
+
+df_cosp_op <- df_cosp_op |>
+  mutate(
+    pct_cosp = if (tot_cosp > 0) cosp_D / tot_cosp else 0,
+    nome_completo = nomes_completos[operador_cod]
+  )
+
+tab_cosp_full <- bind_rows(
+  df_cosp_op |> mutate(Ano = as.integer(ANO), Mês = as.integer(MES)) |>
+    select(
+      Ano, Mês,
+      Operador = operador,
+      `Nome Completo` = nome_completo,
+      `Pagamento COSP Devido [D] (€)` = cosp_D,
+      `% do COSP Total` = pct_cosp
+    ),
+  tibble(
+    Ano = NA_integer_,
+    Mês = NA_integer_,
+    Operador = "TOTAL",
+    `Nome Completo` = "",
+    `Pagamento COSP Devido [D] (€)` = tot_cosp,
+    `% do COSP Total` = 1.0
+  )
+)
+
+# --- Escrever Folha 5 ---
+mergeCells(wb, ws_cosp, rows = 1, cols = 1:6)
+writeData(wb, ws_cosp, x = paste0("     Tabela 5 - Pagamentos por Conta COSP (D) e Parâmetros Regulamentares — ", mes_nome, " ", ANO),
+          startRow = 1, startCol = 1)
+addStyle(wb, ws_cosp, st_title, rows = 1, cols = 1:6, gridExpand = TRUE)
+setRowHeights(wb, ws_cosp, rows = 1, heights = 26)
+
+# Painel de Parâmetros
+mergeCells(wb, ws_cosp, rows = 3, cols = 1:5)
+writeData(wb, ws_cosp, x = "Parâmetros Regulamentares e de Cálculo COSP (Regulamento 1362-C/2023)", startRow = 3, startCol = 1)
+addStyle(wb, ws_cosp, st_sub_header, rows = 3, cols = 1:5, gridExpand = TRUE)
+
+mergeCells(wb, ws_cosp, rows = 4, cols = 1:4)
+writeData(wb, ws_cosp, x = "Parâmetro", startRow = 4, startCol = 1)
+writeData(wb, ws_cosp, x = "Valor Regulamentado / Calculado", startRow = 4, startCol = 5)
+addStyle(wb, ws_cosp, st_header_gold, rows = 4, cols = 1:5, gridExpand = TRUE)
+
+# Escrever linhas de parâmetros
+for (p in seq_len(nrow(params_df))) {
+  rw <- p + 4
+  mergeCells(wb, ws_cosp, rows = rw, cols = 1:4)
+  writeData(wb, ws_cosp, x = params_df$Parâmetro[p], startRow = rw, startCol = 1)
+  writeData(wb, ws_cosp, x = params_df$Valor[p],     startRow = rw, startCol = 5)
+  addStyle(wb, ws_cosp, st_param_lbl, rows = rw, cols = 1:4, gridExpand = TRUE)
+  addStyle(wb, ws_cosp, st_param_val, rows = rw, cols = 5)
+}
+
+# Tabela por Operador (linha 22)
+rw_tab_cosp <- nrow(params_df) + 6
+mergeCells(wb, ws_cosp, rows = rw_tab_cosp, cols = 1:6)
+writeData(wb, ws_cosp, x = "Repartição dos Pagamentos por Conta COSP [D] por Operador", startRow = rw_tab_cosp, startCol = 1)
+addStyle(wb, ws_cosp, st_sub_header, rows = rw_tab_cosp, cols = 1:6, gridExpand = TRUE)
+
+writeData(wb, ws_cosp, x = as.data.frame(t(names(tab_cosp_full))), startRow = rw_tab_cosp + 1, startCol = 1, colNames = FALSE)
+addStyle(wb, ws_cosp, st_header_gold, rows = rw_tab_cosp + 1, cols = 1:6, gridExpand = TRUE)
+setRowHeights(wb, ws_cosp, rows = rw_tab_cosp + 1, heights = 32)
+
+writeData(wb, ws_cosp, x = tab_cosp_full, startRow = rw_tab_cosp + 2, startCol = 1, colNames = FALSE)
+
+n_cop <- nrow(tab_cosp_full)
+for (i in seq_len(n_cop)) {
+  rw <- rw_tab_cosp + 1 + i
+  is_tot <- (i == n_cop)
+  fg <- if (is_tot) cor_gold_light else if (i %% 2 == 0) cor_alt_row else cor_white
+  txt_dec <- if (is_tot) "bold" else NULL
+
+  if (is_tot) {
+    addStyle(wb, ws_cosp, st_total_lbl, rows = rw, cols = 1:4, gridExpand = TRUE)
+    addStyle(wb, ws_cosp, st_total_num, rows = rw, cols = 5)
+    addStyle(wb, ws_cosp, st_total_pct, rows = rw, cols = 6)
+  } else {
+    addStyle(wb, ws_cosp, createStyle(fgFill = fg, halign = "center",
+                                      border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 1:2)
+    addStyle(wb, ws_cosp, createStyle(fgFill = fg, textDecoration = "bold", halign = "left",
+                                      border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 3)
+    addStyle(wb, ws_cosp, createStyle(fgFill = fg, halign = "left", border = "LeftRight",
+                                      borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 4)
+    addStyle(wb, ws_cosp, createStyle(fgFill = fg, numFmt = "#,##0.00", halign = "right",
+                                      border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 5)
+    addStyle(wb, ws_cosp, createStyle(fgFill = fg, numFmt = "0.0000%", halign = "right",
+                                      border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+             rows = rw, cols = 6)
+  }
+}
+
+# =============================================================================
+# Tabela detalhada COSP por título × operador (wide) — abaixo do resumo
+# =============================================================================
+
+# Construir wide: COSP_ij por título e operador
+cosp_wide <- cosp_detail_raw |>
+  select(ticket_code, titulo_nome, operador, COSP_ij) |>
+  mutate(nome_op = nome_op_sep[operador]) |>
+  filter(!is.na(nome_op)) |>
+  select(ticket_code, titulo_nome, nome_op, COSP_ij) |>
+  pivot_wider(names_from = nome_op, values_from = COSP_ij, values_fill = 0)
+
+for (op in ordem_ops_sep) {
+  if (!op %in% names(cosp_wide)) cosp_wide[[op]] <- 0
+}
+
+# Juntar qty_total_i, passes_compensar_i e COSP_i por título
+titulo_passes <- cosp_detail_raw |>
+  select(ticket_code, qty_total_i, passes_compensar_i, COSP_i) |>
+  distinct()
+
+cosp_wide <- titulos_df |>
+  select(ticket_code, titulo_nome) |>
+  left_join(titulo_passes, by = "ticket_code") |>
+  left_join(cosp_wide |> select(-titulo_nome), by = "ticket_code") |>
+  mutate(across(c(qty_total_i, passes_compensar_i, COSP_i, all_of(ordem_ops_sep)), ~ replace_na(.x, 0))) |>
+  arrange(ticket_code) |>
+  mutate(Ano = as.integer(ANO), Mês = as.integer(MES))
+
+cols_det_cosp <- c("Ano", "Mês", "ticket_code", "titulo_nome",
+                   "qty_total_i", "passes_compensar_i", "COSP_i",
+                   ordem_ops_sep)
+
+# Linha de totais
+cosp_wide_totais <- tibble(
+  Ano                = NA_integer_,
+  Mês                = NA_integer_,
+  ticket_code        = NA_integer_,
+  titulo_nome        = "TOTAL",
+  qty_total_i        = sum(cosp_wide$qty_total_i,        na.rm = TRUE),
+  passes_compensar_i = sum(cosp_wide$passes_compensar_i, na.rm = TRUE),
+  COSP_i             = sum(cosp_wide$COSP_i,             na.rm = TRUE)
+)
+for (op in ordem_ops_sep) cosp_wide_totais[[op]] <- sum(cosp_wide[[op]], na.rm = TRUE)
+
+cosp_wide_out <- bind_rows(
+  cosp_wide |> select(all_of(cols_det_cosp)),
+  cosp_wide_totais |> select(all_of(cols_det_cosp))
+)
+
+# Colunas: Ano, Mês, código, nome, qty, passes, COSP_i, [11 ops] = 2 + 5 + 11 = 18 cols
+n_det_cols <- length(cols_det_cosp)
+
+rw_det_cosp <- rw_tab_cosp + n_cop + 3   # 2 linhas de espaço após tabela operador
+
+# Sub-cabeçalho da tabela detalhada
+mergeCells(wb, ws_cosp, rows = rw_det_cosp, cols = 1:n_det_cols)
+writeData(wb, ws_cosp, x = "Detalhe COSP por Título e Operador (COSP_ij em €)", startRow = rw_det_cosp, startCol = 1)
+addStyle(wb, ws_cosp, st_sub_header, rows = rw_det_cosp, cols = 1:n_det_cols, gridExpand = TRUE)
+
+names_det_cosp <- c("Ano", "Mês", "Código", "Designação do Título",
+                    "Qtd Vendida", "Passes a Compensar", "COSP Título (€)",
+                    ordem_ops_sep)
+writeData(wb, ws_cosp, x = as.data.frame(t(names_det_cosp)),
+          startRow = rw_det_cosp + 1, startCol = 1, colNames = FALSE)
+addStyle(wb, ws_cosp, st_header_gold, rows = rw_det_cosp + 1, cols = 1:n_det_cols, gridExpand = TRUE)
+setRowHeights(wb, ws_cosp, rows = rw_det_cosp + 1, heights = 40)
+
+writeData(wb, ws_cosp, x = cosp_wide_out, startRow = rw_det_cosp + 2, startCol = 1, colNames = FALSE)
+
+n_det_rows  <- nrow(cosp_wide_out)
+n_data_cosp <- n_det_rows - 1
+r_data_cosp <- (rw_det_cosp + 2):(rw_det_cosp + 1 + n_data_cosp)
+rw_tot_cosp <- rw_det_cosp + 1 + n_det_rows
+even_rdc    <- r_data_cosp[(seq_len(n_data_cosp) %% 2 == 0)]
+
+addStyle(wb, ws_cosp, st_cod,   rows = r_data_cosp, cols = 1:2, gridExpand = TRUE)
+addStyle(wb, ws_cosp, st_cod,   rows = r_data_cosp, cols = 3, gridExpand = TRUE)
+addStyle(wb, ws_cosp, st_desig, rows = r_data_cosp, cols = 4, gridExpand = TRUE)
+addStyle(wb, ws_cosp, st_int,   rows = r_data_cosp, cols = 5:6, gridExpand = TRUE)
+addStyle(wb, ws_cosp, st_curr,  rows = r_data_cosp, cols = 7:n_det_cols, gridExpand = TRUE)
+addStyle(wb, ws_cosp, st_alt,   rows = even_rdc,    cols = 1:n_det_cols, gridExpand = TRUE, stack = TRUE)
+conditionalFormatting(wb, ws_cosp, cols = 5:n_det_cols, rows = r_data_cosp, rule = "==0", style = st_zero)
+
+idx_inact_cosp <- which(cosp_wide_out$ticket_code[1:n_data_cosp] %in% titulos_inativos)
+if (length(idx_inact_cosp) > 0) {
+  addStyle(wb, ws_cosp, st_inact, rows = r_data_cosp[idx_inact_cosp], cols = 1:n_det_cols, gridExpand = TRUE, stack = TRUE)
+}
+
+addStyle(wb, ws_cosp, st_total_lbl, rows = rw_tot_cosp, cols = 1:4, gridExpand = TRUE)
+addStyle(wb, ws_cosp, st_total_int, rows = rw_tot_cosp, cols = 5:6, gridExpand = TRUE)
+addStyle(wb, ws_cosp, st_total_num, rows = rw_tot_cosp, cols = 7:n_det_cols, gridExpand = TRUE)
+
+# Larguras das colunas da tabela detalhada
+setColWidths(wb, ws_cosp, cols = 1:2,            widths = 6)
+setColWidths(wb, ws_cosp, cols = 3,              widths = 8)
+setColWidths(wb, ws_cosp, cols = 4,              widths = 32)
+setColWidths(wb, ws_cosp, cols = 5:6,            widths = 14)
+setColWidths(wb, ws_cosp, cols = 7,              widths = 18)
+setColWidths(wb, ws_cosp, cols = 8:n_det_cols,   widths = 13)
+# freezePane(wb, ws_cosp, firstActiveRow = rw_det_cosp + 2, firstActiveCol = 3)
+
+
+# =============================================================================
+# FOLHA 6: "6 - Transferencias F" (Formato longo com TT+SL fundidos)
+# =============================================================================
+addWorksheet(wb, "6 - Transferencias F")
+ws_f <- "6 - Transferencias F"
+
+# Construir linhas em formato longo
+# Função auxiliar para extrair linha de operador
+make_wide_f <- function(metrica, val_fn) {
+  row_vals <- sapply(ordem_ops_merged, function(op) {
+    r <- tabela_global |> filter(nome_tab == op)
+    if (nrow(r) == 0) NA_real_ else val_fn(r)
+  })
+  tot_r <- tabela_global |> filter(nome_tab == "TOTAL")
+  tot_val <- if (nrow(tot_r) == 0) NA_real_ else val_fn(tot_r)
+  c(ANO, MES, metrica, row_vals, tot_val)
+}
+
+folha6_rows <- list(
+  make_wide_f("Receita na posse do operador [A]",             function(r) r$receita_A),
+  make_wide_f("Receita bilheteira devida ao operador [B]",     function(r) r$receita_B),
+  make_wide_f("Pagamento por conta COSP devida ao operador [D]", function(r) r$cosp_D),
+  make_wide_f("Transferência [F = B + D - A]",                function(r) r$F_transferencia),
+  make_wide_f("Congelamento Navegante [CongNavB]",            function(r) r$congelamento),
+  make_wide_f("Total a transferir [F + CongNavB]",            function(r) r$total_transferir),
+  make_wide_f("Transferência entre operadores",               function(r) r$transf_entre_ops),
+  make_wide_f("Total a transferir corrigido",                 function(r) r$total_tml)
+)
+
+folha6_df <- as.data.frame(do.call(rbind, folha6_rows), stringsAsFactors = FALSE)
+colnames(folha6_df) <- c("Ano", "Mês", "Métrica", ordem_ops_merged, "TOTAL")
+
+num_cols_f6 <- c(ordem_ops_merged, "TOTAL")
+folha6_df[num_cols_f6] <- lapply(folha6_df[num_cols_f6], as.numeric)
+
+n_cols_f6 <- ncol(folha6_df)
+
+# Título
+mergeCells(wb, ws_f, rows = 1, cols = 1:n_cols_f6)
+writeData(wb, ws_f, x = paste0("     Tabela 6 - Transferências Mensais TML por Métrica e Operador — ", mes_nome, " ", ANO),
+          startRow = 1, startCol = 1)
+addStyle(wb, ws_f, st_title, rows = 1, cols = 1:n_cols_f6, gridExpand = TRUE)
+setRowHeights(wb, ws_f, rows = 1, heights = 26)
+
+# Cabeçalhos
+writeData(wb, ws_f, x = as.data.frame(t(colnames(folha6_df))), startRow = 2, startCol = 1, colNames = FALSE)
+addStyle(wb, ws_f, st_header_gold, rows = 2, cols = 1:n_cols_f6, gridExpand = TRUE)
+setRowHeights(wb, ws_f, rows = 2, heights = 35)
+
+# Dados
+writeData(wb, ws_f, x = folha6_df, startRow = 3, startCol = 1, colNames = FALSE)
+
+n_rows_f6 <- nrow(folha6_df)
+for (i in seq_len(n_rows_f6)) {
+  rw <- i + 2
+  fg <- if (i %% 2 == 0) cor_alt_row else cor_white
+  txt_dec <- if (i %in% c(6, 8)) "bold" else NULL
+
+  addStyle(wb, ws_f, createStyle(fgFill = fg, halign = "center", border = "LeftRight",
+                                 borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 1:2)
+  addStyle(wb, ws_f, createStyle(fgFill = fg, halign = "left", textDecoration = txt_dec,
+                                 border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 3)
+  addStyle(wb, ws_f, createStyle(fgFill = fg, textDecoration = txt_dec, numFmt = "#,##0.00", halign = "right",
+                                 border = "LeftRight", borderColour = cor_border_soft, fontSize = 9),
+           rows = rw, cols = 4:n_cols_f6, gridExpand = TRUE)
+}
+
+setColWidths(wb, ws_f, cols = 1, widths = 6)
+setColWidths(wb, ws_f, cols = 2, widths = 6)
+setColWidths(wb, ws_f, cols = 3, widths = 36)
+setColWidths(wb, ws_f, cols = 4:n_cols_f6, widths = 14)
+freezePane(wb, ws_f, firstActiveRow = 3, firstActiveCol = 4)
+
+
+# ---- 7. Guardar Workbook -----------------------------------------------------
+saveWorkbook(wb, F_TABELA_XLSX, overwrite = TRUE)
+message("=================================================================")
+message("Workbook consolidado exportado com sucesso:")
+message("  Ficheiro: ", F_TABELA_XLSX)
+message("  Folhas:   ", paste(names(wb), collapse = ", "))
+message("=================================================================")

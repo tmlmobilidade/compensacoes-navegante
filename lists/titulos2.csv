@@ -1,0 +1,169 @@
+PRODUCT	TICKET_OPERATOR_CODE	TICKET_CODE	TICKET_NAME		
+id-prod-navegante-metro	31	900	Navegante Metropolitano		
+id-prod-navegante-alcochete	31	901	Navegante Alcochete		
+id-prod-navegante-almada	31	902	Navegante Almada		
+id-prod-navegante-amadora	31	903	Navegante Amadora		
+id-prod-navegante-barreiro	31	904	Navegante Barreiro		
+id-prod-navegante-cascais	31	905	Navegante Cascais		
+id-prod-navegante-lisboa	31	906	Navegante Lisboa		
+id-prod-navegante-loures	31	907	Navegante Loures		
+id-prod-navegante-mafra	31	908	Navegante Mafra		
+id-prod-navegante-moita	31	909	Navegante Moita		
+id-prod-navegante-montijo	31	910	Navegante Montijo		
+id-prod-navegante-odivelas	31	911	Navegante Odivelas		
+id-prod-navegante-oeiras	31	912	Navegante Oeiras		
+id-prod-navegante-palmela	31	913	Navegante Palmela		
+id-prod-navegante-seixal	31	914	Navegante Seixal		
+id-prod-navegante-sesimbra	31	915	Navegante Sesimbra		
+id-prod-navegante-setubal	31	916	Navegante Setúbal		
+id-prod-navegante-sintra	31	917	Navegante Sintra		
+id-prod-navegante-vfxira	31	918	Navegante Vila Franca de Xira		
+id-prod-navegante-setubal-residente	31	920	Navegante Setúbal Residente		
+id-prod-navegante-65	31	930	Navegante +65		
+id-prod-navegante-65-cpt-b	31	931	Navegante +65 cPT B		
+id-prod-navegante-65-cpt-a	31	932	Navegante +65 cPT A		
+id-prod-navegante-metro-familia	31	990	Navegante Metropolitano Família		
+id-prod-navegante-alcochete-familia	31	991	Navegante Alcochete Família		
+id-prod-navegante-almada-familia	31	992	Navegante Almada Família		
+id-prod-navegante-amadora-familia	31	993	Navegante Amadora Família		
+id-prod-navegante-barreiro-familia	31	994	Navegante Barreiro Família		
+id-prod-navegante-cascais-familia	31	995	Navegante Cascais Família		
+id-prod-navegante-lisboa-familia	31	996	Navegante Lisboa Família		
+id-prod-navegante-loures-familia	31	997	Navegante Loures Família		
+id-prod-navegante-mafra-familia	31	998	Navegante Mafra Família		
+id-prod-navegante-moita-familia	31	999	Navegante Moita Família		
+id-prod-navegante-montijo-familia	31	1000	Navegante Montijo Família		
+id-prod-navegante-odivelas-familia	31	1001	Navegante Odivelas Família		
+id-prod-navegante-oeiras-familia	31	1002	Navegante Oeiras Família		
+id-prod-navegante-palmela-familia	31	1003	Navegante Palmela Família		
+id-prod-navegante-seixal-familia	31	1004	Navegante Seixal Família		
+id-prod-navegante-sesimbra-familia	31	1005	Navegante Sesimbra Família		
+id-prod-navegante-setubal-familia	31	1006	Navegante Setúbal Família		
+id-prod-navegante-sintra-familia	31	1007	Navegante Sintra Família		
+id-prod-navegante-vfxira-familia	31	1008	Navegante Vila Franca de Xira Família		
+id-prod-navegante-12	31	1020	Navegante 12		
+id-prod-navegante-metro-acv	31	1050	PAC navegante Metropolitano		
+id-prod-navegante-alcochete-acv	31	1051	PAC navegante Alcochete		
+id-prod-navegante-almada-acv	31	1052	PAC navegante Almada		
+id-prod-navegante-amadora-acv	31	1053	PAC navegante Amadora		
+id-prod-navegante-barreiro-acv	31	1054	PAC navegante Barreiro		
+id-prod-navegante-cascais-acv	31	1055	PAC navegante Cascais		
+id-prod-navegante-lisboa-acv	31	1056	PAC navegante Lisboa		
+id-prod-navegante-loures-acv	31	1057	PAC navegante Loures		
+id-prod-navegante-mafra-acv	31	1058	PAC navegante Mafra		
+id-prod-navegante-moita-acv	31	1059	PAC navegante Moita		
+id-prod-navegante-montijo-acv	31	1060	PAC navegante Montijo		
+id-prod-navegante-odivelas-acv	31	1061	PAC navegante Odivelas		
+id-prod-navegante-oeiras-acv	31	1062	PAC navegante Oeiras		
+id-prod-navegante-palmela-acv	31	1063	PAC navegante Palmela		
+id-prod-navegante-seixal-acv	31	1064	PAC navegante Seixal		
+id-prod-navegante-sesimbra-acv	31	1065	PAC navegante Sesimbra		
+id-prod-navegante-setubal-acv	31	1066	PAC navegante Setúbal		
+id-prod-navegante-sintra-acv	31	1067	PAC navegante Sintra		
+id-prod-navegante-vfxira-acv	31	1068	PAC navegante Vila Franca de Xira		
+id-prod-navegante-acv-65	31	1069	PAC navegante +65		
+id-prod-navegante-complemento	31	1070	Navegante Complemento		
+id-prod-navegante-trabalhador	31	1071	Navegante Trabalhador		
+id-prod-navegante-trabalhador-cm	31	1072	Navegante Trabalhador CM		
+id-prod-navegante-trabalhador-nao-cm	31	1073	Navegante Trabalhador não CM		
+id-prod-navegante-famil-trab-cm-a1	31	1074	Navegante Familiar Trabalhador CM A1		
+id-prod-navegante-famil-trab-cm-a2	31	1075	Navegante Familiar Trabalhador CM A2		
+id-prod-navegante-famil-trab-cm-a3	31	1076	Navegante Familiar Trabalhador CM A3		
+id-prod-navegante-famil-trab-cm-a4	31	1077	Navegante Familiar Trabalhador CM A4		
+id-prod-navegante-metro-social	31	5920	Navegante Metropolitano Social +		
+id-prod-navegante-alcochete-social	31	5921	Navegante Alcochete Social +		
+id-prod-navegante-almada-social	31	5922	Navegante Almada Social +		
+id-prod-navegante-amadora-social	31	5923	Navegante Amadora Social +		
+id-prod-navegante-barreiro-social	31	5924	Navegante Barreiro Social +		
+id-prod-navegante-cascais-social	31	5925	Navegante Cascais Social +		
+id-prod-navegante-lisboa-social	31	5926	Navegante Lisboa Social +		
+id-prod-navegante-loures-social	31	5927	Navegante Loures Social +		
+id-prod-navegante-mafra-social	31	5928	Navegante Mafra Social +		
+id-prod-navegante-moita-social	31	5929	Navegante Moita Social +		
+id-prod-navegante-montijo-social	31	5930	Navegante Montijo Social +		
+id-prod-navegante-odivelas-social	31	5931	Navegante Odivelas Social +		
+id-prod-navegante-oeiras-social	31	5932	Navegante Oeiras Social +		
+id-prod-navegante-palmela-social	31	5933	Navegante Palmela Social +		
+id-prod-navegante-seixal-social	31	5934	Navegante Seixal Social +		
+id-prod-navegante-sesimbra-social	31	5935	Navegante Sesimbra Social +		
+id-prod-navegante-setubal-social	31	5936	Navegante Setúbal Social +		
+id-prod-navegante-sintra-social	31	5937	Navegante Sintra Social +		
+id-prod-navegante-vfxira-social	31	5938	Navegante Vila Franca de Xira Social +		
+id-prod-navegante-setubal-resid-cptb	31	5940	Navegante Setúbal Residente cPT B		
+id-prod-navegante-metro-sociala	31	5950	Navegante Metropolitano Social + (A)		
+id-prod-navegante-alcochete-sociala	31	5951	Navegante Alcochete Social + (A)		
+id-prod-navegante-almada-sociala	31	5952	Navegante Almada Social + (A)		
+id-prod-navegante-amadora-sociala	31	5953	Navegante Amadora Social + (A)		
+id-prod-navegante-barreiro-sociala	31	5954	Navegante Barreiro Social + (A)		
+id-prod-navegante-cascais-sociala	31	5955	Navegante Cascais Social + (A)		
+id-prod-navegante-lisboa-sociala	31	5956	Navegante Lisboa Social + (A)		
+id-prod-navegante-loures-sociala	31	5957	Navegante Loures Social + (A)		
+id-prod-navegante-mafra-sociala	31	5958	Navegante Mafra Social + (A)		
+id-prod-navegante-moita-sociala	31	5959	Navegante Moita Social + (A)		
+id-prod-navegante-montijo-sociala	31	5960	Navegante Montijo Social + (A)		
+id-prod-navegante-odivelas-sociala	31	5961	Navegante Odivelas Social + (A)		
+id-prod-navegante-oeiras-sociala	31	5962	Navegante Oeiras Social + (A)		
+id-prod-navegante-palmela-sociala	31	5963	Navegante Palmela Social + (A)		
+id-prod-navegante-seixal-sociala	31	5964	Navegante Seixal Social + (A)		
+id-prod-navegante-sesimbra-sociala	31	5965	Navegante Sesimbra Social + (A)		
+id-prod-navegante-setubal-sociala	31	5966	Navegante Setúbal Social + (A)		
+id-prod-navegante-sintra-sociala	31	5967	Navegante Sintra Social + (A)		
+id-prod-navegante-vfxira-sociala	31	5968	Navegante Vila Franca de Xira Social + (A)		
+id-prod-navegante-setubal-resid-cpta	31	5970	Navegante Setúbal Residente cPT A		
+id-prod-navegante-metro-418	31	6150	Navegante Metropolitano 418/sub23		
+id-prod-navegante-alcochete-418	31	6151	Navegante Alcochete 418/sub23		
+id-prod-navegante-amadora-418	31	6153	Navegante Amadora 418/sub23		
+id-prod-navegante-barreiro-418	31	6154	Navegante Barreiro 418/sub23		
+id-prod-navegante-cascais-418	31	6155	Navegante Cascais 418/sub23		
+id-prod-navegante-lisboa-418	31	6156	Navegante Lisboa 418/sub23		
+id-prod-navegante-loures-418	31	6157	Navegante Loures 418/sub23		
+id-prod-navegante-mafra-418	31	6158	Navegante Mafra 418/sub23		
+id-prod-navegante-moita-418	31	6159	Navegante Moita 418/sub23		
+id-prod-navegante-montijo-418	31	6160	Navegante Montijo 418/sub23		
+id-prod-navegante-odivelas-418	31	6161	Navegante Odivelas 418/sub23		
+id-prod-navegante-oeiras-418	31	6162	Navegante Oeiras 418/sub23		
+id-prod-navegante-palmela-418	31	6163	Navegante Palmela 418/sub23		
+id-prod-navegante-seixal-418	31	6164	Navegante Seixal 418/sub23		
+id-prod-navegante-sesimbra-418	31	6165	Navegante Sesimbra 418/sub23		
+id-prod-navegante-setubal-418	31	6166	Navegante Setúbal 418/sub23		
+id-prod-navegante-sintra-418	31	6167	Navegante Sintra 418/sub23		
+id-prod-navegante-vfxira-418	31	6168	Navegante Vila Franca de Xira 418/sub23		
+id-prod-navegante-almada-418	31	6169	Navegante Almada 418/sub23		
+id-prod-navegante-complemento-418	31	6170	Navegante Complemento 418/sub23		
+id-prod-navegante-metro-418-gratuito	31	6180	Navegante Metropolitano Sub18 +TP		
+id-prod-navegante-metro-sub23-grat	31	6181	Navegante Metropolitano Sub23 +TP		
+id-prod-navegante-metro-418a	31	7650	Navegante Metropolitano 418/sub23 (A)		
+id-prod-navegante-alcochete-418a	31	7651	Navegante Alcochete 418/sub23 (A)		
+id-prod-navegante-amadora-418a	31	7653	Navegante Amadora 418/sub23 (A)		
+id-prod-navegante-barreiro-418a	31	7654	Navegante Barreiro 418/sub23 (A)		
+id-prod-navegante-cascais-418a	31	7655	Navegante Cascais 418/sub23 (A)		
+id-prod-navegante-lisboa-418a	31	7656	Navegante Lisboa 418/sub23 (A)		
+id-prod-navegante-loures-418a	31	7657	Navegante Loures 418/sub23 (A)		
+id-prod-navegante-mafra-418a	31	7658	Navegante Mafra 418/sub23 (A)		
+id-prod-navegante-moita-418a	31	7659	Navegante Moita 418/sub23 (A)		
+id-prod-navegante-montijo-418a	31	7660	Navegante Montijo 418/sub23 (A)		
+id-prod-navegante-odivelas-418a	31	7661	Navegante Odivelas 418/sub23 (A)		
+id-prod-navegante-oeiras-418a	31	7662	Navegante Oeiras 418/sub23 (A)		
+id-prod-navegante-palmela-418a	31	7663	Navegante Palmela 418/sub23 (A)		
+id-prod-navegante-seixal-418a	31	7664	Navegante Seixal 418/sub23 (A)		
+id-prod-navegante-sesimbra-418a	31	7665	Navegante Sesimbra 418/sub23 (A)		
+id-prod-navegante-setubal-418a	31	7666	Navegante Setúbal 418/sub23 (A)		
+id-prod-navegante-sintra-418a	31	7667	Navegante Sintra 418/sub23 (A)		
+id-prod-navegante-vfxira-418a	31	7668	Navegante Vila Franca de Xira 418/sub23 (A)		
+id-prod-navegante-almada-418a	31	7669	Navegante Almada 418/sub23 (A)		
+id-prod-navegante-complemento-418a	31	7670	Navegante Complemento 418/sub23 (A)		
+id-prod-jmj-4-dias	31	32790	JMJ 4D		
+id-prod-jmj-8-dias	31	32791	JMJ 8D		
+id-prod-jmj-16-dias	31	32792	JMJ 16D		
+id-prod-jmj-9-dias-7	31	32793	JMJ 9D7		
+id-prod-jmj-9-dias-8	31	32794	JMJ 9D8		
+id-prod-zapping	31	33592	Zapping		
+id-prod-tarifa-local	22	60000	T1		
+id-prod-tarifa-urbano	22	60001	T2		
+id-prod-tarifa-rapida	22	60002	T3		
+id-prod-tarifa-interregional-42	22	60003	T4		
+id-prod-tarifa-interregional-44	22	60004	T4		
+id-prod-tarifa-local-mini-42	22	60005	T1 rodinhas		
+id-prod-tarifa-praia	22	60006	T5		
+id-prod-tarifa-local-voltas-42	22	60007	T1 voltas		
+id-prod-tarifa-local-sesimbra-43	22	60008	T1 sesimbra		
