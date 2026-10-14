@@ -28,6 +28,7 @@ book:
       chapters:
         - anexo_execucao.qmd
         - anexo_tabelas.qmd
+        - references.qmd
 
   repo-url: https://github.com/tmlmobilidade/compensacoes-navegante
   site-url: https://tmlmobilidade.github.io/compensacoes-navegante
@@ -36,6 +37,10 @@ book:
     left: "TML - Transportes Metropolitanos de Lisboa"
     # center: "DEP - Departamento de Estudos e Planeamento"
     right: "v0.3 (beta)"
+
+bibliography: references.bib
+link-citations: true
+citeproc: true 
 
 format:
   html:

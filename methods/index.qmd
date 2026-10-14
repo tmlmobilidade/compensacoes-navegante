@@ -3,7 +3,7 @@
 
 Este manual documenta o procedimento metodológico e operacional, gerido pela **TML — Transportes Metropolitanos de Lisboa** para a **distribuição de receitas tarifárias e apuramento de compensações financeiras** aos operadores de transporte público coletivo de passageiros da Área Metropolitana de Lisboa (AML), que disponibilizam os Passes Navegante.
 
-O modelo implementado reproduz as regras estipuladas no [Regulamento n.º 1362-C/2023](https://diariodarepublica.pt/dr/detalhe/regulamento/1362-c-2023-835674356), publicado em Diário da República a 27 de dezembro de 2023, a 6ª alteração ao Regulamento Tarifário da AML n. 278-A/2019.
+O modelo implementado reproduz as regras estipuladas no Regulamento da AML 1362-C/2023 [-@Regulamento1362C2023], a sexta alteração ao Regulamento da AML 278-A/2019 [-@Regulamento278A2019].
  
 ---
 
