@@ -10,16 +10,16 @@ Este anexo sintetiza o guia prático passo a passo para a preparação e execuç
 
 ## 🗓️ Como Preparar um Novo Mês
 
-Antes de executar o pipeline pela primeira vez para um novo mês, deves seguir rigorosamente estes passos por ordem:
+Antes de executar o pipeline pela primeira vez para um novo mês, deve-se seguir rigorosamente estes passos por ordem:
 
 ### 1. Criar a pasta de dados do mês (em `data/`)
 
-Cria a pasta do mês dentro de `data/` (exemplo para Agosto de 2026: `data/08_ago_2026/input/`).
+Criae a pasta do mês dentro de `data/` (exemplo para Agosto de 2026: `data/08_ago_2026/input/`).
 Dentro de `input/`, cria a subpasta `Recibos B/`.
 
 A pasta `output/` e as suas subpastas são criadas automaticamente pelos scripts.
 
-> *Nota: A pasta `data/` encontra-se no `.gitignore`, pelo que os ficheiros brutos de bilhética nunca são enviados para o repositório remoto.*
+> *Nota: A pasta `data/` encontra-se no `.gitignore`, pelo que os ficheiros brutos de bilhética e resultados nunca são enviados para o repositório remoto.*
 
 ### 2. Recolher e colocar os ficheiros de dados
 
@@ -42,7 +42,7 @@ Executar as seguintes consultas e guardar os CSVs (delimitados por ponto e vírg
 
 | Ficheiro a gravar em `input/` | Consulta / Script | Objetivo |
 | :--- | :--- | :--- |
-| `V_REG_AVERAGE_DISTANCE_FINAL_ALL_<timestamp>.csv` | `SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = <MES> AND distribution_year = <ANO>;` | Distâncias médias dinâmicas APEX para Carris Metropolitana (`75`) e Cascais Próxima (`22`). |
+| `*_AVERAGE_DISTANCE_*_<timestamp>.csv` | `SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = <MES> AND distribution_year = <ANO>;` | Distâncias médias dinâmicas APEX para Carris Metropolitana (`75`) e Cascais Próxima (`22`). |
 | `entity23_<timestamp>.csv` | [`code/sql/query_CM_fiscaismoveis.sql`](../code/sql/query_CM_fiscaismoveis.sql) | Validações em terminais móveis dos fiscais da Carris Metropolitana (`ENTITY_ID = 23`). |
 
 ::: {.callout-tip}
@@ -75,7 +75,7 @@ MES <- 8       # ← alterar para o mês pretendido
 RENDER_INFORMACAO1 <- TRUE
 RENDER_METODOLOGIA <- TRUE
 RENDER_OFICIO1     <- TRUE
-RENDER_OFICIO2     <- TRUE
+RENDER_OFICIO2     <- FALSE
 RENDER_DOCX        <- TRUE    # TRUE gera também versões Word (.docx) nativas via Quarto
 ```
 
@@ -116,15 +116,16 @@ renv::restore()
 
 ### 1. Execução do Pipeline Completo
 
-Concluídos os passos de preparação, corre o pipeline a partir da raiz do projeto:
+Concluídos os passos de preparação, correr o pipeline a partir da raiz do projeto:
 
 ```bash
 Rscript code/99_run_all.R
 ```
 
-O pipeline calcula todas as fases (passos 01 a 08) em ~3 segundos e compila os relatórios ativos em Quarto/Typst (passo 10) em ~10 segundos.
+O pipeline calcula todas as fases (passos 01 a 08) e compila os relatórios ativos em Quarto (passo 10).
+Todo o processo demora cerca de 2 minutos.
 
-Também podes definir as variáveis por linha de comandos sem alterar o ficheiro `config.R`:
+Também se pode definir as variáveis por linha de comandos, diretamente, sem alterar o ficheiro `config.R`:
 
 ```powershell
 $env:MES=8; $env:ANO=2026; Rscript code/99_run_all.R
@@ -138,7 +139,7 @@ $env:MES=8; $env:ANO=2026; Rscript code/99_run_all.R
 Ao executar `Rscript code/99_run_all.R`, o script mestre executa automaticamente `code/10_documentos.R` para todos os documentos ativos.
 
 ### Opção B: Renderização Isolada
-Se os cálculos já foram efetuados e apenas pretendes recompilar os documentos (após rever textos ou números de ofício):
+Se os cálculos já foram efetuados e apenas se pretende recompilar os documentos (após rever textos ou números de ofício):
 
 ```bash
 # Todos os documentos ativos:
@@ -152,11 +153,11 @@ quarto render code/oficio2.qmd --to docx
 
 ::: {.callout-note}
 ## Alterações aos Estilos do Word
-Se modificares estilos ou margens em `code/templates/build_reference_doc.R`, deves regerar o modelo antes de renderizar:
-```powershell
+Se os estilos ou margens em `code/templates/build_reference_doc.R` forem modificados, é necessário regenerar o modelo antes de renderizar:
+```sh
 Rscript code/templates/build_reference_doc.R
 ```
-*(Certifica-te de fechar o Microsoft Word antes para não ocorrer erro de ficheiro bloqueado).*
+*(Fechar o Microsoft Word antes para não ocorrer erro de ficheiro bloqueado).*
 :::
 
 Os documentos finais são guardados na pasta `data/{MES_ANO}/output/docs/`:
