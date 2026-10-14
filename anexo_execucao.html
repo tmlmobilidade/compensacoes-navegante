@@ -353,7 +353,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code>entity23_&lt;timestamp&gt;.csv</code></td>
-<td style="text-align: left;"><a href="../code/sql/query_CM_fiscaismoveis.sql"><code>code/sql/query_CM_fiscaismoveis.sql</code></a></td>
+<td style="text-align: left;"><a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/sql/query_CM_fiscaismoveis.sql"><code>code/sql/query_CM_fiscaismoveis.sql</code></a></td>
 <td style="text-align: left;">Validações em terminais móveis dos fiscais da Carris Metropolitana (<code>ENTITY_ID = 23</code>).</td>
 </tr>
 </tbody>
@@ -376,7 +376,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="registar-a-load_version-ou-run_id-em-listsload_versions.csv" class="level3">
 <h3 class="anchored" data-anchor-id="registar-a-load_version-ou-run_id-em-listsload_versions.csv">3. Registar a <code>load_version</code> ou <code>run_id</code> em <code>lists/load_versions.csv</code></h3>
 <p>A <code>load_version</code> ou o <code>run_id</code> identificam a versão do processamento de distâncias da Carris Metropolitana (Trino/APEX), disponibilizada pelo Dept. ITS.</p>
-<p>Abrir <a href="../lists/load_versions.csv"><code>lists/load_versions.csv</code></a> e adicionar a linha do novo mês:</p>
+<p>Abrir <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/lists/load_versions.csv"><code>lists/load_versions.csv</code></a> e adicionar a linha do novo mês:</p>
 <pre class="csv"><code>mes;ano;load_version
 ...
 6;2026;31
@@ -384,7 +384,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="atualizar-codeconfig.r" class="level3">
 <h3 class="anchored" data-anchor-id="atualizar-codeconfig.r">4. Atualizar <code>code/config.R</code></h3>
-<p>Editar <a href="../code/config.R"><code>code/config.R</code></a> e definir o mês, ano e as opções documentais:</p>
+<p>Editar <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/config.R"><code>code/config.R</code></a> e definir o mês, ano e as opções documentais:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>ANO <span class="ot">&lt;-</span> <span class="dv">2026</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>MES <span class="ot">&lt;-</span> <span class="dv">8</span>       <span class="co"># ← alterar para o mês pretendido</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -398,7 +398,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="atualizar-os-parâmetros-de-emissão-em-codedoc_params.r" class="level3">
 <h3 class="anchored" data-anchor-id="atualizar-os-parâmetros-de-emissão-em-codedoc_params.r">5. Atualizar os parâmetros de emissão em <code>code/doc_params.R</code></h3>
-<p>Todos os parâmetros administrativos de emissão estão centralizados em <a href="../code/doc_params.R"><code>code/doc_params.R</code></a>:</p>
+<p>Todos os parâmetros administrativos de emissão estão centralizados em <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/doc_params.R"><code>code/doc_params.R</code></a>:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Datas de receção dos dados de bilhética:</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>data_dados_dits <span class="ot">&lt;-</span> <span class="st">"XX de setembro de 2026"</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>data_dados_its  <span class="ot">&lt;-</span> <span class="st">"XX de setembro de 2026"</span></span>
@@ -487,8 +487,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div class="callout-body-container callout-body">
 <ul>
-<li><p><strong>Script Mestre</strong>: <a href="../code/99_run_all.R"><code>code/99_run_all.R</code></a></p></li>
-<li><p><strong>Parâmetros Mensais</strong>: Para calcular um novo mês, ajustar <code>ANO</code> e <code>MES</code> em <a href="../code/config.R"><code>code/config.R</code></a> e correr:</p>
+<li><p><strong>Script Mestre</strong>: <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/99_run_all.R"><code>code/99_run_all.R</code></a></p></li>
+<li><p><strong>Parâmetros Mensais</strong>: Para calcular um novo mês, ajustar <code>ANO</code> e <code>MES</code> em <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/config.R"><code>code/config.R</code></a> e correr:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> code/99_run_all.R</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div></li>
 <li><p><strong>Destino dos Resultados</strong>: Os dados de saída são gerados em <code>data/{MES_ANO}/output/</code> com o sufixo do mês (ex.: <code>mai26</code>, <code>jun26</code>).</p></li>
 </ul>
@@ -496,7 +496,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <section id="sec-config" class="level3">
 <h3 class="anchored" data-anchor-id="sec-config">Configuração Global (<code>config.R</code>)</h3>
-<p>Os parâmetros operacionais, diretórios e constantes do sistema estão centralizados em <a href="../code/config.R"><code>code/config.R</code></a>:</p>
+<p>Os parâmetros operacionais, diretórios e constantes do sistema estão centralizados em <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/config.R"><code>code/config.R</code></a>:</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 33%">

@@ -366,13 +366,13 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A Carris Metropolitana é operada por quatro concessões zonais (<code>A1</code>, <code>A2</code>, <code>A3</code> e <code>A4</code>). O operador <strong>CM</strong> nos cálculos corresponde à agregação destas 4 concessões, associada às validações nos terminais dos fiscais. A correspondência de códigos pode ser consultada em <a href="../lists/operadores.csv"><code>lists/operadores.csv</code></a>.</p>
+<p>A Carris Metropolitana é operada por quatro concessões zonais (<code>A1</code>, <code>A2</code>, <code>A3</code> e <code>A4</code>). O operador <strong>CM</strong> nos cálculos corresponde à agregação destas 4 concessões, associada às validações nos terminais dos fiscais. A correspondência de códigos pode ser consultada em <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/lists/operadores.csv"><code>lists/operadores.csv</code></a>.</p>
 </div>
 </div>
 <hr>
 <section id="script-01_recibos_b.r" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="script-01_recibos_b.r">Script: <code>01_recibos_b.R</code></h3>
-<p>O script <a href="../code/01_recibos_b.R"><code>code/01_recibos_b.R</code></a> realiza a leitura em lote de todos os ficheiros de Recibo B da pasta <code>data/{MES_ANO}/input/Recibos B/</code>, aplicando os seguintes filtros regulamentares:</p>
+<p>O script <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/01_recibos_b.R"><code>code/01_recibos_b.R</code></a> realiza a leitura em lote de todos os ficheiros de Recibo B da pasta <code>data/{MES_ANO}/input/Recibos B/</code>, aplicando os seguintes filtros regulamentares:</p>
 <ul>
 <li><code>SOURCE == "Transaction"</code> (os títulos VaT são tratados separadamente para a determinação do número total de passes carregados, necessário à COSP);</li>
 <li><code>TICKET_OPERATOR_CODE == 31</code> (apenas títulos do Regulamento Navegante);</li>
@@ -440,7 +440,7 @@ window.Quarto = {
 <li>Filtro de títulos existentes:</li>
 </ol>
 <p>Apenas são considerados os títulos que já existem no Recibo B da CM. Títulos não-Navegante (ex.: ticket 33592 ou bilhética própria de bordo) são automaticamente ignorados no cruzamento.</p>
-<p><strong>Query 2c (<a href="../code/sql/query_CM_fiscaismoveis.sql"><code>code/sql/query_CM_fiscaismoveis.sql</code></a>):</strong></p>
+<p><strong>Query 2c (<a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/sql/query_CM_fiscaismoveis.sql"><code>code/sql/query_CM_fiscaismoveis.sql</code></a>):</strong></p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    DISTRIBUTION_YEAR,</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    DISTRIBUTION_MONTH,</span>

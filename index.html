@@ -442,49 +442,49 @@ flowchart TD
 <tbody>
 <tr class="odd">
 <td style="text-align: left;"><strong>Passageiros e Recibos B</strong></td>
-<td style="text-align: left;"><a href="../code/01_recibos_b.R"><code>01_recibos_b.R</code></a></td>
+<td style="text-align: left;"><a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/01_recibos_b.R"><code>01_recibos_b.R</code></a></td>
 <td style="text-align: left;">Passageiros Transportados (<span class="math inline">\(PT\)</span>) e Reconciliação</td>
 <td style="text-align: left;">Recibos B APEX, Oracle Fiscais Móveis CM</td>
 <td style="text-align: left;"><code>1a_PT_{SUFIXO}.csv</code>, <code>1b_PT_CM_{SUFIXO}.csv</code>, <code>1d_validacoes_{SUFIXO}.csv</code> (VaT)</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong>Distâncias, Pesos e Quotas</strong></td>
-<td style="text-align: left;"><a href="../code/02_distancias.R"><code>02_distancias.R</code></a>, <a href="../code/03_quotas.R"><code>03_quotas.R</code></a></td>
+<td style="text-align: left;"><a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/02_distancias.R"><code>02_distancias.R</code></a>, <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/03_quotas.R"><code>03_quotas.R</code></a></td>
 <td style="text-align: left;">Distâncias Médias (<span class="math inline">\(\bar{d}\)</span>) e Quotas Dinâmicas (<span class="math inline">\(\text{Quota}\)</span>)</td>
 <td style="text-align: left;">Oracle APEX, distâncias de referência, pesos PKM</td>
 <td style="text-align: left;"><code>1e_distancias_{SUFIXO}.csv</code>, <code>1_quotas_{SUFIXO}.csv</code></td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><strong>Vendas A e K</strong></td>
-<td style="text-align: left;"><a href="../code/04_vendas_AK.R"><code>04_vendas_AK.R</code></a></td>
+<td style="text-align: left;"><a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/04_vendas_AK.R"><code>04_vendas_AK.R</code></a></td>
 <td style="text-align: left;">Apuramento de Vendas e Volume Global</td>
 <td style="text-align: left;">Recibos B, Separação PV/ATM</td>
 <td style="text-align: left;"><code>2_vendas_A_{SUFIXO}.csv</code>, <code>2_vendas_K_{SUFIXO}.csv</code>, <code>4a_receita_titulo_distribuir_{SUFIXO}.csv</code></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong>Repartição B e TAT</strong></td>
-<td style="text-align: left;"><a href="../code/05_reparticao_B.R"><code>05_reparticao_B.R</code></a></td>
+<td style="text-align: left;"><a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/05_reparticao_B.R"><code>05_reparticao_B.R</code></a></td>
 <td style="text-align: left;">Receita Devida (<span class="math inline">\(B\)</span>) e Congelamento Navegante</td>
 <td style="text-align: left;">Quotas, Receita a distribuir (<span class="math inline">\(R_i\)</span>), Taxa TAT</td>
 <td style="text-align: left;"><code>4b_reparticao_B_{SUFIXO}.csv</code>, <code>4_receitaB_congelamento_{SUFIXO}.csv</code></td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><strong>Compensação COSP</strong></td>
-<td style="text-align: left;"><a href="../code/06_cosp_D.R"><code>06_cosp_D.R</code></a></td>
+<td style="text-align: left;"><a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/06_cosp_D.R"><code>06_cosp_D.R</code></a></td>
 <td style="text-align: left;">Pagamento por Conta da COSP Tarifária (<span class="math inline">\(D\)</span>)</td>
 <td style="text-align: left;">Volume total passes (<span class="math inline">\(Q\)</span>), Sazonalidade, VMC</td>
 <td style="text-align: left;"><code>5a_cosp_{SUFIXO}.csv</code>, <code>5_cosp_operador_{SUFIXO}.csv</code></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong>Transferências Finais</strong></td>
-<td style="text-align: left;"><a href="../code/07_transferencias_F.R"><code>07_transferencias_F.R</code></a>, <a href="../code/08_tables.R"><code>08_tables.R</code></a></td>
+<td style="text-align: left;"><a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/07_transferencias_F.R"><code>07_transferencias_F.R</code></a>, <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/08_tables.R"><code>08_tables.R</code></a></td>
 <td style="text-align: left;">Apuramento de Transferências (<span class="math inline">\(F\)</span>) e Excel</td>
 <td style="text-align: left;">Receitas <span class="math inline">\(A\)</span>, <span class="math inline">\(B\)</span>, <span class="math inline">\(D\)</span>, TAT, canais partilhados <span class="math inline">\(K\)</span></td>
 <td style="text-align: left;"><code>6_transferencias_{SUFIXO}.csv</code>, <code>Anexo_Calculos_{SUFIXO}.xlsx</code></td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><strong>Documentos Oficiais</strong></td>
-<td style="text-align: left;"><a href="../code/10_documentos.R"><code>10_documentos.R</code></a></td>
+<td style="text-align: left;"><a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/10_documentos.R"><code>10_documentos.R</code></a></td>
 <td style="text-align: left;">Informação Técnica e Ofícios de Liquidação</td>
 <td style="text-align: left;">Tabelas consolidadas, parâmetros de emissão</td>
 <td style="text-align: left;"><code>Informacao_{SUFIXO}.pdf</code>, <code>Anexo_Metodologia_{SUFIXO}.pdf</code>, <code>Oficios.pdf</code></td>

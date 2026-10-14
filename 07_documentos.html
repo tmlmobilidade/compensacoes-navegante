@@ -337,23 +337,23 @@ window.Quarto = {
 <h2 data-number="7.1" class="anchored" data-anchor-id="tipologia-de-documentos-oficiais"><span class="header-section-number">7.1</span> Tipologia de Documentos Oficiais</h2>
 <p>São gerados mensalmente quatro documentos principais:</p>
 <ol type="1">
-<li><strong>Informação Técnica Interna</strong> (<a href="../code/informacao1.qmd"><code>code/informacao1.qmd</code></a>):
+<li><strong>Informação Técnica Interna</strong> (<a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/informacao1.qmd"><code>code/informacao1.qmd</code></a>):
 <ul>
 <li>Documento interno de apoio à decisão do Conselho de Administração da TML;</li>
 <li>Apresenta a síntese dos resultados mensais, evolução homóloga da procura e receitas, e as propostas de liquidação;</li>
-<li>Utiliza cabeçalho simples com o logótipo oficial da TML (<a href="../code/templates/logo_tml.svg"><code>code/templates/logo_tml.svg</code></a>).</li>
+<li>Utiliza cabeçalho simples com o logótipo oficial da TML (<a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/templates/logo_tml.svg"><code>code/templates/logo_tml.svg</code></a>).</li>
 </ul></li>
-<li><strong>Anexo Metodologia</strong> (<a href="../code/metodologia.qmd"><code>code/metodologia.qmd</code></a>):
+<li><strong>Anexo Metodologia</strong> (<a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/metodologia.qmd"><code>code/metodologia.qmd</code></a>):
 <ul>
 <li>Documento externo anexo à Informação, destinado aos operadores e entidades de tutela;</li>
 <li>Descreve detalhadamente as fórmulas regulamentares e hipóteses de cálculo do mês;</li>
 <li>Utiliza papel timbrado institucional oficial em todas as páginas.</li>
 </ul></li>
-<li><strong>Ofício 1 — Pagamentos Imediatos</strong> (<a href="../code/oficio1.qmd"><code>code/oficio1.qmd</code></a>):
+<li><strong>Ofício 1 — Pagamentos Imediatos</strong> (<a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/oficio1.qmd"><code>code/oficio1.qmd</code></a>):
 <ul>
 <li>Comunicação formal a cada operador com a discriminação dos montantes a liquidar de imediato (financiados pelos canais partilhados <span class="math inline">\(K\)</span>).</li>
 </ul></li>
-<li><strong>Ofício 2 — Pagamentos Incentiva +TP</strong> (<a href="../code/oficio2.qmd"><code>code/oficio2.qmd</code></a>):
+<li><strong>Ofício 2 — Pagamentos Incentiva +TP</strong> (<a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/oficio2.qmd"><code>code/oficio2.qmd</code></a>):
 <ul>
 <li>Comunicação formal relativa às verbas do Fundo Ambiental (Incentiva +TP), a liquidar assim que a verba governamental for transferida.</li>
 </ul></li>
@@ -365,15 +365,15 @@ window.Quarto = {
 <p>A qualidade visual e tipográfica dos documentos assenta em quatro pilares técnicos:</p>
 <section id="papel-timbrado-vetorial-oficial" class="level3" data-number="7.2.1">
 <h3 data-number="7.2.1" class="anchored" data-anchor-id="papel-timbrado-vetorial-oficial"><span class="header-section-number">7.2.1</span> Papel Timbrado Vetorial Oficial</h3>
-<p>Nos documentos externos (<code>doc-tipo: externo</code>), o filtro Pandoc <a href="../code/templates/linebreaks.lua"><code>code/templates/linebreaks.lua</code></a> deteta o cabeçalho e aplica as regras do ficheiro <a href="../code/templates/custom_styles.typ"><code>code/templates/custom_styles.typ</code></a>:</p>
+<p>Nos documentos externos (<code>doc-tipo: externo</code>), o filtro Pandoc <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/templates/linebreaks.lua"><code>code/templates/linebreaks.lua</code></a> deteta o cabeçalho e aplica as regras do ficheiro <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/templates/custom_styles.typ"><code>code/templates/custom_styles.typ</code></a>:</p>
 <ul>
-<li><strong>1.ª Página</strong>: Aplica como fundo o modelo vetorial <a href="../code/templates/folha_1.pdf"><code>code/templates/folha_1.pdf</code></a> (logótipo institucional TML, contactos e marcas de furação);</li>
-<li><strong>Páginas Seguintes</strong>: Aplica o modelo <a href="../code/templates/folha_restantes.pdf"><code>code/templates/folha_restantes.pdf</code></a>.</li>
+<li><strong>1.ª Página</strong>: Aplica como fundo o modelo vetorial <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/templates/folha_1.pdf"><code>code/templates/folha_1.pdf</code></a> (logótipo institucional TML, contactos e marcas de furação);</li>
+<li><strong>Páginas Seguintes</strong>: Aplica o modelo <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/templates/folha_restantes.pdf"><code>code/templates/folha_restantes.pdf</code></a>.</li>
 </ul>
 </section>
 <section id="formatação-de-tabelas-com-tinytable" class="level3" data-number="7.2.2">
 <h3 data-number="7.2.2" class="anchored" data-anchor-id="formatação-de-tabelas-com-tinytable"><span class="header-section-number">7.2.2</span> Formatação de Tabelas com <code>tinytable</code></h3>
-<p>As tabelas regulamentares são formatadas através das funções utilitárias em <a href="../code/utils_tables.R"><code>code/utils_tables.R</code></a>:</p>
+<p>As tabelas regulamentares são formatadas através das funções utilitárias em <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/utils_tables.R"><code>code/utils_tables.R</code></a>:</p>
 <ul>
 <li>Cabeçalhos com fundo escuro institucional (<code>#2c3e50</code>) e texto branco;</li>
 <li>Linhas zebradas subtis (<code>#f8f9fa</code>) para leitura confortável de tabelas densas;</li>
@@ -385,15 +385,15 @@ window.Quarto = {
 <h3 data-number="7.2.3" class="anchored" data-anchor-id="integração-com-microsoft-word-docx"><span class="header-section-number">7.2.3</span> Integração com Microsoft Word (DOCX)</h3>
 <p>Quando a opção <code>RENDER_DOCX = TRUE</code> está ativada:</p>
 <ul>
-<li>O Quarto compila o documento utilizando o modelo de estilos <a href="../code/templates/TML_Informacao_pandoc.docx"><code>code/templates/TML_Informacao_pandoc.docx</code></a>;</li>
-<li>No final da compilação, o script PowerShell <a href="../code/templates/postprocess_docx.ps1"><code>code/templates/postprocess_docx.ps1</code></a> injeta automaticamente no XML do ficheiro <code>.docx</code> as margens compactas e propriedades avançadas de tabela.</li>
+<li>O Quarto compila o documento utilizando o modelo de estilos <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/templates/TML_Informacao_pandoc.docx"><code>code/templates/TML_Informacao_pandoc.docx</code></a>;</li>
+<li>No final da compilação, o script PowerShell <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/templates/postprocess_docx.ps1"><code>code/templates/postprocess_docx.ps1</code></a> injeta automaticamente no XML do ficheiro <code>.docx</code> as margens compactas e propriedades avançadas de tabela.</li>
 </ul>
 <hr>
 </section>
 </section>
 <section id="parâmetros-centralizados-de-emissão-doc_params.r" class="level2" data-number="7.3">
 <h2 data-number="7.3" class="anchored" data-anchor-id="parâmetros-centralizados-de-emissão-doc_params.r"><span class="header-section-number">7.3</span> Parâmetros Centralizados de Emissão (<code>doc_params.R</code>)</h2>
-<p>Para evitar editar código estrutural todos os meses, os dados de emissão estão concentrados em <a href="../code/doc_params.R"><code>code/doc_params.R</code></a>:</p>
+<p>Para evitar editar código estrutural todos os meses, os dados de emissão estão concentrados em <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/doc_params.R"><code>code/doc_params.R</code></a>:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Datas de receção dos dados de bilhética:</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>data_dados_dits <span class="ot">&lt;-</span> <span class="st">"XX de setembro de 2026"</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>data_dados_its  <span class="ot">&lt;-</span> <span class="st">"XX de setembro de 2026"</span></span>

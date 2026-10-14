@@ -348,10 +348,10 @@ window.Quarto = {
 <h3 data-number="2.1.1" class="anchored" data-anchor-id="distâncias-médias-de-referência"><span class="header-section-number">2.1.1</span> Distâncias Médias de Referência</h3>
 <p>Para os operadores sem telemetria contínua ou cálculo dinâmico de distâncias, aplicam-se as tabelas de referência históricas:</p>
 <ul>
-<li><strong>Meses de Verão</strong> (junho, julho, agosto): <a href="../lists/distanciasref_ago21_incompleto.csv"><code>lists/distanciasref_ago21_incompleto.csv</code></a>;</li>
-<li><strong>Restantes Meses do Ano</strong>: <a href="../lists/distanciasref_out21_incompleto.csv"><code>lists/distanciasref_out21_incompleto.csv</code></a>.</li>
+<li><strong>Meses de Verão</strong> (junho, julho, agosto): <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/lists/distanciasref_ago21_incompleto.csv"><code>lists/distanciasref_ago21_incompleto.csv</code></a>;</li>
+<li><strong>Restantes Meses do Ano</strong>: <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/lists/distanciasref_out21_incompleto.csv"><code>lists/distanciasref_out21_incompleto.csv</code></a>.</li>
 </ul>
-<p>A seleção é efetuada automaticamente pelo script <a href="../code/config.R"><code>code/config.R</code></a> com base no valor da variável <code>MES</code>.</p>
+<p>A seleção é efetuada automaticamente pelo script <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/config.R"><code>code/config.R</code></a> com base no valor da variável <code>MES</code>.</p>
 </section>
 <section id="distâncias-médias-dinâmicas-apex-fabric" class="level3" data-number="2.1.2">
 <h3 data-number="2.1.2" class="anchored" data-anchor-id="distâncias-médias-dinâmicas-apex-fabric"><span class="header-section-number">2.1.2</span> Distâncias Médias Dinâmicas APEX (Fabric)</h3>
@@ -381,7 +381,7 @@ window.Quarto = {
 </section>
 <section id="script-02_distancias.r" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="script-02_distancias.r">Script: <code>02_distancias.R</code></h3>
-<p>O script <a href="../code/02_distancias.R"><code>code/02_distancias.R</code></a> consolida a matriz de distâncias para todos os operadores e títulos ativos no mês.</p>
+<p>O script <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/02_distancias.R"><code>code/02_distancias.R</code></a> consolida a matriz de distâncias para todos os operadores e títulos ativos no mês.</p>
 <p><strong>Output gerado:</strong></p>
 <ul>
 <li><code>1e_distancias_{SUFIXO}.csv</code>: Contém as colunas <code>operador</code>, <code>ticket_code</code>, <code>distancia_km</code> e <code>fonte</code> (<code>"APEX"</code>, <code>"ref_estatica"</code>, ou <code>"nao_encontrada"</code>).</li>
@@ -392,7 +392,7 @@ window.Quarto = {
 <section id="pesos-operacionais-pkm" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="pesos-operacionais-pkm"><span class="header-section-number">2.2</span> Pesos Operacionais PKM</h2>
 <p>Para além da distância física percorrida, o regulamento atribui a cada operador um <strong>fator de ponderação operacional</strong> (<span class="math inline">\(\text{Peso}_j\)</span>).</p>
-<p>Os pesos encontram-se fixados em <a href="../lists/pesos_pkm.csv"><code>lists/pesos_pkm.csv</code></a>:</p>
+<p>Os pesos encontram-se fixados em <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/lists/pesos_pkm.csv"><code>lists/pesos_pkm.csv</code></a>:</p>
 <ul>
 <li>São valores fixos ao longo do ano;</li>
 <li>A sua soma entre operadores não perfaz <span class="math inline">\(1\)</span>;</li>
@@ -442,7 +442,7 @@ Esta regra de fallback assegura que a matriz de quotas coincide a 100% com a Tab
 </section>
 <section id="script-03_quotas.r" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="script-03_quotas.r">Script: <code>03_quotas.R</code></h3>
-<p>O script <a href="../code/03_quotas.R"><code>code/03_quotas.R</code></a> junta os passageiros apurados no passo 1 com as distâncias resolvidas no passo 2 e os pesos regulamentares.</p>
+<p>O script <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/03_quotas.R"><code>code/03_quotas.R</code></a> junta os passageiros apurados no passo 1 com as distâncias resolvidas no passo 2 e os pesos regulamentares.</p>
 <p><strong>Output gerado:</strong></p>
 <ul>
 <li><code>1_quotas_{SUFIXO}.csv</code>: Contém as colunas <code>operador</code>, <code>ticket_code</code>, <code>pt_operador</code>, <code>distancia_km</code>, <code>peso</code>, <code>pkm</code>, <code>quota_raw</code>, <code>quota</code> e <code>quota_fonte</code> (<code>"pkm"</code> ou <code>"global_fallback"</code>).</li>

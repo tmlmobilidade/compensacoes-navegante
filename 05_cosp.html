@@ -315,7 +315,7 @@ window.Quarto = {
 <ul>
 <li><strong>VMC Regulado Base (2023)</strong>: <span class="math inline">\(112\,562\,432{,}41\text{ €}\)</span></li>
 <li><strong>Teto Máximo Anual de Passes a Compensar</strong> (<span class="math inline">\(N_{\text{máx}}\)</span>): <strong><span class="math inline">\(8\,472\,279\)</span> passes</strong> (<code>N_PASSES_COMPENSAR</code>)</li>
-<li><strong>Sazonalidade Mensal</strong>: Coeficiente regulamentar da procura anual esperada para cada mês (constante em <a href="../lists/sazonalidade.csv"><code>lists/sazonalidade.csv</code></a>, ex.: Maio = <span class="math inline">\(0{,}087\)</span> ou <span class="math inline">\(8{,}7\%\)</span>)</li>
+<li><strong>Sazonalidade Mensal</strong>: Coeficiente regulamentar da procura anual esperada para cada mês (constante em <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/lists/sazonalidade.csv"><code>lists/sazonalidade.csv</code></a>, ex.: Maio = <span class="math inline">\(0{,}087\)</span> ou <span class="math inline">\(8{,}7\%\)</span>)</li>
 <li><strong>Retenção Institucional TML</strong>: <span class="math inline">\(2{,}5\%\)</span> (<code>RETENCAO_TML = 0.025</code>) a acertar quando for possível calcular o valor de compensação final anual.</li>
 <li><strong>VMC Atualizado</strong>: <span class="math display">\[\text{VMC}_{\text{ano}} = \text{VMC}_{2023} \times \prod (1 + \text{TAT}_{\text{ano}})\]</span> <em>(Para 2026: <span class="math inline">\(125\,006\,780{,}46\text{ €}\)</span>)</em></li>
 <li><strong>Valor Médio Regulamentar de Compensação por Passe</strong>: <span class="math display">\[\text{Valor Médio Passe} = \frac{\text{VMC}_{\text{ano}}}{N_{\text{máx}}}\]</span> <em>(Para 2026: <span class="math inline">\(14{,}754800\text{€}\)</span>)</em></li>
@@ -381,7 +381,7 @@ window.Quarto = {
 <hr>
 <section id="script-06_cosp_d.r" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="script-06_cosp_d.r">Script: <code>06_cosp_D.R</code></h3>
-<p>O script <a href="../code/06_cosp_D.R"><code>code/06_cosp_D.R</code></a> implementa todo o fluxo da COSP com precisão decimal contínua.</p>
+<p>O script <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/06_cosp_D.R"><code>code/06_cosp_D.R</code></a> implementa todo o fluxo da COSP com precisão decimal contínua.</p>
 <p><strong>Outputs gerados:</strong></p>
 <ul>
 <li><code>5a_cosp_{SUFIXO}.csv</code>: Detalhe da compensação por título e operador;</li>
