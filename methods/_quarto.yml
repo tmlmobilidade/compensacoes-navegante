@@ -50,7 +50,7 @@ format:
       - filters/resolve-repo-links.lua
     toc: true
     toc-depth: 3
-    toc-expand: true
+    # toc-expand: true
     toc-title: "Nesta página"
     number-sections: true
     smooth-scroll: true
