@@ -79,6 +79,8 @@ RENDER_OFICIO2     <- TRUE
 RENDER_DOCX        <- TRUE    # TRUE gera também versões Word (.docx) nativas via Quarto
 ```
 
+Ver mais opções de configuração em @sec-config.
+
 ### 5. Atualizar os parâmetros de emissão em `code/doc_params.R`
 
 Todos os parâmetros administrativos de emissão estão centralizados em [`code/doc_params.R`](../code/doc_params.R):
@@ -164,4 +166,35 @@ Os documentos finais são guardados na pasta `data/{MES_ANO}/output/docs/`:
 * `Oficio1_{SUFIXO}.pdf` e `Oficio1_{SUFIXO}.docx`
 * `Oficio2_{SUFIXO}.pdf` e `Oficio2_{SUFIXO}.docx`
 * `Anexo_Calculos_{SUFIXO}.xlsx` (Livro oficial de cálculo em Excel)
+
+## Resumo  {.unnumbered}
+
+::: {.callout-tip}
+### Pipeline Automatizado em R
+
+* **Script Mestre**: [`code/99_run_all.R`](../code/99_run_all.R)
+* **Parâmetros Mensais**: Para calcular um novo mês, ajustar `ANO` e `MES` em [`code/config.R`](../code/config.R) e correr:
+  ```bash
+  Rscript code/99_run_all.R
+  ```
+* **Destino dos Resultados**: Os dados de saída são gerados em `data/{MES_ANO}/output/` com o sufixo do mês (ex.: `mai26`, `jun26`).
+:::
+
+
+### Configuração Global (`config.R`){#sec-config}
+
+Os parâmetros operacionais, diretórios e constantes do sistema estão centralizados em [`code/config.R`](../code/config.R):
+
+| Variável | Exemplo | Descrição |
+| :--- | :--- | :--- |
+| `ANO` | `2026` | Ano de distribuição |
+| `MES` | `5` | Mês de distribuição (1 a 12) |
+| `SUFIXO` | `"mai26"` | Sufixo nos nomes de ficheiros (`paste0(mes_abrev, ano_curto)`) |
+| `DATA_DIR` | `data/05_mai_2026/input/` | Diretório de inputs do mês |
+| `OUT_DIR` | `data/05_mai_2026/output/` | Diretório de outputs de dados |
+| `DOCS_DIR` | `data/05_mai_2026/output/docs/` | Diretório de relatórios técnicos gerados |
+| `LISTS_DIR` | `lists/` | Tabelas estáticas de referência |
+| `VMC_2023` | `112562432.41` | Valor Máximo de Compensação regulado base 2023 (€) |
+| `N_PASSES_COMPENSAR` | `8472279` | Limite regulamentar anual de passes compensáveis |
+| `RETENCAO_TML` | `0.025` | Taxa regulamentar de retenção institucional da TML (2,5%) |
 
