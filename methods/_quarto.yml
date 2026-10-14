@@ -32,6 +32,11 @@ book:
   repo-url: https://github.com/tmlmobilidade/compensacoes-navegante
   site-url: https://tmlmobilidade.github.io/compensacoes-navegante
 
+  page-footer:
+    left: "TML - Transportes Metropolitanos de Lisboa"
+    # center: "DEP - Departamento de Estudos e Planeamento"
+    right: "v0.3 (beta)"
+
 format:
   html:
     theme:
