@@ -1,6 +1,6 @@
-# TML — Compensações e Distribuição de Receitas Navegante
+# TML - Receitas e Compensações do Passe Navegante
 
-Pipeline em **R** para o cálculo mensal da repartição de receitas tarifárias do sistema **Navegante** e apuramento das compensações aos operadores de transporte público da Área Metropolitana de Lisboa (TML).
+Pipeline em **R** para o cálculo mensal da repartição de receitas tarifárias do sistema **Navegante** e apuramento provisório das compensações aos operadores de transporte público da Área Metropolitana de Lisboa (TML).
 
 Replica com precisão matemática a metodologia regulamentar (Regulamento n.º 1362-C/2023):
 
@@ -49,7 +49,7 @@ Executar as queries e guardar os CSVs (separador `;`) em `data/08_ago_2026/input
 | Ficheiro a gravar em`input/`                       | Consulta / Script                                                                                                   | Objetivo                                                                                        |
 | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | `V_REG_AVERAGE_DISTANCE_FINAL_ALL_<timestamp>.csv` | `SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = 8 AND distribution_year = 2026;` | Distâncias médias dinâmicas APEX para Carris Metropolitana (`75`) e Cascais Próxima (`22`). |
-| `entity23_<timestamp>.csv`                         | [`code/sql/query_CM_fiscaismoveis.sql`](code/sql/query_CM_fiscaismoveis.sql)                                           | Validações em terminais móveis dos fiscais da Carris Metropolitana (`ENTITY_ID = 23`).       |
+| `entity23_<timestamp>.csv`                         | [`code/sql/query_CM_fiscaismoveis.sql`](code/sql/query_CM_fiscaismoveis.sql)                                        | Validações em terminais móveis dos fiscais da Carris Metropolitana (`ENTITY_ID = 23`).       |
 
 > [!NOTE]
 > **Separação Transtejo (TT) / Soflusa (SL) direta via APEX:**
@@ -122,6 +122,7 @@ numero_oficio2    <- "TML-YYYY-YYYY-OF-YYYY-DEP"
   # No terminal ou na consola R:
   renv::restore()
   ```
+
   *(Em alternativa, `Rscript code/00_setup.R` também pode ser usado para verificar ou carregar os pacotes base).*
 
 ---
@@ -170,10 +171,12 @@ quarto render code/oficio2.qmd --to docx
 ```
 
 > **Nota:** Se alterares configurações de estilos, fontes ou margens de tabela em `code/templates/build_reference_doc.R`, é necessário regerar o modelo antes de renderizar:
+>
 > ```powershell
 > Rscript code/templates/build_reference_doc.R
 > quarto render code/informacao1.qmd --to docx
 > ```
+>
 > *(Lembra-te de fechar o Word antes de correr o script para não bloquear o ficheiro de template).*
 
 Os documentos são gravados em `data/{MES}_{mes_abrev}_{ANO}/output/docs/`:
@@ -229,31 +232,39 @@ Após executar o pipeline com sucesso, validar as tabelas de compensação e emi
 Isto permite que, no futuro (para auditorias, conferência ou recálculos), seja possível voltar a este instante com a certeza matemática de obter exatamente os mesmos resultados.
 
 ### 1. Registar o estado dos ficheiros e pacotes
+
 Se tiveres instalado ou atualizado algum pacote durante o mês, atualiza o snapshot do `renv`:
+
 ```r
 renv::snapshot()
 ```
 
 Faz o commit das alterações de configuração, parâmetros do mês e lockfile:
+
 ```bash
 git add code/config.R code/doc_params.R lists/load_versions.csv renv.lock
 git commit -m "feat(fecho): fecho de contas e documentos de Agosto 2026"
 ```
 
 ### 2. Criar a Tag Git correspondente ao mês
+
 Cria uma tag anotada com o identificador do mês:
+
 ```bash
 # Formato padrão: run-AAAA-MM-<mes>
 git tag -a run-2026-08-ago -m "Estimativa final de contas de Agosto 2026"
 ```
 
 Enviar as alterações e a tag para o repositório remoto:
+
 ```bash
 git push origin main --tags
 ```
 
 ### 3. Como reproduzir um mês anterior no futuro
+
 Se for necessário auditar ou recalcular um mês antigo (ex: Maio de 2026):
+
 ```bash
 # 1. Mudar para a tag desse mês
 git checkout run-2026-05-mai
@@ -264,7 +275,9 @@ Rscript -e "renv::restore()"
 # 3. Executar os cálculos
 Rscript code/99_run_all.R
 ```
+
 Para regressar ao ramo principal de trabalho:
+
 ```bash
 git checkout main
 Rscript -e "renv::restore()"
