@@ -1,0 +1,67 @@
+﻿ticket_name_completo;ticket_code;ticket_name_short;ticket_domain;ticket_name_reduzido;complemento_CM
+CP Assinatura Zona 1 60 dias_Jovem;;CP Assinaturas;CP;;
+CP Assinatura Zona 1 Jovem;;CP Assinaturas;CP;;
+CP Assinatura Zona 2 4_18;;CP Assinaturas;CP;;
+CP Assinatura Zona 2 Jovem;;CP Assinaturas;CP;;
+CP Assinaturas;;;;CP Assinaturas;
+Estudante;;Viver Cascais;AT Cascais;;
+MTS Passe;;;;MTS Passe;
+MTS Passe 4_18;;MTS Passe;MTS;;
+MTS Passe 4_18 A;;MTS Passe;MTS;;
+Navegante 12;1020;Navegante 12;Nav;Navegante 12;
+Navegante 12 + Complemento;;Navegante 12 + Complemento;Nav;Navegante 12;TRUE
+Navegante 12+Navegante Complemento 418/sub23;;Navegante 12 + Complemento;Nav;;
+Navegante Almada 418/sub23;6169;Navegante Almada 418/sub23;Nav;Navegante Almada 418/sub23;
+Navegante Almada 418/sub23 (A);7669;Navegante Almada 418/sub23 (A);Nav;Navegante Almada 418/sub23 (A);
+Navegante Amadora 418/sub23;6153;Navegante Amadora 418/sub23;Nav;Navegante Amadora 418/sub23;
+Navegante Barreiro 418/sub23;6154;Navegante Barreiro 418/sub23;Nav;Navegante Barreiro 418/sub23;
+Navegante Barreiro 418/sub23 (A);7654;Navegante Barreiro 418/sub23 (A);Nav;Navegante Barreiro 418/sub23 (A);
+Navegante Cascais 418/sub23;6155;Navegante Cascais 418/sub23;Nav;Navegante Cascais 418/sub23;
+Navegante Complemento 418/sub23;;Navegante Metropolitano 418/sub23 + Complemento;Nav;;
+Navegante Lisboa 418/sub23;6156;Navegante Lisboa 418/sub23;Nav;Navegante Lisboa 418/sub23;
+Navegante Lisboa 418/sub23 (A);7656;Navegante Lisboa 418/sub23 (A);Nav;Navegante Lisboa 418/sub23 (A);
+Navegante Lisboa 418/sub23 (A) GL;7671;Navegante Lisboa 418/sub23 (A) GL;Nav;Navegante Lisboa 418/sub23 (A) GL;
+Navegante Lisboa 418/sub23 GL;6171;Navegante Lisboa 418/sub23 GL;Nav;Navegante Lisboa 418/sub23 GL;
+Navegante Loures;907;Navegante Loures;Nav;Navegante Loures;
+Navegante Loures 418/sub23;6157;Navegante Loures 418/sub23;Nav;Navegante Loures 418/sub23;
+Navegante Mafra;908;Navegante Mafra;Nav;Navegante Mafra;
+Navegante Mafra 418/sub23;6158;Navegante Mafra 418/sub23;Nav;Navegante Mafra 418/sub23;
+Navegante Metropolitano;900;Navegante Metropolitano;Nav;Navegante Metropolitano;
+Navegante Metropolitano 418 Gratuito;6180;Navegante Metropolitano Sub18 +TP;Nav;;
+Navegante Metropolitano 418 Gratuito+Navegante Complemento 418/sub23;;Navegante Metropolitano Sub18 +TP + Complemento;Nav;;
+Navegante Metropolitano 418/sub23;6150;Navegante Metropolitano 418/sub23;Nav;Navegante Metropolitano 418/sub23;
+Navegante Metropolitano 418/sub23 (A);7650;Navegante Metropolitano 418/sub23 (A);Nav;Navegante Metropolitano 418/sub23 (A);
+Navegante Metropolitano 418/sub23 (A) + Complemento;;Navegante Metropolitano 418/sub23 (A) + Complemento;Nav;Navegante Metropolitano 418/sub23 (A);TRUE
+Navegante Metropolitano 418/sub23 (A)+Navegante Complemento 418/sub23;;Navegante Metropolitano 418/sub23 (A) + Complemento;Nav;;
+Navegante Metropolitano 418/sub23 + Complemento;;Navegante Metropolitano 418/sub23 + Complemento;Nav;Navegante Metropolitano 418/sub23;TRUE
+Navegante Metropolitano 418/sub23+Navegante Complemento 418/sub23;;Navegante Metropolitano 418/sub23 + Complemento;Nav;;
+Navegante Metropolitano Sub18 +TP;6180;;;Navegante Metropolitano Sub18 +TP;
+Navegante Metropolitano Sub18 +TP + Complemento;;;;Navegante Metropolitano Sub18 +TP;TRUE
+Navegante Metropolitano Sub23 +TP;6181;;;Navegante Metropolitano Sub23 +TP;
+Navegante Metropolitano Sub23 +TP + Complemento;;;;Navegante Metropolitano Sub23 +TP;TRUE
+Navegante Metropolitano sub23 Gratuito;6181;Navegante Metropolitano Sub23 +TP;Nav;;
+Navegante Metropolitano sub23 Gratuito+Navegante Complemento 418/sub23;;Navegante Metropolitano Sub23 +TP + Complemento;Nav;;
+Navegante Montijo;910;Navegante Montijo;Nav;Navegante Montijo;
+Navegante Montijo + Complemento;;Navegante Montijo + Complemento;Nav;Navegante Montijo;TRUE
+Navegante Odivelas;911;Navegante Odivelas;Nav;Navegante Odivelas;
+Navegante Palmela;913;Navegante Palmela;Nav;Navegante Palmela;
+Navegante Seixal;914;Navegante Seixal;Nav;Navegante Seixal;
+Navegante Seixal 418/sub23;6164;Navegante Seixal 418/sub23;Nav;Navegante Seixal 418/sub23;
+Navegante Sesimbra;915;Navegante Sesimbra;Nav;Navegante Sesimbra;
+Navegante Sesimbra 418/sub23;6165;Navegante Sesimbra 418/sub23;Nav;Navegante Sesimbra 418/sub23;
+Navegante Setúbal;916;Navegante Setúbal;Nav;Navegante Setúbal;
+Navegante Setúbal 418/sub23;6166;Navegante Setúbal 418/sub23;Nav;Navegante Setúbal 418/sub23;
+Navegante Sintra 418/sub23;6167;Navegante Sintra 418/sub23;Nav;Navegante Sintra 418/sub23;
+Navegante Sintra 418/sub23 (A);7667;Navegante Sintra 418/sub23 (A);Nav;Navegante Sintra 418/sub23 (A);
+Navegante Vila Franca de Xira;918;Navegante Vila Franca de Xira;Nav;Navegante Vila Franca de Xira;
+Navegante Vila Franca de Xira 418/sub23;6168;Navegante Vila Franca de Xira 418/sub23;Nav;Navegante Vila Franca de Xira 418/sub23;
+Residente;;Viver Cascais;AT Cascais;;
+TCB Passe;;;;TCB Passe;
+TCB Passe 4_18;;TCB Passe;TCB;;
+TCB Passe 4_18 A;;TCB Passe;TCB;;
+Viver Cascais;;;;Viver Cascais;
+Viver Cascais Estudante;;Viver Cascais;AT Cascais;;
+Viver Cascais Estudante/Residente;;Viver Cascais;AT Cascais;;
+Viver Cascais Residente;;Viver Cascais;AT Cascais;;
+Viver Cascais Trabalhador;;Viver Cascais;AT Cascais;;
+;;;;Complemento CM;
