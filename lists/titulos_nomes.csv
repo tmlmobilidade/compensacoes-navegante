@@ -10,14 +10,14 @@ MTS Passe 4_18;;MTS Passe;MTS;;;1
 MTS Passe 4_18 A;;MTS Passe;MTS;;;1
 Navegante 12;1020;Navegante 12;Nav;Navegante 12;;1
 Navegante 12 + Complemento;;Navegante 12 + Complemento;Nav;Navegante 12;TRUE;2/3
-Navegante 12+Navegante Complemento 418/sub23;;Navegante 12 + Complemento;Nav;;;1
+Navegante 12+Navegante Complemento 418/sub23;1070;Navegante 12 + Complemento;Nav;;;1
 Navegante Almada 418/sub23;6169;Navegante Almada 418/sub23;Nav;Navegante Almada 418/sub23;;1
 Navegante Almada 418/sub23 (A);7669;Navegante Almada 418/sub23 (A);Nav;Navegante Almada 418/sub23 (A);;1
 Navegante Amadora 418/sub23;6153;Navegante Amadora 418/sub23;Nav;Navegante Amadora 418/sub23;;1
 Navegante Barreiro 418/sub23;6154;Navegante Barreiro 418/sub23;Nav;Navegante Barreiro 418/sub23;;1
 Navegante Barreiro 418/sub23 (A);7654;Navegante Barreiro 418/sub23 (A);Nav;Navegante Barreiro 418/sub23 (A);;1
 Navegante Cascais 418/sub23;6155;Navegante Cascais 418/sub23;Nav;Navegante Cascais 418/sub23;;1
-Navegante Complemento 418/sub23;;Navegante Metropolitano 418/sub23 + Complemento;Nav;;;1
+Navegante Complemento 418/sub23;1070;Navegante Metropolitano 418/sub23 + Complemento;Nav;;;1
 Navegante Lisboa 418/sub23;6156;Navegante Lisboa 418/sub23;Nav;Navegante Lisboa 418/sub23;;1
 Navegante Lisboa 418/sub23 (A);7656;Navegante Lisboa 418/sub23 (A);Nav;Navegante Lisboa 418/sub23 (A);;1
 Navegante Lisboa 418/sub23 (A) GL;7671;Navegante Lisboa 418/sub23 (A) GL;Nav;Navegante Lisboa 418/sub23 (A) GL;;1
@@ -28,19 +28,19 @@ Navegante Mafra;908;Navegante Mafra;Nav;Navegante Mafra;;1
 Navegante Mafra 418/sub23;6158;Navegante Mafra 418/sub23;Nav;Navegante Mafra 418/sub23;;1
 Navegante Metropolitano;900;Navegante Metropolitano;Nav;Navegante Metropolitano;;1
 Navegante Metropolitano 418 Gratuito;6180;Navegante Metropolitano Sub18 +TP;Nav;;;1
-Navegante Metropolitano 418 Gratuito+Navegante Complemento 418/sub23;;Navegante Metropolitano Sub18 +TP + Complemento;Nav;;;1
+Navegante Metropolitano 418 Gratuito+Navegante Complemento 418/sub23;1070;Navegante Metropolitano Sub18 +TP + Complemento;Nav;;;1
 Navegante Metropolitano 418/sub23;6150;Navegante Metropolitano 418/sub23;Nav;Navegante Metropolitano 418/sub23;;1
 Navegante Metropolitano 418/sub23 (A);7650;Navegante Metropolitano 418/sub23 (A);Nav;Navegante Metropolitano 418/sub23 (A);;1
-Navegante Metropolitano 418/sub23 (A) + Complemento;;Navegante Metropolitano 418/sub23 (A) + Complemento;Nav;Navegante Metropolitano 418/sub23 (A);TRUE;2/3
-Navegante Metropolitano 418/sub23 (A)+Navegante Complemento 418/sub23;;Navegante Metropolitano 418/sub23 (A) + Complemento;Nav;;;1
-Navegante Metropolitano 418/sub23 + Complemento;;Navegante Metropolitano 418/sub23 + Complemento;Nav;Navegante Metropolitano 418/sub23;TRUE;2/3
-Navegante Metropolitano 418/sub23+Navegante Complemento 418/sub23;;Navegante Metropolitano 418/sub23 + Complemento;Nav;;;1
+Navegante Metropolitano 418/sub23 (A) + Complemento;7670;Navegante Metropolitano 418/sub23 (A) + Complemento;Nav;Navegante Metropolitano 418/sub23 (A);TRUE;2/3
+Navegante Metropolitano 418/sub23 (A)+Navegante Complemento 418/sub23;1070;Navegante Metropolitano 418/sub23 (A) + Complemento;Nav;;;1
+Navegante Metropolitano 418/sub23 + Complemento;6170;Navegante Metropolitano 418/sub23 + Complemento;Nav;Navegante Metropolitano 418/sub23;TRUE;2/3
+Navegante Metropolitano 418/sub23+Navegante Complemento 418/sub23;1070;Navegante Metropolitano 418/sub23 + Complemento;Nav;;;1
 Navegante Metropolitano Sub18 +TP;6180;;;Navegante Metropolitano Sub18 +TP;;1
 Navegante Metropolitano Sub18 +TP + Complemento;;;;Navegante Metropolitano Sub18 +TP;TRUE;2/3
 Navegante Metropolitano Sub23 +TP;6181;;;Navegante Metropolitano Sub23 +TP;;1
 Navegante Metropolitano Sub23 +TP + Complemento;;;;Navegante Metropolitano Sub23 +TP;TRUE;2/3
 Navegante Metropolitano sub23 Gratuito;6181;Navegante Metropolitano Sub23 +TP;Nav;;;1
-Navegante Metropolitano sub23 Gratuito+Navegante Complemento 418/sub23;;Navegante Metropolitano Sub23 +TP + Complemento;Nav;;;1
+Navegante Metropolitano sub23 Gratuito+Navegante Complemento 418/sub23;1070;Navegante Metropolitano Sub23 +TP + Complemento;Nav;;;1
 Navegante Montijo;910;Navegante Montijo;Nav;Navegante Montijo;;1
 Navegante Montijo + Complemento;;Navegante Montijo + Complemento;Nav;Navegante Montijo;TRUE;3/5
 Navegante Odivelas;911;Navegante Odivelas;Nav;Navegante Odivelas;;1
@@ -59,9 +59,9 @@ Residente;;Viver Cascais;AT Cascais;;
 TCB Passe;;;;TCB Passe;;1
 TCB Passe 4_18;;TCB Passe;TCB;;;1
 TCB Passe 4_18 A;;TCB Passe;TCB;;;1
-Viver Cascais;;;;Viver Cascais;
-Viver Cascais Estudante;;Viver Cascais;AT Cascais;;
+Viver Cascais;129131;;;Viver Cascais;
+Viver Cascais Estudante;131;Viver Cascais;AT Cascais;;
 Viver Cascais Estudante/Residente;;Viver Cascais;AT Cascais;;
-Viver Cascais Residente;;Viver Cascais;AT Cascais;;
+Viver Cascais Residente;129;Viver Cascais;AT Cascais;;
 Viver Cascais Trabalhador;;Viver Cascais;AT Cascais;;
-;;;;Complemento CM;
+;1070;;;Complemento CM;
