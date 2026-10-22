@@ -293,10 +293,11 @@ tml_table(
 
 Os pagamentos serão realizados pela TML após a receção das respetivas faturas, para o endereço de correio eletrónico [**compras@tmlmobilidade.pt**](mailto:compras@tmlmobilidade.pt), nos termos indicados anteriormente.
 
-De acordo com o n.º 3 do artigo 18.º do Regulamento n.º 278-A/2019, é obrigação dos operadores submeter documento a autorizar a consulta da situação tributária e da situação contributiva perante a segurança social, ou enviar as respetivas certidões de não dívida, devendo ainda ser comprovado o registo central do beneficiário efetivo, quando aplicável. Sem a receção destes documentos não é possível proceder aos pagamentos.
+De acordo com o n.º 3 do artigo 18.º do Regulamento n.º 278-A/2019, é obrigação dos operadores submeter documento a autorizar a consulta da situação tributária e da situação contributiva perante a segurança social, ou enviar as respetivas certidões de não dívida, devendo ainda ser comprovado o registo central do beneficiário efetivo, quando aplicável.
 
 A TML reserva-se o direito de não proceder a pagamentos no caso de não envio de informação prevista no Regulamento n.º 278-A/2019.
 
+Com os melhores cumprimentos,
 
 ```{=typst}
 #v(1.5cm)
