@@ -325,13 +325,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h3 class="anchored" data-anchor-id="recolher-e-colocar-os-ficheiros-de-dados">2. Recolher e colocar os ficheiros de dados</h3>
 <section id="a.-recibos-b-dos-operadores" class="level4">
 <h4 class="anchored" data-anchor-id="a.-recibos-b-dos-operadores">2a. Recibos B dos operadores</h4>
-<p>Descompactar as pastas dos Recibos B de cada operador para <code>data/{MES_ANO}/input/Recibos B/</code>:</p>
+<p>Colocar os ficheiros <code>.zip</code> (ou as pastas já descompactadas) dos Recibos B de cada operador em <code>data/{MES_ANO}/input/Recibos B/</code>. Se os ficheiros estiverem em <code>.zip</code> (<code>reg_[OP]_reciboB_*.zip</code>), o script <code>01_recibos_b.R</code> extrai-os automaticamente na primeira execução:</p>
 <pre class="text"><code>data/08_ago_2026/input/Recibos B/
-├── reg_CP_reciboB_082026_&lt;DATA&gt;/
-├── reg_ML_reciboB_082026_&lt;DATA&gt;/
-├── reg_Carris_reciboB_082026_&lt;DATA&gt;/
-├── ...   (operadores: CP, ML, Carris, FT, MS, TB, CAP, BQ, A1–A4, TT, SL)
-└── ReciboB_082026_Separa_receita_PV_e_ATM.xlsx</code></pre>
+├── reg_CP_reciboB_202608_&lt;DATA&gt;.zip (ou pasta já extraída)
+├── reg_ML_reciboB_202608_&lt;DATA&gt;.zip
+├── reg_CA_reciboB_202608_&lt;DATA&gt;.zip
+├── ...   (operadores: CP, ML, CA, FT, MS, TB, CAP, BQ, A1–A4, TT, SL)
+└── ReciboB_202608_Separação_PV_ATM.xlsx</code></pre>
 <p>O ficheiro <code>ReciboB_*_Separa_receita_PV_e_ATM.xlsx</code> é fornecido pelo Dept. ITS / SIBS e <strong>é obrigatório</strong> para separar as receitas do Portal VIVA (PV) das do Multibanco (ATM).</p>
 </section>
 <section id="b.-exportações-oracle-pdbdwprod" class="level4">

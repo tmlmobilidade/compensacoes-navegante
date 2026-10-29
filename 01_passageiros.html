@@ -372,7 +372,7 @@ window.Quarto = {
 <hr>
 <section id="script-01_recibos_b.r" class="level3 unnumbered">
 <h3 class="unnumbered anchored" data-anchor-id="script-01_recibos_b.r">Script: <code>01_recibos_b.R</code></h3>
-<p>O script <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/01_recibos_b.R"><code>code/01_recibos_b.R</code></a> realiza a leitura em lote de todos os ficheiros de Recibo B da pasta <code>data/{MES_ANO}/input/Recibos B/</code>, aplicando os seguintes filtros regulamentares:</p>
+<p>O script <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/01_recibos_b.R"><code>code/01_recibos_b.R</code></a> realiza a leitura em lote de todos os ficheiros de Recibo B da pasta <code>data/{MES_ANO}/input/Recibos B/</code> (caso os Recibos B se encontrem em formato <code>.zip</code>, o script extrai-os automaticamente para as respetivas pastas antes da leitura), aplicando os seguintes filtros regulamentares:</p>
 <ul>
 <li><code>SOURCE == "Transaction"</code> (os títulos VaT são tratados separadamente para a determinação do número total de passes carregados, necessário à COSP);</li>
 <li><code>TICKET_OPERATOR_CODE == 31</code> (apenas títulos do Regulamento Navegante);</li>
