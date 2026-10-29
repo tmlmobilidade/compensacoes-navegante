@@ -3,7 +3,7 @@
 # Distribuição de Receitas Navegante — TML
 #
 # Inputs:
-#   [DATA_DIR]/Recibos B/reg_[OP]_reciboB_[ANO][MES]_*/
+#   [DATA_DIR]/Recibos B/reg_[OP]_reciboB_[ANO][MES]_*/ (ou ficheiros .zip correspondentes)
 #     - *_PTconsideredByProduct_*.csv  → passageiros transportados
 #     - *_transactionsOperatorSystem_*.csv → vendas/receitas
 #
@@ -33,6 +33,23 @@ read_recibo_csv <- function(path) {
 extract_op_from_dir <- function(dirpath) {
   # Formato: reg_[OP]_reciboB_[ANOMES]_[DATA]
   basename(dirpath) |> strsplit("_") |> sapply(`[`, 2)
+}
+
+# ---- Extrair ficheiros .zip de Recibos B (fallback se ainda não extraídos) ---
+zip_files <- list.files(recibos_dir, pattern = "^reg_.*_reciboB_.*\\.zip$",
+                        full.names = TRUE, ignore.case = TRUE)
+for (zf in zip_files) {
+  target_dir <- tools::file_path_sans_ext(zf)
+  csvs_existentes <- if (dir.exists(target_dir)) {
+    list.files(target_dir, pattern = "\\.csv$", ignore.case = TRUE)
+  } else {
+    character(0)
+  }
+  if (length(csvs_existentes) == 0) {
+    message("A extrair Recibo B: ", basename(zf))
+    dir.create(target_dir, showWarnings = FALSE, recursive = TRUE)
+    utils::unzip(zf, exdir = target_dir)
+  }
 }
 
 # ---- Descobrir todas as pastas de operadores ---------------------------------

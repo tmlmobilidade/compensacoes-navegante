@@ -28,15 +28,15 @@ Criar a pasta `data/08_ago_2026/input/` (a pasta `data/` está no `.gitignore`, 
 
 #### 2a. Recibos B dos operadores
 
-Descompactar as pastas dos Recibos B de cada operador para `data/08_ago_2026/input/Recibos B/`:
+Colocar os ficheiros `.zip` (ou as pastas já descompactadas) dos Recibos B de cada operador em `data/08_ago_2026/input/Recibos B/`. Caso sejam colocados os ficheiros `.zip` (`reg_[OP]_reciboB_*.zip`), o script `01_recibos_b.R` extrai-os automaticamente para as respetivas subpastas na primeira execução:
 
 ```
 data/08_ago_2026/input/Recibos B/
-├── reg_CP_reciboB_082026_<DATA>/
-├── reg_ML_reciboB_082026_<DATA>/
-├── reg_Carris_reciboB_082026_<DATA>/
-├── ...   (operadores: CP, ML, Carris, FT, MS, TB, CAP, BQ, A1–A4, TT, SL)
-└── ReciboB_082026_Separa_receita_PV_e_ATM.xlsx   ← ficheiro Excel de separação PV/ATM
+├── reg_CP_reciboB_202608_<DATA>.zip (ou pasta já extraída)
+├── reg_ML_reciboB_202608_<DATA>.zip
+├── reg_CA_reciboB_202608_<DATA>.zip
+├── ...   (operadores: CP, ML, CA, FT, MS, TB, CAP, BQ, A1–A4, TT, SL)
+└── ReciboB_202608_Separação_PV_ATM.xlsx   ← ficheiro Excel de separação PV/ATM
 ```
 
 O ficheiro `ReciboB_082026_Separa_receita_PV_e_ATM.xlsx` é fornecido pelo Dept. ITS / SIBS e **é obrigatório** para separar as receitas do Portal VIVA (PV) das do Multibanco (SIBS).

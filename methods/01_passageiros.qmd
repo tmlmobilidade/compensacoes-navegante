@@ -40,7 +40,7 @@ A Carris Metropolitana é operada por quatro concessões zonais (`A1`, `A2`, `A3
 
 ### Script: `01_recibos_b.R` {.unnumbered}
 
-O script [`code/01_recibos_b.R`](../code/01_recibos_b.R) realiza a leitura em lote de todos os ficheiros de Recibo B da pasta `data/{MES_ANO}/input/Recibos B/`, aplicando os seguintes filtros regulamentares:
+O script [`code/01_recibos_b.R`](../code/01_recibos_b.R) realiza a leitura em lote de todos os ficheiros de Recibo B da pasta `data/{MES_ANO}/input/Recibos B/` (caso os Recibos B se encontrem em formato `.zip`, o script extrai-os automaticamente para as respetivas pastas antes da leitura), aplicando os seguintes filtros regulamentares:
 
 * `SOURCE == "Transaction"` (os títulos VaT são tratados separadamente para a determinação do número total de passes carregados, necessário à COSP);
 * `TICKET_OPERATOR_CODE == 31` (apenas títulos do Regulamento Navegante);
