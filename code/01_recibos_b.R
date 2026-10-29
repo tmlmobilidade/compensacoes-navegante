@@ -13,6 +13,7 @@
 # =============================================================================
 
 source(here::here("code", "config.R"))
+source(here::here("code", "00_setup.R"))
 
 # Usar ponto como separador decimal nos prints de verificação (os CSVs já usam vírgula via write.csv2)
 options(OutDec = ".")
