@@ -39,6 +39,9 @@
 // Legendas de tabelas e figuras a 9pt
 #show figure.caption: set text(size: 9pt)
 
+// Espaçamento vertical após tabelas e figuras
+#show figure: set block(below: 20pt)
+
 // Ativar numeração dos cabeçalhos
 #set heading(numbering: "1.1")
 
@@ -71,3 +74,20 @@
 #show heading.where(level: 2): it => block(above: 20pt, below: 16pt, it)
 #show heading.where(level: 3): it => block(above: 16pt, below: 12pt, it)
 #show heading.where(level: 4): it => block(above: 14pt, below: 10pt, it)
+
+// 6. Citações (Blockquotes)
+#show quote: set text(style: "italic", fill: rgb("#404040"))
+#show quote.where(block: true): it => block(
+  above: 14pt,
+  below: 20pt,
+  pad(
+    left: 1.5em,
+    right: 1.0em,
+    block(
+      stroke: (left: 2pt + rgb("#b0b0b0")),
+      inset: (left: 10pt, y: 4pt),
+      spacing: 12pt,
+      it.body
+    )
+  )
+)
