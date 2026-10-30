@@ -21,6 +21,7 @@ suppressPackageStartupMessages({
 #' @param fontsize numérico; escala do tamanho de letra (padrão 0.85 para ~9.35pt com texto base 11pt)
 #' @param fontsize_notes numérico; escala do tamanho de letra das notas de rodapé (padrão 0.7 para ~7.7pt)
 #' @param italic_notes lógico; se TRUE coloca as notas de rodapé em itálico (padrão FALSE)
+#' @param width vetor numérico com as larguras ou proporções das colunas (ex.: c(0.6, 0.4) ou c(60, 40)); opcional
 #' @param ... argumentos adicionais passados a tinytable::tt()
 #' @return Objeto tinytable
 tml_table <- function(x, 
@@ -32,6 +33,7 @@ tml_table <- function(x,
                       fontsize_notes = 0.7, 
                       italic_notes = FALSE, 
                       alignv = NULL,
+                      width = NULL,
                       ...) {
   dots <- list(...)
   if ("notes_fontsize" %in% names(dots)) {
@@ -45,7 +47,7 @@ tml_table <- function(x,
 
   # Word (DOCX): tabela Markdown processada pelo Pandoc + filtro docx_styles.lua
   if (is_docx_output()) {
-    return(tml_table_docx(x, align = align, notes = notes, bold_total = bold_total))
+    return(tml_table_docx(x, align = align, notes = notes, bold_total = bold_total, width = width))
   }
 
   if (is.data.frame(x)) {
@@ -59,6 +61,12 @@ tml_table <- function(x,
         col
       }
     })
+  }
+  if (!is.null(width) && is.numeric(width)) {
+    if (length(width) > 1 && sum(width) > 1.01) {
+      width <- width / sum(width)
+    }
+    dots[["width"]] <- width
   }
   tt_args <- c(list(x = x, caption = caption, notes = notes), dots)
   tab <- do.call(tinytable::tt, tt_args)
@@ -87,6 +95,45 @@ tml_table <- function(x,
   }
   if (!is.null(alignv)) {
     tab <- style_tt(tab, alignv = alignv)
+  }
+
+  # Estilos para tabela de reporte/pagamentos (ex.: Tabela 5)
+  if (nrow(x) > 0) {
+    col1 <- trimws(gsub("\\*", "", as.character(x[[1]])))
+
+    # Cores na coluna Estado (Pago -> Verde, Por pagar -> Vermelho)
+    if (ncol(x) >= 3) {
+      col3 <- trimws(as.character(x[[3]]))
+      pago_idx <- which(col3 == "Pago")
+      if (length(pago_idx) > 0) {
+        tab <- style_tt(tab, i = pago_idx, j = 3, color = "#27AE60")
+      }
+      por_pagar_idx <- which(col3 == "Por pagar")
+      if (length(por_pagar_idx) > 0) {
+        tab <- style_tt(tab, i = por_pagar_idx, j = 3, color = "#C0392B")
+      }
+    }
+
+    # Linha divisória após anos anteriores (ex.: Subtotal 2025)
+    subtot_ant_idx <- which(grepl("^Subtotal\\s+\\d{4}\\s+solicitado e pago", col1, ignore.case = TRUE))
+    if (length(subtot_ant_idx) > 0) {
+      tab <- style_tt(tab, i = max(subtot_ant_idx), line = "b", line_width = 0.05)
+    }
+
+    # Linha divisória após o mês atual e destaque em negrito
+    subtot_ano_idx <- which(grepl("^Subtotal\\s+\\d{4}\\s+solicitado$", col1, ignore.case = TRUE))
+    if (length(subtot_ano_idx) > 0 && subtot_ano_idx[1] > 1) {
+      cur_m <- subtot_ano_idx[1] - 1
+      tab <- style_tt(tab, i = cur_m, j = 1:min(2, ncol(x)), bold = TRUE)
+      tab <- style_tt(tab, i = cur_m, line = "b", line_width = 0.05)
+    }
+
+    # Sombreado nas linhas de comparação plurianual (ex.: Subtotal 2024-2026)
+    pluri_idx <- which(grepl("^Subtotal\\s+\\d{4}-\\d{4}", col1, ignore.case = TRUE))
+    if (length(pluri_idx) > 0) {
+      tab <- style_tt(tab, i = pluri_idx, background = "#EAEAEA")
+    }
+
   }
   tab
 }
@@ -117,7 +164,7 @@ is_docx_output <- function() {
 #' - notas: texto simples (vetor) ou list(a = list(i, j, text)) com marcador
 #'   sobrescrito na célula (i = 0 é o cabeçalho);
 #' - o estilo de letra das células é aplicado pelo estilo Compact do Word (Calibri 8.5 pt).
-tml_table_docx <- function(x, align = NULL, notes = NULL, bold_total = TRUE) {
+tml_table_docx <- function(x, align = NULL, notes = NULL, bold_total = TRUE, width = NULL) {
   x <- as.data.frame(x, stringsAsFactors = FALSE, check.names = FALSE)
   esc <- function(s) {
     s <- as.character(s)
@@ -140,6 +187,21 @@ tml_table_docx <- function(x, align = NULL, notes = NULL, bold_total = TRUE) {
     }
   }
 
+  # Destaque em negrito das colunas 1 e 2 do mês atual na Tabela 5
+  if (nr > 0) {
+    col1_clean <- trimws(as.character(x[[1]]))
+    subtot_ano_idx <- which(grepl("^Subtotal\\s+\\d{4}\\s+solicitado$", col1_clean, ignore.case = TRUE))
+    if (length(subtot_ano_idx) > 0 && subtot_ano_idx[1] > 1) {
+      cur_m <- subtot_ano_idx[1] - 1
+      for (c_idx in 1:min(2, nc)) {
+        val <- as.character(cells[cur_m, c_idx])
+        if (nzchar(val) && val != "\u00a0") {
+          cells[cur_m, c_idx] <- paste0("**", val, "**")
+        }
+      }
+    }
+  }
+
   # Notas
   note_lines <- character()
   if (is.character(notes)) {
@@ -148,7 +210,13 @@ tml_table_docx <- function(x, align = NULL, notes = NULL, bold_total = TRUE) {
     for (key in names(notes)) {
       n <- notes[[key]]
       mk <- paste0("^", key, "^")
-      if (n$i == 0) header[n$j] <- paste0(header[n$j], mk) else cells[n$i, n$j] <- paste0(cells[n$i, n$j], mk)
+      if (0 %in% n$i) header[n$j] <- paste0(header[n$j], mk)
+      rows <- n$i[n$i > 0]
+      if (length(rows) > 0) {
+        for (r in rows) {
+          cells[r, n$j] <- paste0(cells[r, n$j], mk)
+        }
+      }
       note_lines <- c(note_lines, paste0(mk, " ", n$text))
     }
   }
@@ -164,18 +232,24 @@ tml_table_docx <- function(x, align = NULL, notes = NULL, bold_total = TRUE) {
     parts <- unlist(strsplit(v_clean, "<br>", fixed = TRUE))
     max(nchar(trimws(parts)), 1, na.rm = TRUE)
   }
-  w <- vapply(seq_len(nc), function(j) {
-    has_eur <- any(grepl("€", cells[[j]], fixed = TRUE))
-    has_pct <- any(grepl("%", cells[[j]], fixed = TRUE))
-    cell_w  <- maxw_vec(cells[[j]])
-    hdr_parts <- unlist(strsplit(clean_str(header[j]), "<br>", fixed = TRUE))
-    hdr_words <- unlist(strsplit(hdr_parts, "\\s+"))
-    hdr_w   <- max(nchar(trimws(hdr_words)), 1, na.rm = TRUE)
-    
-    col_w   <- max(cell_w, hdr_w)
-    min_col <- if (j == 1) 16 else if (has_eur) 19 else if (has_pct) 13 else 8
-    max(col_w, min_col)
-  }, numeric(1))
+
+  if (!is.null(width) && is.numeric(width) && length(width) == nc) {
+    pct <- width / sum(width)
+    w   <- pmax(round(pct * 100), 3)
+  } else {
+    w <- vapply(seq_len(nc), function(j) {
+      has_eur <- any(grepl("€", cells[[j]], fixed = TRUE))
+      has_pct <- any(grepl("%", cells[[j]], fixed = TRUE))
+      cell_w  <- maxw_vec(cells[[j]])
+      hdr_parts <- unlist(strsplit(clean_str(header[j]), "<br>", fixed = TRUE))
+      hdr_words <- unlist(strsplit(hdr_parts, "\\s+"))
+      hdr_w   <- max(nchar(trimws(hdr_words)), 1, na.rm = TRUE)
+      
+      col_w   <- max(cell_w, hdr_w)
+      min_col <- if (j == 1) 16 else if (has_eur) 19 else if (has_pct) 13 else 8
+      max(col_w, min_col)
+    }, numeric(1))
+  }
   al <- if (is.null(align)) rep("l", nc) else rep_len(align, nc)
   sep <- vapply(seq_len(nc), function(j) {
     d <- strrep("-", w[j])
