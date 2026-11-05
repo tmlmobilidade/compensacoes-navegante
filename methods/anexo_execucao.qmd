@@ -38,16 +38,21 @@ data/08_ago_2026/input/Recibos B/
 O ficheiro `ReciboB_*_Separa_receita_PV_e_ATM.xlsx` é fornecido pelo Dept. ITS / SIBS e **é obrigatório** para separar as receitas do Portal VIVA (PV) das do Multibanco (ATM).
 
 #### 2b. Exportações Oracle (`PDBDWPROD`)
-Executar as seguintes consultas e guardar os CSVs (delimitados por ponto e vírgula `;`) na pasta `data/{MES_ANO}/input/`:
+Executar a seguinte consulta e guardar o CSV (delimitado por ponto e vírgula `;`) na pasta `data/{MES_ANO}/input/`:
 
 | Ficheiro a gravar em `input/` | Consulta / Script | Objetivo |
 | :--- | :--- | :--- |
-| `*_AVERAGE_DISTANCE_*_<timestamp>.csv` | `SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = <MES> AND distribution_year = <ANO>;` | Distâncias médias dinâmicas APEX para Carris Metropolitana (`75`) e Cascais Próxima (`22`). |
-| `entity23_<timestamp>.csv` | [`code/sql/query_CM_fiscaismoveis.sql`](../code/sql/query_CM_fiscaismoveis.sql) | Validações em terminais móveis dos fiscais da Carris Metropolitana (`ENTITY_ID = 23`). |
+| `*_AVERAGE_DISTANCE_*_<timestamp>.csv` | [`code/sql/query_distancias_medias.sql`](../code/sql/query_distancias_medias.sql) (`SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = <MES> AND distribution_year = <ANO>;`) | Distâncias médias dinâmicas APEX para Carris Metropolitana (`75`) e Cascais Próxima (`22`). |
+
+::: {.callout-note}
+## Descontinuação das Queries de Validações (`query_SL_TT.sql` e `query_CM_fiscaismoveis.sql`)
+* **Transtejo (TT) / Soflusa (SL):** A separação é feita diretamente através dos Recibos B do APEX (`reg_TT_reciboB` e `reg_SL_reciboB`).
+* **Fiscais Móveis CM (`ENTITY_ID = 23`):** Desde agosto de 2026, estas validações já vêm diretamente incluídas nos Recibos B das áreas `A1` a `A4` (`ENTITY_ID` `41`, `42`, `43` e `44`), pelo que **não se deve** extrair nem usar o ficheiro `entity23_*.csv` para evitar duplicação de valores.
+:::
 
 ::: {.callout-tip}
 ## Prioridade Automática `_update`
-O script seleciona automaticamente o ficheiro com o timestamp numérico mais recente. Para substituir um ficheiro sem apagar o anterior, adiciona `_update` ao nome (ex: `entity23_202608151400_update.csv`) — os ficheiros com `_update` têm prioridade máxima automática.
+O script seleciona automaticamente o ficheiro com o timestamp numérico mais recente. Para substituir um ficheiro sem apagar o anterior, adiciona `_update` ao nome (ex: `distancias_AVERAGE_DISTANCE_202608151400_update.csv`) — os ficheiros com `_update` têm prioridade máxima automática.
 :::
 
 ### 3. Registar a `load_version` ou `run_id` em `lists/load_versions.csv`

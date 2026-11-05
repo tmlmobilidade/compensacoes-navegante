@@ -26,7 +26,7 @@ flowchart TD
     subgraph IN["1. Fontes de Dados e Entradas"]
         direction TB
         IN_RECIBOS("**Recibos B dos Operadores**<br/>- Validações de passageiros (PT)<br/>- Vendas de bilheteira (Canais A)<br/>- Títulos sem carregamento prévio (VaT)")
-        IN_ORACLE("**Extrações Oracle PDBDWPROD**<br/>- Distâncias médias dinâmicas<br/>- Fiscais móveis CM / Portal VIVA")
+        IN_ORACLE("**Extrações Oracle PDBDWPROD**<br/>- Distâncias médias dinâmicas")
         IN_K("**Canais Partilhados TML (K)**<br/>- Ficheiro de separação PV e ATM<br/>(Portal VIVA e SIBS)")
         IN_LISTS("**Tabelas Regulamentares (lists/)**<br/>- Distâncias médias de referência (ago21 / out21)<br/>- Pesos operacionais PKM por operador<br/>- TAT anual, Sazonalidade COSP e VMC")
     end
@@ -36,7 +36,7 @@ flowchart TD
     %% -------------------------------------------------------------------------
     subgraph CALC_STEP["2. Pipeline Modular de Cálculo (R)"]
         direction TB
-        P01["**01_recibos_b.R**<br/>- Limpeza e filtros regulamentares<br/>- Separação TT / SL (Recibos B)<br/>- Fiscais móveis CM<br/>→ Gera PT_ij e VaT_i"]
+        P01["**01_recibos_b.R**<br/>- Limpeza e filtros regulamentares<br/>- Separação TT / SL (Recibos B)<br/>- Agregação CM (A1 a A4)<br/>→ Gera PT_ij e VaT_i"]
         P02["**02_distancias.R**<br/>- Distâncias médias dinâmicas<br/>- Distâncias médias de referência<br/>→ Gera Distância d_ij"]
         P03["**03_quotas.R**<br/>- PKM_ij = PT_ij × d_ij<br/>- Quota_ij com pesos operacionais<br/>→ Gera Quotas Dinâmicas"]
         P04["**04_vendas_AK.R**<br/>- Receita operadores A_j + canais K<br/>- Volume global de passes Q_total"]
@@ -69,7 +69,6 @@ flowchart TD
 
     %% Ligações principais
     IN_RECIBOS --> P01
-    IN_ORACLE --> P01
     IN_ORACLE --> P02
     IN_K --> P04
     IN_LISTS -. "usadas em 02, 03, 05 e 06" .-> CALC_STEP
@@ -101,7 +100,7 @@ flowchart TD
 
 | Etapa | Script(s) | Designação Regulamentar | Entradas Principais | Saídas Principais |
 | :--- | :---- | :--- | :--- | :--- |
-| **Passageiros e Recibos B** | [`01_recibos_b.R`](../code/01_recibos_b.R) | Passageiros Transportados ($PT$) e Reconciliação | Recibos B APEX, Oracle Fiscais Móveis CM | `1a_PT_{SUFIXO}.csv`, `1b_PT_CM_{SUFIXO}.csv`, `1d_validacoes_{SUFIXO}.csv` (VaT) |
+| **Passageiros e Recibos B** | [`01_recibos_b.R`](../code/01_recibos_b.R) | Passageiros Transportados ($PT$) e Reconciliação | Recibos B APEX | `1a_PT_{SUFIXO}.csv`, `1b_PT_CM_{SUFIXO}.csv`, `1d_validacoes_{SUFIXO}.csv` (VaT) |
 | **Distâncias, Pesos e Quotas** | [`02_distancias.R`](../code/02_distancias.R), [`03_quotas.R`](../code/03_quotas.R) | Distâncias Médias ($\bar{d}$) e Quotas Dinâmicas ($\text{Quota}$) | Oracle APEX, distâncias de referência, pesos PKM | `1e_distancias_{SUFIXO}.csv`, `1_quotas_{SUFIXO}.csv` |
 | **Vendas A e K** | [`04_vendas_AK.R`](../code/04_vendas_AK.R) | Apuramento de Vendas e Volume Global | Recibos B, Separação PV/ATM | `2_vendas_A_{SUFIXO}.csv`, `2_vendas_K_{SUFIXO}.csv`, `4a_receita_titulo_distribuir_{SUFIXO}.csv` |
 | **Repartição B e TAT** | [`05_reparticao_B.R`](../code/05_reparticao_B.R) | Receita Devida ($B$) e Congelamento Navegante | Quotas, Receita a distribuir ($R_i$), Taxa TAT | `4b_reparticao_B_{SUFIXO}.csv`, `4_receitaB_congelamento_{SUFIXO}.csv` |

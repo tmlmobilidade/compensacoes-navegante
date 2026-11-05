@@ -33,7 +33,7 @@ O DITS disponibiliza um conjunto de três ficheiros resultado do tratamento que 
 
 ::: {.callout-note}
 ## Agregação da Carris Metropolitana (CM)
-A Carris Metropolitana é operada por quatro concessões zonais (`A1`, `A2`, `A3` e `A4`). O operador **CM** nos cálculos corresponde à agregação destas 4 concessões, associada às validações nos terminais dos fiscais. A correspondência de códigos pode ser consultada em [`lists/operadores.csv`](../lists/operadores.csv).
+A Carris Metropolitana é operada por quatro concessões zonais (`A1`, `A2`, `A3` e `A4`, correspondentes aos `ENTITY_ID` `41`, `42`, `43` e `44`). O operador **CM** nos cálculos corresponde à agregação destas 4 concessões (cujos Recibos B já incluem diretamente, desde agosto de 2026, as validações nos terminais móveis dos fiscais). A correspondência de códigos pode ser consultada em [`lists/operadores.csv`](../lists/operadores.csv).
 :::
 
 ---
@@ -78,53 +78,12 @@ Desta forma, assegura-se rigorosamente que $PT_{\text{TT}} + PT_{\text{SL}} = PT
 
 ### Validações dos Fiscais Móveis CM (Portal VIVA)
 
-Os Recibos B das 4 áreas operacionais da CM (A1 a A4) não contêm as validações efetuadas nos terminais móveis dos fiscais.
-Estas validações ficam registadas no Portal VIVA (`ENTITY_ID = 23`). Se não forem somadas, a CM apresenta uma diferença negativa (ficando com validações em falta face ao total oficial do sistema).
+A partir de agosto de 2026, as validações efetuadas nos terminais móveis dos fiscais da Carris Metropolitana (`ENTITY_ID = 23`) passaram a estar diretamente incluídas nos Recibos B das 4 áreas operacionais (`A1`, `A2`, `A3` e `A4`, correspondentes aos `ENTITY_ID` `41`, `42`, `43` e `44`).
 
-**Regras essenciais da reconciliação:**
-1. As validações móveis são distribuídas pelas 4 sub-áreas da CM através do cálculo de `RUN_CODE`:
+::: {.callout-warning collapse="true"}
+## Descontinuação da Reconciliação via `ENTITY_ID = 23` (Query 2c) a partir de Agosto de 2026
+* **O que acontecia antes (até julho de 2026):** Os Recibos B das 4 áreas operacionais da CM (`A1` a `A4`) não incluíam as validações efetuadas nos terminais móveis dos fiscais, que ficavam apenas registadas no Portal VIVA (`ENTITY_ID = 23`). Era necessário executar a Query 2c ([`code/code-old/query_CM_fiscaismoveis.sql`](../code/code-old/query_CM_fiscaismoveis.sql)) e somar essas validações às sub-áreas através do `RUN_CODE` ($\text{Área CM} = \lfloor \text{RUN} / 1000 \rfloor + 40$).
 
-$$\text{Área CM} = \lfloor \text{RUN} / 1000 \rfloor + 40$$
-
-* Linhas `1xxx` $\to$ Área 1 
-* Linhas `2xxx` $\to$ Área 2 
-* Linhas `3xxx` $\to$ Área 3 
-* Linhas `4xxx` $\to$ Área 4 
-
-2. Filtro de títulos existentes: 
-
-Apenas são considerados os títulos que já existem no Recibo B da CM.
-Títulos não-Navegante (ex.: ticket 33592 ou bilhética própria de bordo) são automaticamente ignorados no cruzamento.
-
-**Query 2c ([`code/sql/query_CM_fiscaismoveis.sql`](../code/sql/query_CM_fiscaismoveis.sql)):**
-
-```sql
-SELECT
-    DISTRIBUTION_YEAR,
-    DISTRIBUTION_MONTH,
-    TICKET_OPERATOR_CODE,
-    TICKET_CODE,
-    23 AS ENTITY_ID,
-    FLOOR(RUN_CODE / 1000) + 40 AS AREA_CM,
-    VALID_TYPE_ID,
-    VALBYPROF,
-    SUM(QNT_VALIDATION) AS PT_VALIDACOES
-FROM DW_PROC.F_VALIDATIONS
-WHERE DISTRIBUTION_YEAR  = <ANO>
-  AND DISTRIBUTION_MONTH = <MES>
-  AND ENTITY_ID = 23
-  AND TICKET_OPERATOR_CODE = 31
-  AND VALID_TYPE_ID = 0
-  AND VALBYPROF = 0
-  AND RUN_CODE BETWEEN 1000 AND 4999
-GROUP BY
-    DISTRIBUTION_YEAR,
-    DISTRIBUTION_MONTH,
-    TICKET_OPERATOR_CODE,
-    TICKET_CODE,
-    FLOOR(RUN_CODE / 1000) + 40,
-    VALID_TYPE_ID,
-    VALBYPROF
-ORDER BY TICKET_CODE, AREA_CM;
-```
+* **Nova abordagem (desde agosto de 2026):** Como estas validações passaram a constar diretamente nos Recibos B das áreas `41`, `42`, `43` e `44` (`A1` a `A4`), a leitura e adição do ficheiro `entity23_*.csv` foram **removidas do pipeline** para evitar a duplicação de valores.
+:::
 
