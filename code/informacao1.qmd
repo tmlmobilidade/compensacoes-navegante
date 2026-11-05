@@ -266,11 +266,11 @@ if (!ja_existe_mes) {
 }
 ```
 
-<!-- # Informação n.º `r numero_informacao` {.unnumbered} -->
+<!-- # Informação n.º `r numero_informacao1` {.unnumbered} -->
 
 ::: {.content-visible when-format="docx"}
 ::: {custom-style="Title"}
-Informação n.º `r numero_informacao`
+Informação n.º `r numero_informacao1`
 :::
 
 ::: {custom-style="Subject"}
@@ -281,7 +281,7 @@ Assunto: Apuramento provisório do mês de `r mes_nome` de `r ANO` e cálculo do
 ```{=typst}
 #align(right)[
   #heading(level: 1, numbering: none)[
-    #text(size: 12pt)[Informação n.º `r numero_informacao`]
+    #text(size: 12pt)[Informação n.º `r numero_informacao1`]
   ]
 ]
 #v(1cm)

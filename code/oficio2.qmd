@@ -174,7 +174,7 @@ Assunto: Pagamento da 2.ª parcela dos montantes a transferir em `r mes_transf_n
 ```
 :::
 
-No âmbito das competências delegadas e subdelegadas pela Área Metropolitana de Lisboa (“AML”) na TML – Transportes Metropolitanos de Lisboa, E.M.T., S.A. (“TML”) ao abrigo do Contrato Interadministrativo de Delegação e Subdelegação de Competências e respetivo Aditamento em vigor, a TML comunicou aos operadores de transporte público que disponibilizam o título intermodal Navegante, os **montantes a transferir em `r mes_transf_nome` de `r ano_transf`**, no âmbito do Regulamento n.º 278-A/2019 da AML, através do ofício n.º `r numero_oficio`.
+No âmbito das competências delegadas e subdelegadas pela Área Metropolitana de Lisboa (“AML”) na TML – Transportes Metropolitanos de Lisboa, E.M.T., S.A. (“TML”) ao abrigo do Contrato Interadministrativo de Delegação e Subdelegação de Competências e respetivo Aditamento em vigor, a TML comunicou aos operadores de transporte público que disponibilizam o título intermodal Navegante, os **montantes a transferir em `r mes_transf_nome` de `r ano_transf`**, no âmbito do Regulamento n.º 278-A/2019 da AML, através do ofício n.º `r numero_oficio1`.
 
 Dado que à data da referida comunicação não tinha sido disponibilizada à TML a verba proveniente do Programa «Incentiva +TP», foi aprovado pelo Conselho de Administração da TML autorizar a faturação da parcela correspondente às vendas em canais de receita partilhada, ficando o remanescente para faturar somente após o recebimento da verba referente ao montante financiado pelo Fundo Ambiental. 
 
@@ -239,7 +239,7 @@ tml_table(
   tab_of2_display,
   align = c("l", "r", "r", "r"),
   notes = list(
-    "1)" = list(i = 0, j = c(2, 3), text = paste0("Ofício n.º ", numero_oficio, ".")),
+    "1)" = list(i = 0, j = c(2, 3), text = paste0("Ofício n.º ", numero_oficio1, ".")),
     "2)" = list(i = 7, j = 1, text = "Retido ao abrigo do n.º 26 do Anexo V do Regulamento.")
     )
   )
