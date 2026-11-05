@@ -178,7 +178,8 @@ DIST_REF_FILE <- if (eh_verao) {
 # ---- Operadores APEX (distâncias dinâmicas disponíveis) ----------------------
 # CM (Carris Metropolitana): ENTITY_ID = 75
 # CAP (Cascais Próxima):     ENTITY_ID = 22
-APEX_ENTITY_IDS <- c(75L, 22L)
+# ML (Metro Lisboa):         ENTITY_ID = 3
+APEX_ENTITY_IDS <- c(75L, 22L, 3L)
 
 # Sub-operadores da CM nos Recibos B (A1, A2, A3, A4 → agregados como CM)
 CM_SUBOPS <- c("A1", "A2", "A3", "A4")
