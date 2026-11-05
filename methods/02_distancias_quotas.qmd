@@ -31,6 +31,7 @@ Para os operadores integrados no sistema centralizado APEX com rastreamento GPS 
 
 * **Carris Metropolitana** (`ENTITY_ID = 75`)
 * **Cascais Próxima** (`ENTITY_ID = 22`)
+* **Metropolitano de Lisboa** (`ENTITY_ID = 3`, desde agosto de 2026)
 
 Os dados são extraídos da base Oracle `PDBDWPROD` através da vista:
 

@@ -42,7 +42,7 @@ Executar a seguinte consulta e guardar o CSV (delimitado por ponto e vírgula `;
 
 | Ficheiro a gravar em `input/` | Consulta / Script | Objetivo |
 | :--- | :--- | :--- |
-| `*_AVERAGE_DISTANCE_*_<timestamp>.csv` | [`code/sql/query_distancias_medias.sql`](../code/sql/query_distancias_medias.sql) (`SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = <MES> AND distribution_year = <ANO>;`) | Distâncias médias dinâmicas APEX para Carris Metropolitana (`75`) e Cascais Próxima (`22`). |
+| `*_AVERAGE_DISTANCE_*_<timestamp>.csv` | [`code/sql/query_distancias_medias.sql`](../code/sql/query_distancias_medias.sql) (`SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = <MES> AND distribution_year = <ANO>;`) | Distâncias médias dinâmicas APEX para Carris Metropolitana (`75`), Cascais Próxima (`22`) e Metropolitano de Lisboa (`3`). |
 
 ::: {.callout-note}
 ## Descontinuação das Queries de Validações (`query_SL_TT.sql` e `query_CM_fiscaismoveis.sql`)
