@@ -46,13 +46,15 @@ if (is.null(apex_file) || !file.exists(apex_file))
 
 message("Ficheiro APEX: ", basename(apex_file))
 
-# Ler (separador ";" com vírgula decimal é possível — verificar)
-apex_raw <- tryCatch(
-  read.csv(apex_file, sep = ";", header = TRUE, stringsAsFactors = FALSE,
-           fileEncoding = "UTF-8-BOM", check.names = FALSE),
-  error = function(e) read.csv(apex_file, header = TRUE, stringsAsFactors = FALSE,
-                               fileEncoding = "UTF-8-BOM", check.names = FALSE)
-)
+# Ler (deteta automaticamente separador ";" ou ",")
+sep_apex <- if (grepl(";", readLines(apex_file, n = 1, warn = FALSE, encoding = "UTF-8"))) ";" else ","
+apex_raw <- read.csv(apex_file, sep = sep_apex, header = TRUE, stringsAsFactors = FALSE,
+                     fileEncoding = "UTF-8-BOM", check.names = FALSE)
+if (ncol(apex_raw) <= 1) {
+  apex_raw <- read.csv(apex_file, sep = if (sep_apex == ";") "," else ";",
+                       header = TRUE, stringsAsFactors = FALSE,
+                       fileEncoding = "UTF-8-BOM", check.names = FALSE)
+}
 
 # Normalizar nomes
 apex_raw <- apex_raw |> janitor::clean_names()
@@ -69,7 +71,7 @@ apex_dist <- apex_raw |>
   dplyr::select(entity_id, ticket_code = ticket_code_ref,
                 distancia_km = calc_final_value) |>
   dplyr::mutate(
-    distancia_km = as.numeric(distancia_km),
+    distancia_km = as.numeric(gsub(",", ".", as.character(distancia_km))),
     ticket_code  = as.integer(ticket_code),
     entity_id    = as.integer(entity_id)
   )
