@@ -1,5 +1,6 @@
 
 
+---- NÃO USAR MAIS ESTA QUERY, A PARTIR DE AGOSTO 2026, já não é necessário (as validações da entity 23 já vêm diretamente incluídas nos Recibos B de 41, 42, 43 e 44). ----------------------------------------
 -- ============================================================
 -- Query 2c → Validações Portal VIVA (Fiscais móveis Carris Metropolitana)
 -- ENTITY_ID = 23 (Portal VIVA / validadores móveis de fiscalização)

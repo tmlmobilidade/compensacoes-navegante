@@ -43,20 +43,20 @@ O ficheiro `ReciboB_082026_Separa_receita_PV_e_ATM.xlsx` é fornecido pelo Dept.
 
 #### 2b. Exportações Oracle (`PDBDWPROD`)
 
-Executar as queries e guardar os CSVs (separador `;`) em `data/08_ago_2026/input/`:
+Executar a query e guardar o CSV (separador `;`) em `data/08_ago_2026/input/`:
 
 
 | Ficheiro a gravar em`input/`                       | Consulta / Script                                                                                                   | Objetivo                                                                                        |
 | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `*_AVERAGE_DISTANCE_*_<timestamp>.csv` | `SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = 8 AND distribution_year = 2026;` | Distâncias médias dinâmicas APEX para Carris Metropolitana (`75`) e Cascais Próxima (`22`). |
-| `entity23_<timestamp>.csv`                         | [`code/sql/query_CM_fiscaismoveis.sql`](code/sql/query_CM_fiscaismoveis.sql)                                        | Validações em terminais móveis dos fiscais da Carris Metropolitana (`ENTITY_ID = 23`).       |
+| `*_AVERAGE_DISTANCE_*_<timestamp>.csv` | [`code/sql/query_distancias_medias.sql`](code/sql/query_distancias_medias.sql) (`SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = 8 AND distribution_year = 2026;`) | Distâncias médias dinâmicas APEX para Carris Metropolitana (`75`) e Cascais Próxima (`22`). |
 
 > [!NOTE]
-> **Separação Transtejo (TT) / Soflusa (SL) direta via APEX:**
-> O APEX emite o Recibo B separado da Soflusa (`reg_SL_reciboB`) e o conjunto TT+SL (`reg_TT_reciboB`). Por isso, a separação é feita **diretamente no R** ($PT_{\text{SL}} = \text{Recibo B (SL)}$ e $PT_{\text{TT}} = \text{Recibo B (TT)} - \text{Recibo B (SL)}$), sendo **desnecessário** executar a consulta [`code/code-old/query_SL_TT.sql`](code/code-old/query_SL_TT.sql) ou descarregar ficheiros `tt_sl_*.csv` na rotina mensal (mantidos apenas como fallback histórico).
+> **Descontinuação das queries de reconciliação de validações (`query_SL_TT.sql` e `query_CM_fiscaismoveis.sql`):**
+> - **Separação Transtejo (TT) / Soflusa (SL) direta via APEX:** O APEX emite o Recibo B separado da Soflusa (`reg_SL_reciboB`) e o conjunto TT+SL (`reg_TT_reciboB`). Por isso, a separação é feita **diretamente no R** ($PT_{\text{SL}} = \text{Recibo B (SL)}$ e $PT_{\text{TT}} = \text{Recibo B (TT)} - \text{Recibo B (SL)}$), sendo **desnecessário** executar a consulta [`code/code-old/query_SL_TT.sql`](code/code-old/query_SL_TT.sql) ou descarregar ficheiros `tt_sl_*.csv` na rotina mensal (mantidos apenas como fallback histórico).
+> - **Fiscais móveis da Carris Metropolitana (`ENTITY_ID = 23`):** Desde **agosto de 2026**, as validações em terminais móveis dos fiscais passaram a estar diretamente incluídas nos Recibos B das áreas operacionais `A1` a `A4` (`ENTITY_ID` `41`, `42`, `43` e `44`). Para evitar a duplicação de valores, a leitura do ficheiro `entity23_*.csv` ([`code/code-old/query_CM_fiscaismoveis.sql`](code/code-old/query_CM_fiscaismoveis.sql)) foi removida do pipeline.
 
 > [!TIP]
-> O script seleciona automaticamente o ficheiro com o **timestamp numérico mais recente**. Para substituir um ficheiro sem apagar o anterior, adiciona `_update` ao nome (ex: `entity23_202608151400_update.csv`) — os ficheiros `_update` têm **prioridade automática**.
+> O script seleciona automaticamente o ficheiro com o **timestamp numérico mais recente**. Para substituir um ficheiro sem apagar o anterior, adiciona `_update` ao nome (ex: `distancias_AVERAGE_DISTANCE_202608151400_update.csv`) — os ficheiros `_update` têm **prioridade automática**.
 
 ### 3. Registar a `load_version` ou `run_id` do mês em `lists/load_versions.csv`
 
@@ -211,7 +211,7 @@ Os resultados são gerados na pasta `data/{MES}_{mes_abrev}_{ANO}/output/` com o
 | **`docs/Anexo_Calculos_{SUFIXO}.xlsx`**     | **Workbook Excel consolidado**: 6 folhas (0 - Global, 1 - Quotas, 2 - Vendas AK, 4 - Receita B e CongNav B, 5 - Pag Conta COSP D, 6 - Transferencias F).                     |
 | **`6_transferencias_{SUFIXO}.csv`**         | **Tabela final de compensações (CSV)**: colunas `receita_A`, `receita_B`, `saldo_C`, `cosp_D`, `SG`, `F_transferencia`, `congelamento_B`, total a transferir por operador. |
 | `1a_PT_{SUFIXO}.csv`                        | Passageiros transportados (validações) por título e operador.                                                                                                             |
-| `1b_PT_CM_{SUFIXO}.csv`                     | Agregação A1+A2+A3+A4 + fiscais móveis da Carris Metropolitana.                                                                                                           |
+| `1b_PT_CM_{SUFIXO}.csv`                     | Agregação das áreas operacionais A1+A2+A3+A4 da Carris Metropolitana.                                                                                                      |
 | `1c_receitas_titulo_{SUFIXO}.csv`           | Quantidade e receita de vendas de títulos por operador (Recibos B).                                                                                                         |
 | `1d_validacoes_{SUFIXO}.csv`                | Quantidades de títulos gratuitos sem carregamento prévio (VaT).                                                                                                            |
 | `1e_distancias_{SUFIXO}.csv`                | Distâncias médias (km) por operador e título.                                                                                                                             |
@@ -318,9 +318,9 @@ Compensacoes/
 │   ├── utils_tables.R            # Funções de formatação de tabelas (tinytable / Typst)
 │   ├── utils_extenso.R           # Funções auxiliares para montantes por extenso em euros
 │   ├── sql/                      # Consultas Oracle SQL
-│   │   ├── query_CM_fiscaismoveis.sql # Query Oracle para validações fiscais CM (Query 2c)
 │   │   └── query_distancias_medias.sql # Query Oracle de apoio a distâncias médias
 │   ├── code-old/                 # Scripts e queries legados / descontinuados
+│   │   ├── query_CM_fiscaismoveis.sql # Query Oracle histórica para validações fiscais CM (Query 2c)
 │   │   └── query_SL_TT.sql       # Query Oracle histórica para separação TT/SL (Query 2b)
 │   └── templates/                # Modelos, filtros e recursos visuais institucionais
 │       ├── custom_styles.typ     # Estilos Typst: cabeçalhos, fundos e papel timbrado

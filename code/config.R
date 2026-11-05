@@ -155,13 +155,10 @@ F_TT_SL_VALIDACOES <- selecionar_ficheiro_recente(
   pattern_fallback = "(validacoes_TT_SL|TICKET_OPERATOR).*\\.csv$"
 )
 
-# Ficheiro Oracle com validações do Portal VIVA (fiscais móveis Carris Metropolitana, entity 23) — query 2c
-# Padrão: entity23_*(timestamp).csv (ou fallback CM_viva / PV_CM)
-F_CM_VIVA_VALIDACOES <- selecionar_ficheiro_recente(
-  INPUT_DIR,
-  pattern_pref     = "entity_?23.*\\.csv$",
-  pattern_fallback = "(CM_viva|PV_CM).*\\.csv$"
-)
+# NOTA: As validações de fiscais móveis da Carris Metropolitana (Portal VIVA, entity 23)
+# passaram, a partir de agosto de 2026, a estar diretamente incluídas nos Recibos B das
+# áreas operacionais A1, A2, A3 e A4 (entities 41, 42, 43 e 44), pelo que deixaram de ser
+# carregadas separadamente para evitar duplicação de valores.
 
 
 
