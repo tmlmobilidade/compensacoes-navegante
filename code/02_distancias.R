@@ -3,7 +3,7 @@
 # Distribuição de Receitas Navegante — TML
 #
 # Hierarquia de distâncias (Regulamento 1362-C/2023, Secção VIII):
-#  1. Distância dinâmica APEX (para CM e CAP) → *V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv
+#  1. Distância dinâmica APEX (para CM, CAP e ML) → *V_REG_AVERAGE_DISTANCE_FINAL_ALL_*.csv
 #  2. Para os restantes: tabelas de referência (out21 / ago21)
 #     A tabela é estática por operador × título. Se valor = 0, aplica fallback.
 #
@@ -28,7 +28,7 @@ titulos    <- read.csv2(file.path(LISTS_DIR, "titulos.csv"),
 PT_mesano  <- read.csv2(F_PT,
                         stringsAsFactors = FALSE)
 
-# ---- 1. Distâncias dinâmicas APEX (CM e CAP) ---------------------------------
+# ---- 1. Distâncias dinâmicas APEX (CM, CAP e ML) ----------------------------
 # Ficheiro exportado do Oracle PDBDWPROD (procurar em INPUT_DIR)
 # Regra: 1. Ficheiro mais recente com "AVERAGE_DISTANCE" (pelo timestamp no nome)
 #        2. Se houver mais do que um com a mesma data, usar o que diz "_update"
@@ -77,7 +77,7 @@ apex_dist <- apex_raw |>
   )
 
 # Mapear entity_id para abreviatura usada nos PT
-# CM → ENTITY_ID 75; CAP → ENTITY_ID 22
+# CM → ENTITY_ID 75; CAP → ENTITY_ID 22; ML → ENTITY_ID 3
 apex_dist <- apex_dist |>
   dplyr::left_join(
     operadores |> dplyr::select(entity_id = ENTITY_ID,
@@ -88,6 +88,7 @@ apex_dist <- apex_dist |>
     operador = dplyr::case_when(
       entity_id == 75L ~ "CM",
       entity_id == 22L ~ "CAP",
+      entity_id == 3L  ~ "ML",
       TRUE             ~ entity_abbreviation
     )
   ) |>
