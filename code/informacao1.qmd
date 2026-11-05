@@ -346,7 +346,7 @@ O Regulamento n.º 278-A/2019, de 19 de março, designado “Regulamento Metropo
 
 Na presente informação procede-se ao apuramento dos montantes a transferir, no atual mês de `r mes_transf_nome` de `r ano_transf`, aos Operadores que disponibilizaram os Passes Navegante no mês de `r mes_nome` de `r ANO`, na sequência do apuramento provisório desse mês, de acordo com as regras estabelecidas no Anexo V do Regulamento n.º 278-A/2019 da AML, na sua redação atual.
 
-Os cálculos realizados tiveram por base dados de passageiros e vendas disponibilizados pelo DITS a `r data_dados_dits` (ficheiros equivalentes a recibos B finais + Receitas PV e ATM e passageiros transportados agregados na tabela `DW_PROC.F_VALIDATIONS` em `PDBDDWPROD`) e as distâncias percorridas pelos passageiros transportados na Carris Metropolitana e AT Cascais calculadas e disponibilizadas pelo ITS na tabela `r sprintf("\x60gold_pks_cases_agg run_id = %s\x60", load_version)` (esquema `GOLD_prod.dbo` da base de dados fabric) a `r data_dados_its`.
+Os cálculos realizados tiveram por base dados de passageiros e vendas disponibilizados pelo DITS a `r data_dados_dits` (ficheiros equivalentes a recibos B finais + Receitas PV e ATM e passageiros transportados agregados na tabela `DW_PROC.F_VALIDATIONS` em `PDBDDWPROD`) e as distâncias percorridas pelos passageiros transportados na Carris Metropolitana, na AT Cascais e no Metropolitano de Lisboa calculadas e disponibilizadas pelo ITS na tabela `r sprintf("\x60gold_pks_cases_agg run_id = %s\x60", load_version)` (esquema `GOLD_prod.dbo` da base de dados fabric) a `r data_dados_its`.
 
 Importa referir que a implementação de validações com cartão virtual nas linhas da Carris Metropolitana, a 19 de setembro de 2025, teve implicações, quer ao nível das transações de venda, quer ao nível das validações:
 
@@ -380,10 +380,10 @@ Consideraram-se para o cálculo dos passageiros quilómetros, por aplicação do
 
 - Os passageiros transportados do mês de `r mes_nome` de `r ANO` obtidos após a limpeza dos dados de validação, como previsto no ponto 6.5.1.;
 
-- As distâncias médias de `r ifelse(eh_verao, "agosto", "outubro")` de 2021, constantes da Tabela 5 do Anexo V do Regulamento, para todos os Operadores com exceção da TML – Carris Metropolitana e dos operadores da AT Cascais;
+- As distâncias médias de `r ifelse(eh_verao, "agosto", "outubro")` de 2021, constantes da Tabela 5 do Anexo V do Regulamento, para todos os Operadores com exceção da TML – Carris Metropolitana, dos operadores da AT Cascais e, desde agosto de 2026, do Metropolitano de Lisboa (ML);
 
-- Por já terem adotado a API Apex, como previsto na alínea iii) do ponto 6.5.2. do Anexo V, no caso da TML – Carris Metropolitana e da AT Cascais, as distâncias médias são as determinadas com dados de `r mes_nome` de `r ANO`. 
-<!-- juntar aqui ML e Carris quando já tiverem a APEX -->
+- Por já terem adotado a API Apex, como previsto na alínea iii) do ponto 6.5.2. do Anexo V, no caso da TML – Carris Metropolitana, da AT Cascais e, desde agosto de 2026, do Metropolitano de Lisboa (ML), as distâncias médias são as determinadas com dados de `r mes_nome` de `r ANO`. 
+<!-- juntar aqui a Carris quando já tiver a APEX -->
 
 - Desde abril de 2026, o operador Carris tem todos os seus validadores com a API Apex instalada, contudo, a informação das validações não é ainda compatível com o GTFS apresentado pelo operador, pelo que é impossível determinar as distâncias médias reais no presente apuramento. O Operador está a trabalhar para ultrapassar estas incompatibilidades.
 <!-- este pargágrafo sai quando a Carris já tiver a APEX -->
