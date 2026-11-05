@@ -17,6 +17,11 @@ data_dados_its  <- "2 de outubro de 2026"   # data de disponibilização dos dad
 # FALSE = verba já disponível → faturação imediata total
 incentiva_tp_pendente <- TRUE
 
+# ---- Garantir que config.R (ANO, MES) está carregado -------------------------
+if (!exists("ANO") || !exists("MES")) {
+  source(here::here("code", "config.R"))
+}
+
 # ---- Referências oficiais ----------------------------------------------------
 docs_nr_path <- here::here("lists", "documents_nr.csv")
 docs_nr_row <- if (file.exists(docs_nr_path)) {
@@ -35,7 +40,7 @@ get_doc_nr <- function(col, default) {
 }
 
 # fallback defaults for document numbers if not found in documents_nr.csv
-numero_informacao1 <- get_doc_nr("numero_informacao1", "TML-XXXX-XXXX-INF-XXXX-DEP")  # Nº da Informação Técnica
+numero_informacao1 <- get_doc_nr("numero_informacao1", "TML-XXXX-XXXX-INF-XXXX-DEP")  # Nº da Informação Técnica 1
 numero_oficio1     <- get_doc_nr("numero_oficio1",     "TML-XXXX-XXXX-OF-XXXX-DEP")   # Nº do Ofício 1
 numero_oficio2     <- get_doc_nr("numero_oficio2",     "TML-YYYY-YYYY-OF-YYYY-DEP")   # Nº do Ofício 2 (Incentiva +TP)
 data_documento     <- format(Sys.Date(), "%d/%m/%Y")  # ou fixar manualmente: "24/09/2026"
