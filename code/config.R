@@ -136,7 +136,7 @@ selecionar_ficheiro_recente <- function(diretorias, pattern_pref, pattern_fallba
   candidatos$path[1]
 }
 
-# Ficheiro Oracle com distâncias APEX (CM e CAP)
+# Ficheiro Oracle com distâncias APEX (CM, CAP e ML)
 # Padrão: ficheiro com AVERAGE_DISTANCE no nome (ignora distancias_dinamicas)
 F_APEX_DISTANCIAS <- selecionar_ficheiro_recente(
   INPUT_DIR,
