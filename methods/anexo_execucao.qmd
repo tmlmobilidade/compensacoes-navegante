@@ -82,7 +82,17 @@ RENDER_METODOLOGIA <- TRUE
 RENDER_OFICIO1     <- TRUE
 RENDER_OFICIO2     <- FALSE
 RENDER_DOCX        <- TRUE    # TRUE gera também versões Word (.docx) nativas via Quarto
+
+# Controlo de gravação em lists/receitas_anteriores.csv:
+# FALSE = modo de teste (usa os valores do mês atual apenas em memória para gráficos/tabelas, sem alterar o CSV)
+# TRUE  = modo definitivo/lock (adiciona ou atualiza os valores deste ANO/MES em lists/receitas_anteriores.csv)
+GUARDAR_RECEITAS_ANTERIORES <- FALSE
 ```
+
+::: {.callout-tip collapse="true"}
+## Modo de Teste vs. Fecho no Histórico (`GUARDAR_RECEITAS_ANTERIORES`)
+Por omissão, `GUARDAR_RECEITAS_ANTERIORES <- FALSE` garante que execuções de teste atualizam a série histórica **apenas em memória** (para que a Figura 1 e a Tabela 7 da Informação 1 mostrem os dados da corrida atual), mantendo intocado o ficheiro [`lists/receitas_anteriores.csv`](../lists/receitas_anteriores.csv). No momento do fecho oficial do mês, alterar para `GUARDAR_RECEITAS_ANTERIORES <- TRUE` (ou executar com `$env:GUARDAR_RECEITAS_ANTERIORES="TRUE"`) para gravar/atualizar definitivamente os valores desse mês no CSV.
+:::
 
 Ver mais opções de configuração em @sec-config.
 
@@ -195,6 +205,7 @@ Os parâmetros operacionais, diretórios e constantes do sistema estão centrali
 | :--- | :--- | :--- |
 | `ANO` | `2026` | Ano de distribuição |
 | `MES` | `5` | Mês de distribuição (1 a 12) |
+| `GUARDAR_RECEITAS_ANTERIORES` | `FALSE` | Se `TRUE`, grava/atualiza os valores do mês em `lists/receitas_anteriores.csv`; se `FALSE`, usa-os apenas em memória para os gráficos e tabelas |
 | `SUFIXO` | `"mai26"` | Sufixo nos nomes de ficheiros (`paste0(mes_abrev, ano_curto)`) |
 | `DATA_DIR` | `data/05_mai_2026/input/` | Diretório de inputs do mês |
 | `OUT_DIR` | `data/05_mai_2026/output/` | Diretório de outputs de dados |

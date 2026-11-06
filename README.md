@@ -88,6 +88,9 @@ RENDER_METODOLOGIA <- TRUE
 RENDER_OFICIO1     <- TRUE
 RENDER_OFICIO2     <- TRUE
 RENDER_DOCX        <- TRUE    # TRUE gera também versões Word (.docx) nativas via Quarto
+
+# Controlo de gravação em lists/receitas_anteriores.csv:
+GUARDAR_RECEITAS_ANTERIORES <- FALSE # TRUE grava definitivamente os valores para os relatórios
 ```
 
 ### 5. Atualizar os parâmetros de emissão em `code/doc_params.R`
@@ -233,6 +236,8 @@ Após executar o pipeline com sucesso, validar as tabelas de compensação e emi
 Isto permite que, no futuro (para auditorias, conferência ou recálculos), seja possível voltar a este instante com a certeza de obter exatamente os mesmos resultados.
 
 ### 1. Registar o estado dos ficheiros e pacotes
+
+Antes de fechar o mês, garantir que os valores finais validados ficam guardados no histórico (`lists/receitas_anteriores.csv`), correndo a renderização final com `GUARDAR_RECEITAS_ANTERIORES = TRUE` (em `code/config.R` ou via variável de ambiente `$env:GUARDAR_RECEITAS_ANTERIORES="TRUE"`), e voltando depois a colocar `GUARDAR_RECEITAS_ANTERIORES <- FALSE`.
 
 Se tiver sido instalado ou atualizado algum pacote durante o mês, necessário para a pipeline, atualizar o snapshot do `renv`:
 
