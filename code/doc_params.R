@@ -8,9 +8,9 @@
 # =============================================================================
 
 # ---- Dados de bilhética ------------------------------------------------------
-# Datas em que foram disponibilizados os dados DITS e ITS para este mês
-data_dados_dits <- "28 de setembro de 2026"   # data de disponibilização dos dados DITS
-data_dados_its  <- "2 de outubro de 2026"   # data de disponibilização dos dados ITS
+# Datas em que foram disponibilizados os dados DITS para este mês
+data_dados_dits <- "26 de outubro de 2026"   # data de disponibilização dos dados resibos B
+data_dados_its  <- "5 de novembro de 2026"   # data de disponibilização dos dados distâncias médias
 
 # ---- Financiamento Incentiva +TP (Fundo Ambiental) ---------------------------
 # TRUE  = verba ainda NÃO transferida à data de emissão → faturação parcelar
