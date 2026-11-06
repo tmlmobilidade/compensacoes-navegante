@@ -21,7 +21,7 @@ O diretório [`lists/`](../lists/) contém as tabelas de suporte regulamentares 
 | [`sazonalidade.csv`](../lists/sazonalidade.csv) | Coeficientes de sazonalidade mensal regulamentares para os 12 meses do ano (`mes;sazonalidade`), utilizados para estimar a procura anualizada. | `06_cosp_D.R` |
 | [`tat.csv`](../lists/tat.csv) | Série histórica das Taxas de Atualização Tarifária homologadas pela AMT por ano (`ano;tat`), para o cálculo do congelamento tarifário e atualização do VMC. | `05_reparticao_B.R`, `06_cosp_D.R` |
 | [`load_versions.csv`](../lists/load_versions.csv) | Registo cronológico das versões do processamento de distâncias Trino/APEX da Carris Metropolitana fornecidas pelo Dept. ITS (`mes;ano;load_version`). | `10_documentos.R`, `informacao1.qmd` |
-| [`receitas_anteriores.csv`](../lists/receitas_anteriores.csv) | Repositório histórico consolidado de receitas e validações dos meses transatos, para produção automática dos quadros comparativos e séries homólogas. | `10_documentos.R`, `informacao1.qmd` |
+| [`receitas_anteriores.csv`](../lists/receitas_anteriores.csv) | Repositório histórico consolidado de receitas e validações dos meses transatos (valores numéricos por operador), para produção automática do gráfico evolutivo (Figura 1) e tabela comparativa homóloga em paisagem (Tabela 7). Atualizado em memória a cada execução e persistido em disco apenas quando `GUARDAR_RECEITAS_ANTERIORES = TRUE` em `config.R`. | `10_documentos.R`, `informacao1.qmd` |
 
 ---
 

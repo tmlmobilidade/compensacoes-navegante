@@ -11,6 +11,7 @@ São gerados mensalmente quatro documentos principais:
 1. **Informação Técnica Interna** ([`code/informacao1.qmd`](../code/informacao1.qmd)):
    * Documento interno de apoio à decisão do Conselho de Administração da TML;
    * Apresenta a síntese dos resultados mensais, evolução homóloga da procura e receitas, e as propostas de liquidação;
+   * Atualiza automaticamente em memória os dados do mês em análise sobre a série histórica ([`lists/receitas_anteriores.csv`](../lists/receitas_anteriores.csv)) para gerar a Figura 1 e a Tabela 7 (paisagem), gravando definitivamente no ficheiro CSV apenas quando `GUARDAR_RECEITAS_ANTERIORES = TRUE` em [`code/config.R`](../code/config.R);
    * Utiliza cabeçalho simples com o logótipo oficial da TML ([`code/templates/logo_tml.svg`](../code/templates/logo_tml.svg)).
 
 2. **Anexo Metodologia** ([`code/metodologia.qmd`](../code/metodologia.qmd)):
