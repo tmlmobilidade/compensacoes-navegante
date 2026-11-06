@@ -2,24 +2,36 @@
 # config.R — Parâmetros globais e constantes regulamentares
 # Distribuição de Receitas Navegante — TML
 # =============================================================================
-# Alterar ANO e MES para correr para outro mês.
 
-ANO <- if (!is.na(Sys.getenv("ANO", unset = NA))) as.integer(Sys.getenv("ANO")) else 2026
-MES <- if (!is.na(Sys.getenv("MES", unset = NA))) as.integer(Sys.getenv("MES")) else 8      # 5 = maio, 6 = junho, etc.
+# ---- PARÂMETROS PRINCIPAIS (alterar aqui) ------------------------------------
 
-# ---- Renderização de Documentos (Quarto) -------------------------------------
-# Parâmetros booleanos para controlar se os documentos devem ser renderizados
-# e guardados na pasta de destino (output/docs/)
-RENDER_INFORMACAO1 <- if (!is.na(Sys.getenv("RENDER_INFORMACAO1", unset = NA))) as.logical(Sys.getenv("RENDER_INFORMACAO1")) else TRUE
-RENDER_METODOLOGIA <- if (!is.na(Sys.getenv("RENDER_METODOLOGIA", unset = NA))) as.logical(Sys.getenv("RENDER_METODOLOGIA")) else TRUE
-RENDER_OFICIO1     <- if (!is.na(Sys.getenv("RENDER_OFICIO1", unset = NA))) as.logical(Sys.getenv("RENDER_OFICIO1")) else TRUE
-RENDER_OFICIO2     <- if (!is.na(Sys.getenv("RENDER_OFICIO2", unset = NA))) as.logical(Sys.getenv("RENDER_OFICIO2")) else TRUE
-RENDER_DOCX        <- if (!is.na(Sys.getenv("RENDER_DOCX", unset = NA))) as.logical(Sys.getenv("RENDER_DOCX")) else TRUE   # Gera também versões Word (DOCX) nativas via Quarto
+ANO <- 2026
+MES <- 8      # 5 = maio, 6 = junho, 7 = julho, 8 = agosto, etc.
+
+# Documentos a renderizar (TRUE / FALSE) e guardar em output/docs/
+RENDER_INFORMACAO1 <- TRUE
+RENDER_METODOLOGIA <- TRUE
+RENDER_OFICIO1     <- TRUE
+RENDER_OFICIO2     <- TRUE
+RENDER_DOCX        <- TRUE   # Gera também versões Word (DOCX) nativas via Quarto
 
 # Controlo de gravação em lists/receitas_anteriores.csv:
 # FALSE = modo de teste (usa os valores do mês atual apenas em memória para gráficos/tabelas, sem alterar o CSV)
 # TRUE  = modo definitivo/lock (adiciona ou atualiza os valores deste ANO/MES em lists/receitas_anteriores.csv)
-GUARDAR_RECEITAS_ANTERIORES <- if (!is.na(Sys.getenv("GUARDAR_RECEITAS_ANTERIORES", unset = NA))) as.logical(Sys.getenv("GUARDAR_RECEITAS_ANTERIORES")) else FALSE
+GUARDAR_RECEITAS_ANTERIORES <- TRUE
+
+# ============================================================================
+# A partir daqui, alterar apenas se souber o que está a fazer (operadores APEX, caminhos, nomes de ficheiros, etc.)
+
+# ---- Substituição por variáveis de ambiente (execução via CLI / batch) -------
+if (nzchar(Sys.getenv("ANO")))                         ANO <- as.integer(Sys.getenv("ANO"))
+if (nzchar(Sys.getenv("MES")))                         MES <- as.integer(Sys.getenv("MES"))
+if (nzchar(Sys.getenv("RENDER_INFORMACAO1")))          RENDER_INFORMACAO1 <- as.logical(Sys.getenv("RENDER_INFORMACAO1"))
+if (nzchar(Sys.getenv("RENDER_METODOLOGIA")))          RENDER_METODOLOGIA <- as.logical(Sys.getenv("RENDER_METODOLOGIA"))
+if (nzchar(Sys.getenv("RENDER_OFICIO1")))              RENDER_OFICIO1 <- as.logical(Sys.getenv("RENDER_OFICIO1"))
+if (nzchar(Sys.getenv("RENDER_OFICIO2")))              RENDER_OFICIO2 <- as.logical(Sys.getenv("RENDER_OFICIO2"))
+if (nzchar(Sys.getenv("RENDER_DOCX")))                 RENDER_DOCX <- as.logical(Sys.getenv("RENDER_DOCX"))
+if (nzchar(Sys.getenv("GUARDAR_RECEITAS_ANTERIORES"))) GUARDAR_RECEITAS_ANTERIORES <- as.logical(Sys.getenv("GUARDAR_RECEITAS_ANTERIORES"))
 
 # ---- Caminhos base -----------------------------------------------------------
 BASE_DIR <- here::here()   # raiz do projecto (onde está o code/)
