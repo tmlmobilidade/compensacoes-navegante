@@ -336,7 +336,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="b.-exportações-oracle-pdbdwprod" class="level4">
 <h4 class="anchored" data-anchor-id="b.-exportações-oracle-pdbdwprod">2b. Exportações Oracle (<code>PDBDWPROD</code>)</h4>
-<p>Executar as seguintes consultas e guardar os CSVs (delimitados por ponto e vírgula <code>;</code>) na pasta <code>data/{MES_ANO}/input/</code>:</p>
+<p>Executar a seguinte consulta e guardar o CSV (delimitado por ponto e vírgula <code>;</code>) na pasta <code>data/{MES_ANO}/input/</code>:</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -348,16 +348,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td style="text-align: left;"><code>*_AVERAGE_DISTANCE_*_&lt;timestamp&gt;.csv</code></td>
-<td style="text-align: left;"><code>SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = &lt;MES&gt; AND distribution_year = &lt;ANO&gt;;</code></td>
-<td style="text-align: left;">Distâncias médias dinâmicas APEX para Carris Metropolitana (<code>75</code>) e Cascais Próxima (<code>22</code>).</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>entity23_&lt;timestamp&gt;.csv</code></td>
-<td style="text-align: left;"><a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/sql/query_CM_fiscaismoveis.sql"><code>code/sql/query_CM_fiscaismoveis.sql</code></a></td>
-<td style="text-align: left;">Validações em terminais móveis dos fiscais da Carris Metropolitana (<code>ENTITY_ID = 23</code>).</td>
+<td style="text-align: left;"><a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/sql/query_distancias_medias.sql"><code>code/sql/query_distancias_medias.sql</code></a> (<code>SELECT * FROM DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL WHERE distribution_month = &lt;MES&gt; AND distribution_year = &lt;ANO&gt;;</code>)</td>
+<td style="text-align: left;">Distâncias médias dinâmicas APEX para Carris Metropolitana (<code>75</code>), Cascais Próxima (<code>22</code>) e Metropolitano de Lisboa (<code>3</code>).</td>
 </tr>
 </tbody>
 </table>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>Descontinuação das Queries de Validações (<code>query_SL_TT.sql</code> e <code>query_CM_fiscaismoveis.sql</code>)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><strong>Transtejo (TT) / Soflusa (SL):</strong> A separação é feita diretamente através dos Recibos B do APEX (<code>reg_TT_reciboB</code> e <code>reg_SL_reciboB</code>).</li>
+<li><strong>Fiscais Móveis CM (<code>ENTITY_ID = 23</code>):</strong> Desde agosto de 2026, estas validações já vêm diretamente incluídas nos Recibos B das áreas <code>A1</code> a <code>A4</code> (<code>ENTITY_ID</code> <code>41</code>, <code>42</code>, <code>43</code> e <code>44</code>), pelo que <strong>não se deve</strong> extrair nem usar o ficheiro <code>entity23_*.csv</code> para evitar duplicação de valores.</li>
+</ul>
+</div>
+</div>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -368,7 +379,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>O script seleciona automaticamente o ficheiro com o timestamp numérico mais recente. Para substituir um ficheiro sem apagar o anterior, adiciona <code>_update</code> ao nome (ex: <code>entity23_202608151400_update.csv</code>) — os ficheiros com <code>_update</code> têm prioridade máxima automática.</p>
+<p>O script seleciona automaticamente o ficheiro com o timestamp numérico mais recente. Para substituir um ficheiro sem apagar o anterior, adiciona <code>_update</code> ao nome (ex: <code>distancias_AVERAGE_DISTANCE_202608151400_update.csv</code>) — os ficheiros com <code>_update</code> têm prioridade máxima automática.</p>
 </div>
 </div>
 </section>
@@ -393,7 +404,28 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>RENDER_METODOLOGIA <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>RENDER_OFICIO1     <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>RENDER_OFICIO2     <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>RENDER_DOCX        <span class="ot">&lt;-</span> <span class="cn">TRUE</span>    <span class="co"># TRUE gera também versões Word (.docx) nativas via Quarto</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>RENDER_DOCX        <span class="ot">&lt;-</span> <span class="cn">TRUE</span>    <span class="co"># TRUE gera também versões Word (.docx) nativas via Quarto</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Controlo de gravação em lists/receitas_anteriores.csv:</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co"># FALSE = modo de teste (usa os valores do mês atual apenas em memória para gráficos/tabelas, sem alterar o CSV)</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co"># TRUE  = modo definitivo/lock (adiciona ou atualiza os valores deste ANO/MES em lists/receitas_anteriores.csv)</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>GUARDAR_RECEITAS_ANTERIORES <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Dica</span>Modo de Teste vs.&nbsp;Fecho no Histórico (<code>GUARDAR_RECEITAS_ANTERIORES</code>)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Por omissão, <code>GUARDAR_RECEITAS_ANTERIORES &lt;- FALSE</code> garante que execuções de teste atualizam a série histórica <strong>apenas em memória</strong> (para que a Figura 1 e a Tabela 7 da Informação 1 mostrem os dados da corrida atual), mantendo intocado o ficheiro <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/lists/receitas_anteriores.csv"><code>lists/receitas_anteriores.csv</code></a>. No momento do fecho oficial do mês, alterar para <code>GUARDAR_RECEITAS_ANTERIORES &lt;- TRUE</code> (ou executar com <code>$env:GUARDAR_RECEITAS_ANTERIORES="TRUE"</code>) para gravar/atualizar definitivamente os valores desse mês no CSV.</p>
+</div>
+</div>
+</div>
 <p>Ver mais opções de configuração em <a href="#sec-config" class="quarto-xref"><span>Configuração Global (config.R)</span></a>.</p>
 </section>
 <section id="atualizar-os-parâmetros-de-emissão-em-codedoc_params.r" class="level3">
@@ -522,41 +554,46 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td style="text-align: left;">Mês de distribuição (1 a 12)</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;"><code>GUARDAR_RECEITAS_ANTERIORES</code></td>
+<td style="text-align: left;"><code>FALSE</code></td>
+<td style="text-align: left;">Se <code>TRUE</code>, grava/atualiza os valores do mês em <code>lists/receitas_anteriores.csv</code>; se <code>FALSE</code>, usa-os apenas em memória para os gráficos e tabelas</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;"><code>SUFIXO</code></td>
 <td style="text-align: left;"><code>"mai26"</code></td>
 <td style="text-align: left;">Sufixo nos nomes de ficheiros (<code>paste0(mes_abrev, ano_curto)</code>)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>DATA_DIR</code></td>
 <td style="text-align: left;"><code>data/05_mai_2026/input/</code></td>
 <td style="text-align: left;">Diretório de inputs do mês</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>OUT_DIR</code></td>
 <td style="text-align: left;"><code>data/05_mai_2026/output/</code></td>
 <td style="text-align: left;">Diretório de outputs de dados</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>DOCS_DIR</code></td>
 <td style="text-align: left;"><code>data/05_mai_2026/output/docs/</code></td>
 <td style="text-align: left;">Diretório de relatórios técnicos gerados</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>LISTS_DIR</code></td>
 <td style="text-align: left;"><code>lists/</code></td>
 <td style="text-align: left;">Tabelas estáticas de referência</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>VMC_2023</code></td>
 <td style="text-align: left;"><code>112562432.41</code></td>
 <td style="text-align: left;">Valor Máximo de Compensação regulado base 2023 (€)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;"><code>N_PASSES_COMPENSAR</code></td>
 <td style="text-align: left;"><code>8472279</code></td>
 <td style="text-align: left;">Limite regulamentar anual de passes compensáveis</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;"><code>RETENCAO_TML</code></td>
 <td style="text-align: left;"><code>0.025</code></td>
 <td style="text-align: left;">Taxa regulamentar de retenção institucional da TML (2,5%)</td>
@@ -991,7 +1028,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       &nbsp;
     </div>
     <div class="nav-footer-right">
-<p>v0.3 (beta)</p>
+<p>v0.4 (beta)</p>
 </div>
   </div>
 </footer>

@@ -311,7 +311,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Data de Publicação</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">29 de outubro de 2026</p>
+      <p class="date">6 de novembro de 2026</p>
     </div>
   </div>
   
@@ -327,6 +327,21 @@ window.Quarto = {
 <h1 class="unnumbered">Introdução e Visão Geral</h1>
 <p>Este manual documenta o procedimento metodológico e operacional, gerido pela <strong>TML — Transportes Metropolitanos de Lisboa</strong> para a <strong>distribuição de receitas tarifárias e apuramento de compensações financeiras</strong> aos operadores de transporte público coletivo de passageiros da Área Metropolitana de Lisboa (AML), que disponibilizam os Passes Navegante.</p>
 <p>O modelo implementado reproduz as regras estipuladas no Regulamento da AML 1362-C/2023 <span class="citation" data-cites="Regulamento1362C2023">(<a href="references.html#ref-Regulamento1362C2023" role="doc-biblioref">2023</a>)</span>, a sexta alteração ao Regulamento da AML 278-A/2019 <span class="citation" data-cites="Regulamento278A2019">(<a href="references.html#ref-Regulamento278A2019" role="doc-biblioref">2019</a>)</span>.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Importante</span>Versão
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A presente versão da documentação corresponde à <strong>versão 2026.08</strong> (aplicada à repartição de compensações relativas ao mês de agosto de 2026).</p>
+<p>Este procedimento metodológico é atualizado periodicamente, de acordo com o desenvolvimento de incorporação da API APEX.</p>
+<p>Cada versão é acompanhada de uma <strong><em>release</em></strong>, gravada no repositório GitHub, que contém o código-fonte e os dados de entrada e saída correspondentes à execução do pipeline de cálculo para essa versão. As releases estão disponíveis em: <a href="https://github.com/tmlmobilidade/compensacoes-navegante/releases">github.com/tmlmobilidade/compensacoes-navegante/releases</a></p>
+</div>
+</div>
 <hr>
 <section id="fluxograma-metodológico" class="level2">
 <h2 class="anchored" data-anchor-id="fluxograma-metodológico">Fluxograma Metodológico</h2>
@@ -350,7 +365,7 @@ flowchart TD
     subgraph IN["1. Fontes de Dados e Entradas"]
         direction TB
         IN_RECIBOS("**Recibos B dos Operadores**&lt;br/&gt;- Validações de passageiros (PT)&lt;br/&gt;- Vendas de bilheteira (Canais A)&lt;br/&gt;- Títulos sem carregamento prévio (VaT)")
-        IN_ORACLE("**Extrações Oracle PDBDWPROD**&lt;br/&gt;- Distâncias médias dinâmicas&lt;br/&gt;- Fiscais móveis CM / Portal VIVA")
+        IN_ORACLE("**Extrações Oracle PDBDWPROD**&lt;br/&gt;- Distâncias médias dinâmicas")
         IN_K("**Canais Partilhados TML (K)**&lt;br/&gt;- Ficheiro de separação PV e ATM&lt;br/&gt;(Portal VIVA e SIBS)")
         IN_LISTS("**Tabelas Regulamentares (lists/)**&lt;br/&gt;- Distâncias médias de referência (ago21 / out21)&lt;br/&gt;- Pesos operacionais PKM por operador&lt;br/&gt;- TAT anual, Sazonalidade COSP e VMC")
     end
@@ -360,7 +375,7 @@ flowchart TD
     %% -------------------------------------------------------------------------
     subgraph CALC_STEP["2. Pipeline Modular de Cálculo (R)"]
         direction TB
-        P01["**01_recibos_b.R**&lt;br/&gt;- Limpeza e filtros regulamentares&lt;br/&gt;- Separação TT / SL (Recibos B)&lt;br/&gt;- Fiscais móveis CM&lt;br/&gt;→ Gera PT_ij e VaT_i"]
+        P01["**01_recibos_b.R**&lt;br/&gt;- Limpeza e filtros regulamentares&lt;br/&gt;- Separação TT / SL (Recibos B)&lt;br/&gt;- Agregação CM (A1 a A4)&lt;br/&gt;→ Gera PT_ij e VaT_i"]
         P02["**02_distancias.R**&lt;br/&gt;- Distâncias médias dinâmicas&lt;br/&gt;- Distâncias médias de referência&lt;br/&gt;→ Gera Distância d_ij"]
         P03["**03_quotas.R**&lt;br/&gt;- PKM_ij = PT_ij × d_ij&lt;br/&gt;- Quota_ij com pesos operacionais&lt;br/&gt;→ Gera Quotas Dinâmicas"]
         P04["**04_vendas_AK.R**&lt;br/&gt;- Receita operadores A_j + canais K&lt;br/&gt;- Volume global de passes Q_total"]
@@ -393,7 +408,6 @@ flowchart TD
 
     %% Ligações principais
     IN_RECIBOS --&gt; P01
-    IN_ORACLE --&gt; P01
     IN_ORACLE --&gt; P02
     IN_K --&gt; P04
     IN_LISTS -. "usadas em 02, 03, 05 e 06" .-&gt; CALC_STEP
@@ -442,7 +456,7 @@ flowchart TD
 <td style="text-align: left;"><strong>Passageiros e Recibos B</strong></td>
 <td style="text-align: left;"><a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/01_recibos_b.R"><code>01_recibos_b.R</code></a></td>
 <td style="text-align: left;">Passageiros Transportados (<span class="math inline">\(PT\)</span>) e Reconciliação</td>
-<td style="text-align: left;">Recibos B APEX, Oracle Fiscais Móveis CM</td>
+<td style="text-align: left;">Recibos B APEX</td>
 <td style="text-align: left;"><code>1a_PT_{SUFIXO}.csv</code>, <code>1b_PT_CM_{SUFIXO}.csv</code>, <code>1d_validacoes_{SUFIXO}.csv</code> (VaT)</td>
 </tr>
 <tr class="even">
@@ -926,7 +940,7 @@ República Portuguesa. 2023. <em>Regulamento n.º 1362-C/2023, de 27 de dezembro
       &nbsp;
     </div>
     <div class="nav-footer-right">
-<p>v0.3 (beta)</p>
+<p>v0.4 (beta)</p>
 </div>
   </div>
 </footer>

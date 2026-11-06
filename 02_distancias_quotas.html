@@ -359,6 +359,7 @@ window.Quarto = {
 <ul>
 <li><strong>Carris Metropolitana</strong> (<code>ENTITY_ID = 75</code>)</li>
 <li><strong>Cascais Próxima</strong> (<code>ENTITY_ID = 22</code>)</li>
+<li><strong>Metropolitano de Lisboa</strong> (<code>ENTITY_ID = 3</code>, desde agosto de 2026)</li>
 </ul>
 <p>Os dados são extraídos da base Oracle <code>PDBDWPROD</code> através da vista:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> <span class="op">*</span> <span class="kw">FROM</span> DW_PROC.V_REG_AVERAGE_DISTANCE_FINAL_ALL </span>
@@ -875,7 +876,7 @@ Esta regra de fallback assegura que a matriz de quotas coincide a 100% com a Tab
       &nbsp;
     </div>
     <div class="nav-footer-right">
-<p>v0.3 (beta)</p>
+<p>v0.4 (beta)</p>
 </div>
   </div>
 </footer>

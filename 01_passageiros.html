@@ -26,41 +26,6 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-/* CSS for syntax highlighting */
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
 </style>
 
 
@@ -366,7 +331,7 @@ window.Quarto = {
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A Carris Metropolitana é operada por quatro concessões zonais (<code>A1</code>, <code>A2</code>, <code>A3</code> e <code>A4</code>). O operador <strong>CM</strong> nos cálculos corresponde à agregação destas 4 concessões, associada às validações nos terminais dos fiscais. A correspondência de códigos pode ser consultada em <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/lists/operadores.csv"><code>lists/operadores.csv</code></a>.</p>
+<p>A Carris Metropolitana é operada por quatro concessões zonais (<code>A1</code>, <code>A2</code>, <code>A3</code> e <code>A4</code>, correspondentes aos <code>ENTITY_ID</code> <code>41</code>, <code>42</code>, <code>43</code> e <code>44</code>). O operador <strong>CM</strong> nos cálculos corresponde à agregação destas 4 concessões (cujos Recibos B já incluem diretamente, desde agosto de 2026, as validações nos terminais móveis dos fiscais). A correspondência de códigos pode ser consultada em <a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/lists/operadores.csv"><code>lists/operadores.csv</code></a>.</p>
 </div>
 </div>
 <hr>
@@ -427,47 +392,26 @@ window.Quarto = {
 </section>
 <section id="validações-dos-fiscais-móveis-cm-portal-viva" class="level3" data-number="1.2.2">
 <h3 data-number="1.2.2" class="anchored" data-anchor-id="validações-dos-fiscais-móveis-cm-portal-viva"><span class="header-section-number">1.2.2</span> Validações dos Fiscais Móveis CM (Portal VIVA)</h3>
-<p>Os Recibos B das 4 áreas operacionais da CM (A1 a A4) não contêm as validações efetuadas nos terminais móveis dos fiscais. Estas validações ficam registadas no Portal VIVA (<code>ENTITY_ID = 23</code>). Se não forem somadas, a CM apresenta uma diferença negativa (ficando com validações em falta face ao total oficial do sistema).</p>
-<p><strong>Regras essenciais da reconciliação:</strong> 1. As validações móveis são distribuídas pelas 4 sub-áreas da CM através do cálculo de <code>RUN_CODE</code>:</p>
-<p><span class="math display">\[\text{Área CM} = \lfloor \text{RUN} / 1000 \rfloor + 40\]</span></p>
+<p>A partir de agosto de 2026, as validações efetuadas nos terminais móveis dos fiscais da Carris Metropolitana (<code>ENTITY_ID = 23</code>) passaram a estar diretamente incluídas nos Recibos B das 4 áreas operacionais (<code>A1</code>, <code>A2</code>, <code>A3</code> e <code>A4</code>, correspondentes aos <code>ENTITY_ID</code> <code>41</code>, <code>42</code>, <code>43</code> e <code>44</code>).</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Aviso</span>Descontinuação da Reconciliação via <code>ENTITY_ID = 23</code> (Query 2c) a partir de Agosto de 2026
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
 <ul>
-<li>Linhas <code>1xxx</code> <span class="math inline">\(\to\)</span> Área 1</li>
-<li>Linhas <code>2xxx</code> <span class="math inline">\(\to\)</span> Área 2</li>
-<li>Linhas <code>3xxx</code> <span class="math inline">\(\to\)</span> Área 3</li>
-<li>Linhas <code>4xxx</code> <span class="math inline">\(\to\)</span> Área 4</li>
+<li><p><strong>O que acontecia antes (até julho de 2026):</strong> Os Recibos B das 4 áreas operacionais da CM (<code>A1</code> a <code>A4</code>) não incluíam as validações efetuadas nos terminais móveis dos fiscais, que ficavam apenas registadas no Portal VIVA (<code>ENTITY_ID = 23</code>). Era necessário executar a Query 2c (<a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/code-old/query_CM_fiscaismoveis.sql"><code>code/code-old/query_CM_fiscaismoveis.sql</code></a>) e somar essas validações às sub-áreas através do <code>RUN_CODE</code> (<span class="math inline">\(\text{Área CM} = \lfloor \text{RUN} / 1000 \rfloor + 40\)</span>).</p></li>
+<li><p><strong>Nova abordagem (desde agosto de 2026):</strong> Como estas validações passaram a constar diretamente nos Recibos B das áreas <code>41</code>, <code>42</code>, <code>43</code> e <code>44</code> (<code>A1</code> a <code>A4</code>), a leitura e adição do ficheiro <code>entity23_*.csv</code> foram <strong>removidas do pipeline</strong> para evitar a duplicação de valores.</p></li>
 </ul>
-<ol start="2" type="1">
-<li>Filtro de títulos existentes:</li>
-</ol>
-<p>Apenas são considerados os títulos que já existem no Recibo B da CM. Títulos não-Navegante (ex.: ticket 33592 ou bilhética própria de bordo) são automaticamente ignorados no cruzamento.</p>
-<p><strong>Query 2c (<a href="https://github.com/tmlmobilidade/compensacoes-navegante/blob/main/code/sql/query_CM_fiscaismoveis.sql"><code>code/sql/query_CM_fiscaismoveis.sql</code></a>):</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    DISTRIBUTION_YEAR,</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    DISTRIBUTION_MONTH,</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    TICKET_OPERATOR_CODE,</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    TICKET_CODE,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="dv">23</span> <span class="kw">AS</span> ENTITY_ID,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">FLOOR</span>(RUN_CODE <span class="op">/</span> <span class="dv">1000</span>) <span class="op">+</span> <span class="dv">40</span> <span class="kw">AS</span> AREA_CM,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    VALID_TYPE_ID,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    VALBYPROF,</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">SUM</span>(QNT_VALIDATION) <span class="kw">AS</span> PT_VALIDACOES</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> DW_PROC.F_VALIDATIONS</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="kw">WHERE</span> DISTRIBUTION_YEAR  <span class="op">=</span> <span class="op">&lt;</span>ANO<span class="op">&gt;</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">AND</span> DISTRIBUTION_MONTH <span class="op">=</span> <span class="op">&lt;</span>MES<span class="op">&gt;</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">AND</span> ENTITY_ID <span class="op">=</span> <span class="dv">23</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">AND</span> TICKET_OPERATOR_CODE <span class="op">=</span> <span class="dv">31</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">AND</span> VALID_TYPE_ID <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">AND</span> VALBYPROF <span class="op">=</span> <span class="dv">0</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">AND</span> RUN_CODE <span class="kw">BETWEEN</span> <span class="dv">1000</span> <span class="kw">AND</span> <span class="dv">4999</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="kw">GROUP</span> <span class="kw">BY</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    DISTRIBUTION_YEAR,</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    DISTRIBUTION_MONTH,</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    TICKET_OPERATOR_CODE,</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    TICKET_CODE,</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">FLOOR</span>(RUN_CODE <span class="op">/</span> <span class="dv">1000</span>) <span class="op">+</span> <span class="dv">40</span>,</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    VALID_TYPE_ID,</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    VALBYPROF</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a><span class="kw">ORDER</span> <span class="kw">BY</span> TICKET_CODE, AREA_CM;</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
 
 
 </section>
@@ -896,7 +840,7 @@ window.Quarto = {
       &nbsp;
     </div>
     <div class="nav-footer-right">
-<p>v0.3 (beta)</p>
+<p>v0.4 (beta)</p>
 </div>
   </div>
 </footer>
