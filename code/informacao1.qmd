@@ -389,9 +389,9 @@ Consideraram-se para o cálculo dos passageiros quilómetros, por aplicação do
 
 - Os passageiros transportados do mês de `r mes_nome` de `r ANO` obtidos após a limpeza dos dados de validação, como previsto no ponto 6.5.1.;
 
-- As distâncias médias de `r ifelse(eh_verao, "agosto", "outubro")` de 2021, constantes da Tabela 5 do Anexo V do Regulamento, para todos os Operadores com exceção da TML – Carris Metropolitana, dos operadores da AT Cascais e, desde agosto de 2026, do Metropolitano de Lisboa (ML);
+- As distâncias médias de `r ifelse(eh_verao, "agosto", "outubro")` de 2021, constantes da Tabela 5 do Anexo V do Regulamento, para todos os Operadores com exceção da TML – Carris Metropolitana, dos operadores da AT Cascais e, desde agosto de 2026, do Metropolitano de Lisboa;
 
-- Por já terem adotado a API Apex, como previsto na alínea iii) do ponto 6.5.2. do Anexo V, no caso da TML – Carris Metropolitana, da AT Cascais e, desde agosto de 2026, do Metropolitano de Lisboa (ML), as distâncias médias são as determinadas com dados de `r mes_nome` de `r ANO`. 
+- Por já terem adotado a API Apex, como previsto na alínea iii) do ponto 6.5.2. do Anexo V, no caso da TML – Carris Metropolitana, da AT Cascais e, desde agosto de 2026, do Metropolitano de Lisboa, as distâncias médias são as determinadas com dados de `r mes_nome` de `r ANO`. 
 <!-- juntar aqui a Carris quando já tiver a APEX -->
 
 - Desde abril de 2026, o operador Carris tem todos os seus validadores com a API Apex instalada, contudo, a informação das validações não é ainda compatível com o GTFS apresentado pelo operador, pelo que é impossível determinar as distâncias médias reais no presente apuramento. O Operador está a trabalhar para ultrapassar estas incompatibilidades.
@@ -893,6 +893,8 @@ if (incentiva_tp_pendente) {
 ```
 
 1)  Ao abrigo do n.º 26 do Anexo V do Regulamento, **reter a transferência determinada para a AT Cascais**;
+
+1) **Enviar** aos operadores, juntamente com o ofício, **documento com a metodologia** (“`r paste0("Anexo_Metodologia_", SUFIXO, ".pdf")`”) e **documento Excel com os resultados dos cálculos efetuados** (“`r paste0("Anexo_Calculos_", SUFIXO, ".xlsx")`”). Juntamente com este último, enviar temporariamente a versão Excel com fórmulas de cálculo para acompanhamento do procedimento de cálculo;
 
 1)  Ao abrigo do n.º 3 da Cláusula 4.ª do Aditamento ao Contrato Interadministrativo de Delegação e Subdelegação de Competências, **comunicar as estimativas de pagamento apuradas na presente informação à Área Metropolitana de Lisboa**, em data a determinar.
 
