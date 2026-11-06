@@ -358,11 +358,30 @@ tml_table(tab3, align = c("l", "r", "r", "r", "r"))
 
 Conforme previsto na secção VI do Anexo V ao Regulamento, sempre que uma Autoridade de Transportes decida pela atualização tarifária dos preços dos passes Navegante inferior à TAT e preveja o respetivo financiamento, os Operadores devem ser compensados no montante correspondente à perda de receita tarifária resultante dessa medida.
 
-Dada a imposição, por via da LOE 2024, da manutenção dos preços dos passes de transportes públicos vigentes em 2023, e da deliberação da AML de congelamento do preço dos passes Navegante nos anos de 2024 e 2025, compete à TML determinar e transferir o valor a compensar a cada Operador, nos termos do ponto n.º 23.2 do Anexo V.
+Dada a imposição, por via da LOE 2024, da manutenção dos preços dos passes de transportes públicos vigentes em 2023, e da deliberação da AML de congelamento do preço dos passes Navegante dos anos de 2024 e 2025, compete à TML determinar e transferir o valor a compensar a cada Operador, nos termos do ponto n.º 23.2 do Anexo V.
 
 Esta compensação deve ser calculada sobre a receita devida a cada Operador, mas também sobre as compensações devidas pela disponibilização de títulos Navegante bonificados, nomeadamente os passes Sub18+TP e Sub23+TP, Circula PT, Antigo Combatente e bonificação de Setúbal.
 
 Neste procedimento, apenas se apuram os valores de compensação pelo congelamento dos preços dos passes Navegante referentes à receita de passes devida \[B\], remetendo os restantes valores para os procedimentos de cálculo de cada uma das compensações dos respetivos títulos bonificados.
+
+O apuramento da compensação pelo congelamento tarifário tem por base a TAT definida anualmente pela AMT.
+O fator de compensação acumulado é determinado pelo produto das taxas de atualização tarifária em cadeia desde 2024 até ao ano em curso (`r ANO`):
+
+$$
+\text{Fator TAT} = \prod_{\text{ano}=2024}^{`r ANO`} (1 + \text{TAT}_{\text{ano}}) - 1
+$$
+
+Para cada Operador $j$ e título $i$, a compensação monetária calcula-se aplicando este fator à respetiva receita devida:
+
+$$
+\text{ReceitaCompensar}_{i,j} = B_{i,j} \times \text{Fator TAT}
+$$
+
+O montante total provisório da compensação devida ao Operador $j$ ($\text{CongNav}[B]_j$) corresponde ao somatório da receita a compensar em todos os títulos Navegante:
+
+$$
+\text{CongNav}[B]_j = \sum_i \text{ReceitaCompensar}_{i,j}
+$$ 
 
 A @tbl-4 resume o procedimento de cálculo da compensação por congelamento dos preços dos passes Navegante aplicada às respetivas receitas. Na Tabela 4 do ficheiro “`r paste0("Anexo_Calculos_", SUFIXO, ".xlsx")`” é apresentado o valor de compensação por conta do congelamento dos passes Navegante, por título e por operador.
 
