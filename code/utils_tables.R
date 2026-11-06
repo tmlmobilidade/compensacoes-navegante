@@ -266,3 +266,133 @@ tml_table_docx <- function(x, align = NULL, notes = NULL, bold_total = TRUE, wid
   knitr::asis_output(paste0("\n", paste(md, collapse = "\n"), "\n"))
 }
 
+
+#' Formata a Tabela 7 (evolução de Passageiros e Receitas em paisagem) para Typst e Word
+#'
+#' Nos meses 1 a 7 (mes <= 7), mantém Passageiros e Receitas numa única página em paisagem.
+#' Nos meses 8 a 12 (mes >= 8), divide a tabela em duas páginas dentro da mesma figura
+#' (Passageiros na pág. 1, Receitas na pág. 2), garantindo larguras de coluna idênticas.
+#'
+#' @param tab_pax data.frame com as linhas de Passageiros (incluindo linha de variação homóloga, se aplicável)
+#' @param tab_rec data.frame com as linhas de Receitas
+#' @param has_var lógico; se TRUE, a última linha de tab_pax é destacada como variação homóloga
+#' @param mes inteiro (1 a 12); mês de referência para decidir entre 1 página (<= 7) ou 2 páginas (>= 8)
+#' @return Objeto tinytable ou knitr::asis_output
+tml_table_evolucao <- function(tab_pax, tab_rec, has_var = TRUE, mes = get0("MES", ifnotfound = 1)) {
+  n_pax <- nrow(tab_pax)
+  n_rec <- nrow(tab_rec)
+
+  tab_df <- dplyr::bind_rows(tab_pax, tab_rec)
+  names(tab_df)[names(tab_df) == "Métrica"] <- " "
+  names(tab_df)[names(tab_df) == "Mes"] <- "Mês/Ano"
+  names(tab_df)[names(tab_df) == "AT TML - CM"] <- "AT TML-CM"
+
+  is_typst <- knitr::pandoc_to("typst")
+
+  if (is_typst) {
+    tab_df[[1]][1] <- "#rotate(-90deg, reflow: true)[#strong[Passageiros]]"
+    tab_df[[1]][n_pax + 1] <- "#rotate(-90deg, reflow: true)[#strong[Receitas]]"
+  } else {
+    tab_df[[1]][1] <- "**Passageiros**"
+    tab_df[[1]][n_pax + 1] <- "**Receitas**"
+  }
+
+  if (is_docx_output()) {
+    bold_md <- function(v) ifelse(nzchar(v) & !grepl("^\\*\\*", v), paste0("**", v, "**"), v)
+    if (has_var) tab_df[n_pax, -1] <- lapply(tab_df[n_pax, -1], bold_md)
+    tab_df[[3]] <- bold_md(tab_df[[3]])
+    return(tml_table(tab_df, align = c("c", "l", rep("r", 12)),
+                     bold_total = FALSE, fontsize = 0.7))
+  }
+
+  # Meses 8 a 12 em Typst: quebrar em 2 páginas (Passageiros na pág. 1, Receitas na pág. 2)
+  if (is_typst && mes >= 8) {
+    df_pax <- tab_df[1:n_pax, , drop = FALSE]
+    df_rec <- tab_df[(n_pax + 1):nrow(tab_df), , drop = FALSE]
+
+    # Linha fantasma de altura 0pt para garantir larguras de coluna 100% idênticas nas duas páginas
+    widest_cells <- vapply(seq_len(ncol(tab_df)), function(j) {
+      if (j == 1) return("[ ]")
+      vals <- tab_df[[j]]
+      w_val <- vals[which.max(nchar(vals))]
+      paste0("table.cell(inset: (y: 0pt))[#hide[#strong[", w_val, "]]]")
+    }, character(1))
+    ghost_row_typ <- paste(widest_cells, collapse = ", ")
+
+    t_pax <- tml_table(
+      df_pax,
+      align = c("c", "l", rep("r", 12)),
+      bold_total = FALSE,
+      fontsize = NULL,
+      theme = "empty"
+    ) |>
+      style_tt(i = 0, bold = TRUE) |>
+      style_tt(i = 1, line = "t", line_width = 0.05) |>
+      style_tt(j = 3, bold = TRUE) |>
+      style_tt(i = n_pax, line = "b", line_width = 0.05) |>
+      style_tt(i = 1, j = 1, rowspan = n_pax, align = "c", alignv = "m")
+
+    if (has_var) {
+      t_pax <- t_pax |>
+        style_tt(i = n_pax, j = 2:ncol(df_pax), background = "#f0f0f0", bold = TRUE)
+    }
+
+    t_rec <- tml_table(
+      df_rec,
+      align = c("c", "l", rep("r", 12)),
+      bold_total = FALSE,
+      fontsize = NULL,
+      theme = "empty"
+    ) |>
+      style_tt(i = 0, bold = TRUE) |>
+      style_tt(i = 1, line = "t", line_width = 0.05) |>
+      style_tt(j = 3, bold = TRUE) |>
+      style_tt(i = n_rec, line = "b", line_width = 0.05) |>
+      style_tt(i = 1, j = 1, rowspan = n_rec, align = "c", alignv = "m") |>
+      style_tt(i = 1:n_rec, j = 6, colspan = 2, align = "c")
+
+    extract_typ_block <- function(tt_obj, n_rows) {
+      s <- tinytable::save_tt(tt_obj, output = "typst")
+      m <- regmatches(s, regexpr("block\\[ // start block[\\s\\S]*?\\] // end block", s, perl = TRUE))
+      m <- sub("rows: auto,", paste0("rows: (", paste(c(rep("auto", n_rows + 1), "0pt"), collapse = ", "), "),"), m, fixed = TRUE)
+      m <- sub("// tinytable footer after", paste0(ghost_row_typ, ",\n    // tinytable footer after"), m, fixed = TRUE)
+      m <- sub("^block\\[ // start block", "#block[", m)
+      m <- sub("\\] // end block$", "]", m)
+      m
+    }
+
+    b_pax <- extract_typ_block(t_pax, n_pax)
+    b_rec <- extract_typ_block(t_rec, n_rec)
+
+    combined_typ <- paste0(
+      "\n```{=typst}\n",
+      "#figure( // start preamble figure\n  \n  kind: table, // end preamble figure\n\nblock[ // start block\n",
+      b_pax, "\n#colbreak()\n", b_rec, "\n] // end block\n",
+      ") // end figure\n```\n"
+    )
+    return(knitr::asis_output(combined_typ))
+  }
+
+  # Meses 1 a 7: tabela única numa só página
+  tab <- tml_table(
+    tab_df,
+    align = c("c", "l", rep("r", 12)),
+    bold_total = FALSE,
+    fontsize = NULL,
+    theme = "empty"
+  ) |>
+    style_tt(i = 0, bold = TRUE) |>
+    style_tt(i = 1, line = "t", line_width = 0.05) |>
+    style_tt(j = 3, bold = TRUE) |>
+    style_tt(i = n_pax + 1, line = "t", line_width = 0.05) |>
+    style_tt(i = nrow(tab_df), line = "b", line_width = 0.05) |>
+    style_tt(i = 1, j = 1, rowspan = n_pax, align = "c", alignv = "m") |>
+    style_tt(i = n_pax + 1, j = 1, rowspan = n_rec, align = "c", alignv = "m") |>
+    style_tt(i = (n_pax + 1):nrow(tab_df), j = 6, colspan = 2, align = "c")
+
+  if (has_var) {
+    tab <- tab |>
+      style_tt(i = n_pax, j = 2:ncol(tab_df), background = "#f0f0f0", bold = TRUE)
+  }
+  tab
+}

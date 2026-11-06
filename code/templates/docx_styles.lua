@@ -17,10 +17,12 @@ local pass1 = {
       local num_rows = #body.body
       for row_idx, row in ipairs(body.body) do
         local txt1 = pandoc.utils.stringify(row.cells[1])
+        local txt2 = row.cells[2] and pandoc.utils.stringify(row.cells[2]) or ""
         local next_txt1 = (row_idx < num_rows) and pandoc.utils.stringify(body.body[row_idx + 1].cells[1]) or ""
 
         local is_total = txt1:match("^TOTAL")
-        local is_var   = txt1:match("%s+vs%s+")
+        local is_var   = txt1:match("%s+vs%s+") or txt2:match("%s+vs%s+")
+        local is_rec_start = (txt1 == "Receitas")
 
         -- Tabela 5: Linha horizontal abaixo do ano anterior (antes dos meses)
         local is_subtot_ant = txt1:match("^Subtotal%s+%d+%s+solicitado e pago") and (next_txt1:match("^%a%a%a/%d%d") or next_txt1:match("^%*%*%a%a%a/%d%d"))
@@ -43,9 +45,20 @@ local pass1 = {
           for _, cell in ipairs(row.cells) do
             local raw_tc = pandoc.RawBlock(
               "openxml",
-              '<w:tcPr><w:tcBorders><w:top w:val="single" w:sz="8" w:space="0" w:color="000000"/><w:bottom w:val="single" w:sz="8" w:space="0" w:color="000000"/></w:tcBorders></w:tcPr>'
+              '<w:tcPr><w:tcBorders><w:top w:val="single" w:sz="8" w:space="0" w:color="000000"/><w:bottom w:val="single" w:sz="8" w:space="0" w:color="000000"/></w:tcBorders><w:shd w:val="clear" w:color="auto" w:fill="F0F0F0"/></w:tcPr>'
             )
             cell.contents:insert(1, raw_tc)
+          end
+        elseif is_rec_start then
+          for c_idx, cell in ipairs(row.cells) do
+            local raw_tc = pandoc.RawBlock(
+              "openxml",
+              '<w:tcPr><w:tcBorders><w:top w:val="single" w:sz="8" w:space="0" w:color="000000"/></w:tcBorders></w:tcPr>'
+            )
+            cell.contents:insert(1, raw_tc)
+            if c_idx == 1 and num_rows > 40 then
+              cell.contents:insert(2, pandoc.RawBlock("openxml", '<w:p><w:pPr><w:pageBreakBefore/></w:pPr></w:p>'))
+            end
           end
         elseif is_subtot_ant or is_mes_atual_border then
           for _, cell in ipairs(row.cells) do

@@ -766,7 +766,8 @@ ggplot(merged_plot, aes(x = data)) +
 #pagebreak()
 #set page(paper: "a4", flipped: true, margin: (x: 1.5cm, top: 2.2cm, bottom: 1.5cm))
 #set text(size: 8.5pt)
-#set table(inset: (x: 4pt, y: 3pt))
+#set table(inset: (x: 4pt, y: `r if (MES >= 8) "4.5pt" else "3pt"`))
+`r if (MES >= 8) "#show figure: set block(breakable: true)" else ""`
 ```
 
 
@@ -838,56 +839,7 @@ for (op in setdiff(ops_cols, "TOTAL")) {
   tab7_rec[[op]] <- ifelse(is.na(p_num) | p_num == 0, "", fmt_pct(p_num))
 }
 
-n_pax <- nrow(tab7_pax)
-n_rec <- nrow(tab7_rec)
-
-tab7_df <- bind_rows(tab7_pax, tab7_rec)
-names(tab7_df)[names(tab7_df) == "Métrica"] <- " "
-names(tab7_df)[names(tab7_df) == "Mes"] <- "Mês/Ano"
-names(tab7_df)[names(tab7_df) == "AT TML - CM"] <- "AT TML-CM"
-
-is_typst <- knitr::pandoc_to("typst")
-
-if (is_typst) {
-  tab7_df[[1]][1] <- "#rotate(-90deg, reflow: true)[#strong[Passageiros]]"
-  tab7_df[[1]][n_pax + 1] <- "#rotate(-90deg, reflow: true)[#strong[Receitas]]"
-} else {
-  tab7_df[[1]][1] <- "**Passageiros**"
-  tab7_df[[1]][n_pax + 1] <- "**Receitas**"
-}
-
-if (is_docx_output()) {
-  # Word: sem células fundidas; linha de variação homóloga e coluna TOTAL a negrito
-  bold_md <- function(v) ifelse(nzchar(v) & !grepl("^\\*\\*", v), paste0("**", v, "**"), v)
-  if (has_var) tab7_df[n_pax, -1] <- lapply(tab7_df[n_pax, -1], bold_md)
-  tab7_df[[3]] <- bold_md(tab7_df[[3]])
-  tab7 <- tml_table(tab7_df, align = c("c", "l", rep("r", 12)),
-                    bold_total = FALSE, fontsize = 0.7)
-} else {
-# Criar tabela com tml_table e tinytable
-tab7 <- tml_table(
-  tab7_df,
-  align = c("c", "l", rep("r", 12)),
-  bold_total = FALSE,
-  fontsize = NULL,
-  theme = "empty"
-) |>
-  style_tt(i = 0, bold = TRUE) |>
-  style_tt(i = 1, line = "t", line_width = 0.05) |>
-  style_tt(j = 3, bold = TRUE) |>
-  style_tt(i = n_pax + 1, line = "t", line_width = 0.05) |>
-  style_tt(i = nrow(tab7_df), line = "b", line_width = 0.05) |>
-  style_tt(i = 1, j = 1, rowspan = n_pax, align = "c", alignv = "m") |>
-  style_tt(i = n_pax + 1, j = 1, rowspan = n_rec, align = "c", alignv = "m") |>
-  style_tt(i = (n_pax + 1):nrow(tab7_df), j = 6, colspan = 2, align = "c")
-
-if (has_var) {
-  tab7 <- tab7 |>
-    style_tt(i = n_pax, j = 2:ncol(tab7_df), background = "#f0f0f0", bold = TRUE)
-}
-}
-
-tab7
+tml_table_evolucao(tab7_pax, tab7_rec, has_var = has_var, mes = MES)
 
 ```
 
@@ -899,6 +851,7 @@ tab7
 
 ```{=typst}
 #pagebreak()
+#show figure: set block(breakable: false)
 #set page(paper: "a4", flipped: false, margin: (x: 3.0cm, top: 4.0cm, bottom: 3.0cm))
 #set text(size: 11pt)
 #set table(inset: (x: 3pt, y: 6pt))
