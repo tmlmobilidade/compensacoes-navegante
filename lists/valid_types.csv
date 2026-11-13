@@ -1,0 +1,31 @@
+﻿VALID_TYPE_ID;VALID_TYPE_NAME;flag
+0;valido;
+1;Saída App Via Verde com entrada;
+2;App Via Verde já contabilizada via Validações equivalentes a vendas de TB;
+3;Validação incoerente tipo III;
+4;Validação incoerente tipo I;
+5;Validação incoerente tipo Ib;
+6;Validação incoerente tipo II;
+7;Validação de saída sem entrada;
+8;Validação de saída com entrada;
+9;Paragem fora AML;
+10;Complemento Azambuja sem validação navegante;
+11;Complemento Azambuja com validação navegante;
+12;Paragem fora AML Comp. Azambuja c val. Navegante;
+13;Cartão e Título com utilização fora da AML;
+14;Título fora PART;
+15;Perfil fora PART;
+16;run_code sem correpondência com carreira a incluir;
+17;Venda fora AML;
+18;Inválida - Operador Scotturb em carreira ATCascais;
+19;perfil social OK;ok
+20;NOK venda sem número de série;nok
+21;NOK não consta da lista de cartões social +;nok
+22;NOK cartão fora de prazo;nok
+23;Anulação sem número de série;ok
+24;Anulação com número de série sem venda;ok
+25;Validação Entrada Grupo;
+26;Validação Saída Grupo;
+27;Saída App Pick com entrada;
+28;Registos invalidados após extração;
+29;Linha operada pela CM para a CP;
