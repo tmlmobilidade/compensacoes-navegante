@@ -101,7 +101,7 @@
 5966;Navegante Setúbal Social + (A);social +;15;Navegante Setúbal;30;31;916;5936;Navegante Setúbal cPT A;SOCIAL + A;id-prod-navegante-setubal-sociala
 5967;Navegante Sintra Social + (A);social +;15;Navegante Sintra;30;31;917;5937;Navegante Sintra cPT A;SOCIAL + A;id-prod-navegante-sintra-sociala
 5968;Navegante Vila Franca de Xira Social + (A);social +;15;Navegante Vila Franca de Xira;30;31;918;5938;Navegante Vila Franca de Xira cPT A;SOCIAL + A;id-prod-navegante-vfxira-sociala
-5970;Navegante Setúbal Residente cPT A;cPT A;5;Navegante Setúbal;30;31;916;5966;Navegante Setúbal Residente cPT A;SOCIAL + A;id-prod-navegante-setubal-resid-cpta
+5970;Navegante Setúbal Residente cPT A;social +;5;Navegante Setúbal;30;31;916;5966;Navegante Setúbal Residente cPT A;SOCIAL + A;id-prod-navegante-setubal-resid-cpta
 6150;Navegante Metropolitano 418/sub23;418_sub23;0;Navegante Metropolitano;40;31;900;7650;Navegante Metropolitano 418/sub23;4_18_SUB23;id-prod-navegante-metro-418
 6151;Navegante Alcochete 418/sub23;418_sub23;0;Navegante Alcochete;30;31;901;7651;Navegante Alcochete 418/sub23;4_18_SUB23;id-prod-navegante-alcochete-418
 6153;Navegante Amadora 418/sub23;418_sub23;0;Navegante Amadora;30;31;903;7653;Navegante Amadora 418/sub23;4_18_SUB23;id-prod-navegante-amadora-418
@@ -144,3 +144,5 @@
 7671;Navegante Lisboa 418/sub23 (A) GL;418_sub23_GL;0;Navegante Lisboa;30;31;906;6171;Navegante Lisboa 418/sub23 (A) GL;4_18_SUB23 A;
 6180;Navegante Metropolitano Sub18 +TP;Sub18 +TP;0;Navegante Metropolitano;40;31;900;6181;Navegante Metropolitano 418 Gratuito;4_18_SUB23;id-prod-navegante-metro-418-gratuito
 6181;Navegante Metropolitano Sub23 +TP;Sub23 +TP;0;Navegante Metropolitano;40;31;900;6180;Navegante Metropolitano sub23 Gratuito;4_18_SUB23;id-prod-navegante-metro-sub23-grat
+5941;Navegante Complemento cPT B;social +;15;Navegante Complemento;20;;;;Navegante Complemento cPT B;SOCIAL +;
+5971;Navegante Complemento cPT A;social +;10;Navegante Complemento;20;;;;Navegante Complemento cPT A;SOCIAL + A;
