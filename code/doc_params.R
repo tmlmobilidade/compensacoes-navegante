@@ -8,18 +8,41 @@
 # =============================================================================
 
 # ---- Dados de bilhética ------------------------------------------------------
-# Datas em que foram disponibilizados os dados DITS para este mês
-data_dados_dits <- "26 de outubro de 2026"   # data de disponibilização dos dados resibos B
-data_dados_its  <- "5 de novembro de 2026"   # data de disponibilização dos dados distâncias médias
+# Datas em que foram disponibilizados os dados DITS e ITS para este mês
+data_dados_dits <- format_date_pt(get_recibos_b_date())  # extraída automaticamente dos ficheiros Recibos B (data mais antiga)
+data_dados_its  <- "27 de novembro de 2026"              # data de disponibilização dos dados distâncias médias
 
 # ---- Financiamento Incentiva +TP (Fundo Ambiental) ---------------------------
 # TRUE  = verba ainda NÃO transferida à data de emissão → faturação parcelar
 # FALSE = verba já disponível → faturação imediata total
 incentiva_tp_pendente <- TRUE
 
-# ---- Garantir que config.R (ANO, MES) está carregado -------------------------
-if (!exists("ANO") || !exists("MES")) {
+# ---- Garantir que config.R (ANO, MES, DATA_DIR) está carregado ---------------
+if (!exists("ANO") || !exists("MES") || !exists("DATA_DIR")) {
   source(here::here("code", "config.R"))
+}
+
+format_date_pt <- function(date_str, default = "XX de XXXX de 2026") {
+  if (is.na(date_str) || !nzchar(date_str)) return(default)
+  d_obj <- tryCatch(as.Date(date_str), error = function(e) NA)
+  if (is.na(d_obj)) return(default)
+  meses_nm <- c("janeiro", "fevereiro", "março", "abril", "maio", "junho",
+                "julho", "agosto", "setembro", "outubro", "novembro", "dezembro")
+  sprintf("%d de %s de %d",
+          as.integer(format(d_obj, "%d")),
+          meses_nm[as.integer(format(d_obj, "%m"))],
+          as.integer(format(d_obj, "%Y")))
+}
+
+get_recibos_b_date <- function(recibos_dir = file.path(DATA_DIR, "Recibos B")) {
+  items <- list.files(recibos_dir, pattern = "^reg_.*_reciboB_[0-9]{6}_20[0-9]{6}",
+                      ignore.case = TRUE, include.dirs = TRUE)
+  if (length(items) == 0) return(NA_character_)
+  dates <- sub("^reg_.*_reciboB_[0-9]{6}_(20[0-9]{6}).*$", "\\1", items, ignore.case = TRUE)
+  dates <- dates[grepl("^20[0-9]{6}$", dates)]
+  if (length(dates) == 0) return(NA_character_)
+  oldest <- min(dates)
+  sprintf("%s-%s-%s", substr(oldest, 1, 4), substr(oldest, 5, 6), substr(oldest, 7, 8))
 }
 
 # ---- Referências oficiais ----------------------------------------------------
@@ -61,18 +84,6 @@ get_doc_date <- function(doc_type, default = NA_character_, grp = "navegante", n
     return(sprintf("%s-%s-%s", substr(m, 1, 4), substr(m, 5, 6), substr(m, 7, 8)))
   }
   default
-}
-
-format_date_pt <- function(date_str, default = "XX de XXXX de 2026") {
-  if (is.na(date_str) || !nzchar(date_str)) return(default)
-  d_obj <- tryCatch(as.Date(date_str), error = function(e) NA)
-  if (is.na(d_obj)) return(default)
-  meses_nm <- c("janeiro", "fevereiro", "março", "abril", "maio", "junho",
-                "julho", "agosto", "setembro", "outubro", "novembro", "dezembro")
-  sprintf("%d de %s de %d",
-          as.integer(format(d_obj, "%d")),
-          meses_nm[as.integer(format(d_obj, "%m"))],
-          as.integer(format(d_obj, "%Y")))
 }
 
 # fallback defaults for document numbers if not found in documents_nr.csv
