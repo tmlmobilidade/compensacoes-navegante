@@ -117,6 +117,34 @@ PT_raw <- PT_raw |>
 # Verificar colunas essenciais
 stopifnot(all(c("ticket_code", "operador_total", "operador") %in% names(PT_raw)))
 
+# Verificar se todos os Recibos B esperados estão presentes e têm passageiros > 0
+ops_recibos_esperados <- c(CM_SUBOPS, "BQ", "CA", "CAP", "CP", "FT", "ML", "MS", "SL", "TB", "TT")
+pt_raw_check <- PT_raw |>
+  dplyr::filter(ticket_operator_code == 31L, ticket_code > 0L) |>
+  dplyr::group_by(operador) |>
+  dplyr::summarise(total_pt_raw = sum(operador_total, na.rm = TRUE), .groups = "drop") |>
+  tidyr::complete(operador = ops_recibos_esperados, fill = list(total_pt_raw = 0))
+
+ops_raw_invalidos <- pt_raw_check |>
+  dplyr::filter(total_pt_raw <= 0)
+
+if (nrow(ops_raw_invalidos) > 0) {
+  ops_em_falta <- setdiff(ops_raw_invalidos$operador, unique(PT_raw$operador))
+  detalhe_raw <- paste(
+    sprintf(
+      "%s (%s%s)",
+      ops_raw_invalidos$operador,
+      scales::number(ops_raw_invalidos$total_pt_raw, big.mark = ".", decimal.mark = ",", accuracy = 1),
+      ifelse(ops_raw_invalidos$operador %in% ops_em_falta, " — Recibo B em falta", "")
+    ),
+    collapse = ", "
+  )
+  warning(sprintf(
+    "Recibo(s) B com passageiros <= 0 (ou em falta): %s",
+    detalhe_raw
+  ), call. = FALSE)
+}
+
 # ---- Tratar CM = A1 + A2 + A3 + A4 -----------------------------------------
 # Os sub-operadores A1-A4 (entities 41, 42, 43 e 44) são enviados em ficheiros
 # separados e representam as áreas operacionais da Carris Metropolitana.
@@ -500,13 +528,31 @@ if (tem_recibo_sl) {
   cat("(AVISO: TT inclui TT+SL — Recibo B de TT agrega ambos; Recibo B de SL não encontrado)\n")
 }
 
-PT_mesano |>
+ops_esperados <- c("BQ", "CA", "CAP", "CM", "CP", "FT", "ML", "MS", "SL", "TB", "TT")
+
+totais_pt <- PT_mesano |>
   group_by(operador) |>
-  summarise(total_pt = sum(pt_operador)) |>
+  summarise(total_pt = sum(pt_operador, na.rm = TRUE), .groups = "drop") |>
+  tidyr::complete(operador = ops_esperados, fill = list(total_pt = 0)) |>
   dplyr::mutate(total_pt_fmt = scales::number(total_pt, big.mark = ".", decimal.mark = ",", accuracy = 1)) |>
   arrange(desc(total_pt)) |>
-  dplyr::select(operador, total_pt, total_pt_fmt) |>
-  print()
+  dplyr::select(operador, total_pt, total_pt_fmt)
+
+print(totais_pt)
+
+ops_pt_invalido <- totais_pt |>
+  dplyr::filter(total_pt <= 0)
+
+if (nrow(ops_pt_invalido) > 0) {
+  detalhe_ops <- paste(
+    sprintf("%s (%s passageiros)", ops_pt_invalido$operador, ops_pt_invalido$total_pt_fmt),
+    collapse = ", "
+  )
+  warning(sprintf(
+    "Operador(es) com passageiros <= 0 (zero ou negativos) nos Recibos B: %s. Verificar ficheiros em '%s'!",
+    detalhe_ops, recibos_dir
+  ), call. = FALSE)
+}
 
 cat("\n--- Verificação: receita total por operador (€) ---\n")
 receitas_titulo_mesano |>
