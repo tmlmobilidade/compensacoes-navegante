@@ -9,7 +9,6 @@
 
 # ---- Dados de bilhética ------------------------------------------------------
 # Datas em que foram disponibilizados os dados DITS e ITS para este mês
-data_dados_dits <- format_date_pt(get_recibos_b_date())  # extraída automaticamente dos ficheiros Recibos B (data mais antiga)
 data_dados_its  <- "27 de novembro de 2026"              # data de disponibilização dos dados distâncias médias
 
 # ---- Financiamento Incentiva +TP (Fundo Ambiental) ---------------------------
@@ -44,6 +43,11 @@ get_recibos_b_date <- function(recibos_dir = file.path(DATA_DIR, "Recibos B")) {
   oldest <- min(dates)
   sprintf("%s-%s-%s", substr(oldest, 1, 4), substr(oldest, 5, 6), substr(oldest, 7, 8))
 }
+
+## Data de disponibilização dos dados DITS (distâncias médias) para este mês
+data_dados_dits <- format_date_pt(get_recibos_b_date())  # extraída automaticamente dos ficheiros Recibos B (data mais antiga)
+# we can overwrite it manually if needed, e.g.:
+# data_dados_dits <- "27 de novembro de 2026"  # data
 
 # ---- Referências oficiais ----------------------------------------------------
 docs_nr_path <- here::here("lists", "documents_nr.csv")
