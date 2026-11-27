@@ -6,7 +6,7 @@
 # ---- PARÂMETROS PRINCIPAIS (alterar aqui) ------------------------------------
 
 ANO <- 2026
-MES <- 8      # 5 = maio, 6 = junho, 7 = julho, 8 = agosto, etc.
+MES <- 9      # 5 = maio, 6 = junho, 7 = julho, 8 = agosto, etc.
 
 # Documentos a renderizar (TRUE / FALSE) e guardar em output/docs/
 RENDER_INFORMACAO1 <- TRUE
@@ -18,7 +18,7 @@ RENDER_DOCX        <- TRUE   # Gera também versões Word (DOCX) nativas via Qua
 # Controlo de gravação em lists/receitas_anteriores.csv:
 # FALSE = modo de teste (usa os valores do mês atual apenas em memória para gráficos/tabelas, sem alterar o CSV)
 # TRUE  = modo definitivo/lock (adiciona ou atualiza os valores deste ANO/MES em lists/receitas_anteriores.csv)
-GUARDAR_RECEITAS_ANTERIORES <- TRUE
+GUARDAR_RECEITAS_ANTERIORES <- FALSE
 
 # ============================================================================
 # A partir daqui, alterar apenas se souber o que está a fazer (operadores APEX, caminhos, nomes de ficheiros, etc.)
